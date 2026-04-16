@@ -319,7 +319,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: 0.20671065, y: -0.0064561265, z: 0.0013785231, w: 0.97837985}
-  m_LocalPosition: {x: -5.6742244, y: 16.15721, z: -35.970833}
+  m_LocalPosition: {x: -5.022023, y: 20.661478, z: -55.78797}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -520,7 +520,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 4.3, y: 0.5, z: 3.8}
+  m_Size: {x: 4.2546325, y: 0.5572398, z: 3.7928371}
   m_Center: {x: 0.005462408, y: 0.03441158, z: -0.04479432}
 --- !u!54 &793277830
 Rigidbody:
@@ -547,8 +547,23 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 112
+  m_Constraints: 0
   m_CollisionDetection: 1
+--- !u!114 &793277831
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 793277824}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99a536fd7e001914b8118e4ceb6975d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DroneController
+  moveSpeed: 10
+  verticalSpeed: 6
+  turnSpeed: 100
 --- !u!114 &793277834
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -562,7 +577,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallToss
   targetTag: valleyball
-  tossBoost: 1
+  tossBoost: 4
   minTossForce: 10
 --- !u!114 &793277837
 MonoBehaviour:
@@ -578,7 +593,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BallToss
   targetTag: injectionball
   tossBoost: 4
-  minTossForce: 5
+  minTossForce: 10
 --- !u!114 &793277842
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -595,21 +610,6 @@ MonoBehaviour:
   ballLayer:
     serializedVersion: 2
     m_Bits: 64
---- !u!114 &793277846
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 793277824}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c16f1740c4639ec4b896df14c01d1f87, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DroneAI2
-  targetRb: {fileID: 1959838964}
-  interceptTime: 2
-  minCatchHeight: 0.6
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -845,16 +845,28 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 2100000, guid: ca862d9708fb270498ff25634a51396d, type: 2}
     - target: {fileID: 8004870786121596540, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.6818
+      objectReference: {fileID: 0}
+    - target: {fileID: 8004870786121596540, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.6818
+      objectReference: {fileID: 0}
+    - target: {fileID: 8004870786121596540, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.6818
+      objectReference: {fileID: 0}
+    - target: {fileID: 8004870786121596540, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.64
+      value: -1.6114
       objectReference: {fileID: 0}
     - target: {fileID: 8004870786121596540, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 7.4
+      value: 4.9501
       objectReference: {fileID: 0}
     - target: {fileID: 8004870786121596540, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -18.61
+      value: -3.9005
       objectReference: {fileID: 0}
     - target: {fileID: 8004870786121596540, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
       propertyPath: m_LocalRotation.w
@@ -904,6 +916,9 @@ PrefabInstance:
       addedObject: {fileID: 793277830}
     - targetCorrespondingSourceObject: {fileID: 7231887364440564934, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
       insertIndex: -1
+      addedObject: {fileID: 793277831}
+    - targetCorrespondingSourceObject: {fileID: 7231887364440564934, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 793277834}
     - targetCorrespondingSourceObject: {fileID: 7231887364440564934, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
       insertIndex: -1
@@ -911,9 +926,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7231887364440564934, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 793277842}
-    - targetCorrespondingSourceObject: {fileID: 7231887364440564934, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 793277846}
   m_SourcePrefab: {fileID: 100100000, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
 --- !u!1 &1959838963
 GameObject:
@@ -1049,8 +1061,8 @@ Transform:
   m_GameObject: {fileID: 1959838963}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 4.33, y: 16.21, z: -10.05}
-  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_LocalPosition: {x: -1.39, y: 16.17, z: -3.42}
+  m_LocalScale: {x: 1.3636, y: 1.3636, z: 1.3636}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -1194,6 +1206,55 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2066372697
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2066372699}
+  - component: {fileID: 2066372698}
+  m_Layer: 0
+  m_Name: Tossinject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2066372698
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2066372697}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eacf634e3b9bea34f9060ce3d09867a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallLauncher
+  ballPrefab: {fileID: 3380572386424972372, guid: 1cdd11fc4020e434b8b268275c63ccbf, type: 3}
+  firePoint: {fileID: 2066372699}
+  shotForce: 15
+  launchAngle: -45
+  horizontalAngle: 90
+--- !u!4 &2066372699
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2066372697}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -4.97, y: 11.92959, z: -10.40873}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -1205,5 +1266,6 @@ SceneRoots:
   - {fileID: 1959838968}
   - {fileID: 1476472310}
   - {fileID: 1769980537}
+  - {fileID: 2066372699}
   - {fileID: 314704136}
   - {fileID: 1988962815}
