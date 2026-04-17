@@ -850,11 +850,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8004870786121596540, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 7.4
+      value: 1.96
       objectReference: {fileID: 0}
     - target: {fileID: 8004870786121596540, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -18.61
+      value: -13.24
       objectReference: {fileID: 0}
     - target: {fileID: 8004870786121596540, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
       propertyPath: m_LocalRotation.w
@@ -928,7 +928,7 @@ GameObject:
   - component: {fileID: 1959838966}
   - component: {fileID: 1959838965}
   - component: {fileID: 1959838964}
-  m_Layer: 6
+  m_Layer: 0
   m_Name: valleyball
   m_TagString: valleyball
   m_Icon: {fileID: 0}
@@ -1049,7 +1049,7 @@ Transform:
   m_GameObject: {fileID: 1959838963}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 4.33, y: 16.21, z: -10.05}
+  m_LocalPosition: {x: 4.23, y: 11.61, z: 1.14}
   m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children: []
