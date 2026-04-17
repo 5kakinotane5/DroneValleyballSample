@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 5877895448095107885}
   - component: {fileID: 3317820517980777314}
   - component: {fileID: 8662993477060767682}
-  m_Layer: 6
+  m_Layer: 7
   m_Name: injectionball
   m_TagString: injectionball
   m_Icon: {fileID: 0}

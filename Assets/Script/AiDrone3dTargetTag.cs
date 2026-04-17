@@ -1,25 +1,27 @@
 using UnityEngine;
-
-public class AiDrone3d : MonoBehaviour
+//Ballタグ付けされたオブジェクトを追跡する機能です。
+public class AiDrone3dTargetTag : MonoBehaviour
 {
-    [SerializeField] private Rigidbody targetRb;      // ボールのRigidbodyをアサイン
+    //[SerializeField] private Rigidbody targetRb;      // ボールのRigidbodyをアサイン
+    [Header("判定するターゲットのタグ")]    
+    public string targetTag="injectionball";
     [SerializeField] private float interceptTime = 2f; // T：何秒後に到達するか
     [SerializeField] private float minCatchHeight = 0.6f; // 床に激突しない安全高度
     private Rigidbody rb;
+    private Rigidbody targetRb;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        
-        if (targetRb == null)
-        {
-            Debug.LogError("ターゲットのRigidbodyがアサインされていません！");
-        }
     }
 
     void FixedUpdate()
     {
-
+        GameObject ballObj = GameObject.FindGameObjectWithTag(targetTag);
+        if(ballObj!=null){
+            targetRb=ballObj.GetComponent<Rigidbody>();
+        }
+        
         Vector3 g=Physics.gravity;//デフォルトは(0,-9.81,0)
         float gY = g.y;
         Vector3 ballPos = targetRb.position;
