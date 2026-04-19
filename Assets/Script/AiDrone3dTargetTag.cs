@@ -18,10 +18,10 @@ public class AiDrone3dTargetTag : MonoBehaviour
     void FixedUpdate()
     {
         GameObject ballObj = GameObject.FindGameObjectWithTag(targetTag);
-        if(ballObj!=null){
-            targetRb=ballObj.GetComponent<Rigidbody>();
+        if(ballObj==null){
+            return;
         }
-        
+        targetRb=ballObj.GetComponent<Rigidbody>();
         Vector3 g=Physics.gravity;//デフォルトは(0,-9.81,0)
         float gY = g.y;
         Vector3 ballPos = targetRb.position;

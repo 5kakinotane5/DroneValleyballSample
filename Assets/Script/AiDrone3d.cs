@@ -19,7 +19,6 @@ public class AiDrone3d : MonoBehaviour
 
     void FixedUpdate()
     {
-
         Vector3 g=Physics.gravity;//デフォルトは(0,-9.81,0)
         float gY = g.y;
         Vector3 ballPos = targetRb.position;
