@@ -782,8 +782,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.12678778, y: 0.03659262, z: -0.004670778, w: 0.99124366}
-  m_LocalPosition: {x: 1.4315424, y: 12.626136, z: -23.909077}
+  m_LocalRotation: {x: 0.1267878, y: 0.036592625, z: -0.0046707783, w: 0.9912437}
+  m_LocalPosition: {x: -1.1349294, y: 14.201145, z: -56.33468}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1269,7 +1269,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallToss
   targetTag: injectionball
-  tossBoost: 4
+  tossBoost: 6
   minTossForce: 5
 --- !u!54 &1392019830
 Rigidbody:
@@ -1332,31 +1332,48 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AdvancedDroneSpiker
   ballTag: injectionball
-  spikeHeight: 6
+  spikeHeight: 10
   initialPos: {x: 10.5, y: 6, z: 0}
-  vMax: 20
-  spikeFlightTime: 0.8
+  vMax: 25
+  spikeFlightTime: 0.2
   runupTime: 0.3
   currentState: 0
+--- !u!4 &1473877919 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 070d920cd610725429f912abd83405d8, type: 3}
+  m_PrefabInstance: {fileID: 1476472310}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1476472310
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 0}
+    m_TransformParent: {fileID: 1959838968}
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 070d920cd610725429f912abd83405d8, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.6666667
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 070d920cd610725429f912abd83405d8, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.6666667
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 070d920cd610725429f912abd83405d8, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.6666667
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 070d920cd610725429f912abd83405d8, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: -2.8200002
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 070d920cd610725429f912abd83405d8, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.4
+      value: -8.006666
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 070d920cd610725429f912abd83405d8, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: -0.76
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 070d920cd610725429f912abd83405d8, type: 3}
       propertyPath: m_LocalRotation.w
@@ -1364,15 +1381,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 070d920cd610725429f912abd83405d8, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 070d920cd610725429f912abd83405d8, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 070d920cd610725429f912abd83405d8, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 070d920cd610725429f912abd83405d8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -1826,7 +1843,7 @@ MonoBehaviour:
   ballPrefab: {fileID: 3380572386424972372, guid: 1cdd11fc4020e434b8b268275c63ccbf, type: 3}
   firePoint: {fileID: 1769980537}
   shotForce: 15
-  launchAngle: -45
+  launchAngle: -65
   horizontalAngle: 0
 --- !u!4 &1769980537
 Transform:
@@ -2224,7 +2241,8 @@ Transform:
   m_LocalPosition: {x: 4.23, y: 11.61, z: 1.14}
   m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1473877919}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1979314663 stripped
@@ -2267,7 +2285,7 @@ GameObject:
   - component: {fileID: 1988962812}
   m_Layer: 0
   m_Name: RivalCourt
-  m_TagString: Untagged
+  m_TagString: court
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2488,7 +2506,6 @@ SceneRoots:
   - {fileID: 1914598420}
   - {fileID: 191677736}
   - {fileID: 1959838968}
-  - {fileID: 1476472310}
   - {fileID: 1769980537}
   - {fileID: 314704136}
   - {fileID: 1988962815}

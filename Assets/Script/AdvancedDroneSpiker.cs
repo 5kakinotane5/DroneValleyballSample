@@ -10,6 +10,8 @@
 改善点
 地点Bにマーカーをつける。
 ネットに引っかからないようにする。
+｛ネットの高さは4.8であり余裕をもって安全高度を4.9とする。
+　ネットを超える地点Aのx座標/球の速度｝
 トス強度を上げる。
 */
 
@@ -21,10 +23,10 @@ public class AdvancedDroneSpiker : MonoBehaviour
     public string ballTag="injectionball";
     public float spikeHeight=7f;//地点Aの高さ打撃位置
     public Vector3 initialPos=new Vector3(10.5f,6.0f,0f);
-    public float vMax=20f;
+    public float vMax=30f;
 
     [Header("弾道パラメータ")]
-    [SerializeField] private float spikeFlightTime=0.8f;//地点AからBまでの滞空時間
+    [SerializeField] private float spikeFlightTime=0.01f;//地点AからBまでの滞空時間
     [SerializeField] private float runupTime=0.3f;
 
     private Rigidbody rb;
@@ -84,6 +86,7 @@ public class AdvancedDroneSpiker : MonoBehaviour
             GameObject ball=GameObject.FindGameObjectWithTag(ballTag);
             if(ball==null || ball==lastSpikedBall) return;
             targetRb=ball.GetComponent<Rigidbody>();
+            if (targetRb==null) return;
 
             //ボールが上昇中かつ目標高より低いときに計算
             if(targetRb.linearVelocity.y>0 && targetRb.position.y<spikeHeight){
@@ -114,11 +117,17 @@ public class AdvancedDroneSpiker : MonoBehaviour
 
             timeUntilImpact=tb;
 
-            //2地点A(a,b,c)の座標確定
+             //2,地点Bをランダムに決定-21<x<10.5),y=0,-10<z<10f
+            //Vector3 pointB=new Vector3(Random.Range(-21f,-10.5f),0f,Random.Range(-10f,10f));
+            Vector3 pointB=new Vector3(-21f,0f,-10.5f);
+            
+            //3,地点A(a,b,c)の座標確定
+            //spikeFlightTime:地点Aから地点Bまでのスパイクの移動時間
+            //vx=(targetRb.position.x-pointB.x)/spikeHeight,vz=(targetRb.position.z-pointB.z)/spikeHeight
+            //pointA=new Vector3(,spikeHeight,)
             pointA=new Vector3(targetRb.position.x+(targetRb.linearVelocity.x*tb),spikeHeight,targetRb.position.z+(targetRb.linearVelocity.z*tb));
 
-            //3地点Bをランダムに決定-21<x<10.5),y=0,-10<z<10f
-            Vector3 pointB=new Vector3(Random.Range(-21f,-10.5f),0f,Random.Range(-10f,10f));
+           
 
             //4ボールの必要速度を算出
             float vBallx=(pointB.x-pointA.x)/spikeFlightTime;
@@ -127,7 +136,7 @@ public class AdvancedDroneSpiker : MonoBehaviour
 
             Vector3 vBallPost=new Vector3(vBallx,vBallY,vBallZ);
 
-            requiredDroneVel=vBallPost/2f;//地点Aでドローンが衝突する際の必要な速度
+            requiredDroneVel=vBallPost/2f;//地点Aでドローンが衝突する際の必要な速度=ボールの必要速度/トス強度
 
             //軌道に入り待ち構えするためのスタンバイ地点を逆算
             //もしtbがrunnupTimeより短い場合は即座にStrikingに移行できるように調整
@@ -138,7 +147,12 @@ public class AdvancedDroneSpiker : MonoBehaviour
 
         
     }
-
+    void OnDrawGizmos()
+    {
+        Gizmos.color = Color.yellow;
+        // 指定した座標（targetPosition）に球体を描画
+        Gizmos.DrawWireSphere(pointA, 0.5f);
+    }
     private void OnCollisionEnter(Collision collision){
         if(collision.gameObject.CompareTag(ballTag) && currentState==State.Striking){
             Rigidbody ballRb = collision.gameObject.GetComponent<Rigidbody>();
