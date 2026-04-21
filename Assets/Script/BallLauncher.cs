@@ -5,11 +5,11 @@ public class BallLauncher: MonoBehaviour
 {
     public GameObject ballPrefab;
     public Transform firePoint;
-    public float shotForce=15f;
+    public float shotForce=30f;
 
     [Header("角度調整")]
     
-    [Range(-45f,45f)] 
+    [Range(-90f,45f)] 
     public float launchAngle=-45;//-45でｙ軸正に45度
     
     [Range(-180f,180f)] 

@@ -181,15 +181,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8004870786121596540, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 11.6
+      value: 10.5
       objectReference: {fileID: 0}
     - target: {fileID: 8004870786121596540, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 7.4
+      value: 4.8
       objectReference: {fileID: 0}
     - target: {fileID: 8004870786121596540, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -4.09
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8004870786121596540, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
       propertyPath: m_LocalRotation.w
@@ -239,16 +239,13 @@ PrefabInstance:
       addedObject: {fileID: 1392019830}
     - targetCorrespondingSourceObject: {fileID: 7231887364440564934, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1392019829}
-    - targetCorrespondingSourceObject: {fileID: 7231887364440564934, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 1392019828}
     - targetCorrespondingSourceObject: {fileID: 7231887364440564934, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1392019827}
     - targetCorrespondingSourceObject: {fileID: 7231887364440564934, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1392019835}
+      addedObject: {fileID: 1392019839}
   m_SourcePrefab: {fileID: 100100000, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
 --- !u!1 &223108501
 GameObject:
@@ -785,8 +782,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.16249382, y: -0.00059250975, z: 0.00010751869, w: 0.9867094}
-  m_LocalPosition: {x: 0.46469358, y: 14.522591, z: -31.95932}
+  m_LocalRotation: {x: 0.12678778, y: 0.03659262, z: -0.004670778, w: 0.99124366}
+  m_LocalPosition: {x: 1.4315424, y: 12.626136, z: -23.909077}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1274,21 +1271,6 @@ MonoBehaviour:
   targetTag: injectionball
   tossBoost: 4
   minTossForce: 5
---- !u!114 &1392019829
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1392019825}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0c6a5a71b0ce7ee4c9a9ed2e6eb4b64f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BallToss
-  targetTag: valleyball
-  tossBoost: 1
-  minTossForce: 10
 --- !u!54 &1392019830
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1337,7 +1319,7 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 4.3, y: 0.5, z: 3.8}
   m_Center: {x: 0.005462408, y: 0.03441158, z: -0.04479432}
---- !u!114 &1392019835
+--- !u!114 &1392019839
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1346,12 +1328,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 1392019825}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 81d98ab44d05fe74890ed77cb3c6e42c, type: 3}
+  m_Script: {fileID: 11500000, guid: 8b5951709d7b0284ab6d7f5f45f731e7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AiDrone3dTargetTag
-  targetTag: injectionball
-  interceptTime: 2
-  minCatchHeight: 0.6
+  m_EditorClassIdentifier: Assembly-CSharp::AdvancedDroneSpiker
+  ballTag: injectionball
+  spikeHeight: 6
+  initialPos: {x: 10.5, y: 6, z: 0}
+  vMax: 20
+  spikeFlightTime: 0.8
+  runupTime: 0.3
+  currentState: 0
 --- !u!1001 &1476472310
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1851,7 +1837,7 @@ Transform:
   m_GameObject: {fileID: 1769980535}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.14, y: 2.59, z: -12.04}
+  m_LocalPosition: {x: 2.14, y: 2.65, z: -12.04}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
