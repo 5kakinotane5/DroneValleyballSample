@@ -10,7 +10,7 @@ public class BallLauncher: MonoBehaviour
     [Header("角度調整")]
     
     [Range(-90f,45f)] 
-    public float launchAngle=-65;//-45でｙ軸正に45度
+    public float launchAngle=-90;//-45でｙ軸正に45度
     
     [Range(-180f,180f)] 
     public float horizontalAngle=90f;

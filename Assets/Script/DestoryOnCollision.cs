@@ -14,8 +14,10 @@ public class DestroyOnCollision : MonoBehaviour
         // ぶつかった相手のタグをチェック
         if (collision.gameObject.CompareTag(targetTag))
         {
+            Vector3 hitPoint=collision.contacts[0].point;
+            Debug.Log($"{targetTag} にぶつかったので自分を消去しました。消失地点: {hitPoint}");
             Destroy(gameObject);
-                Debug.Log($"{targetTag}にぶつかったので自分を消去しました。");
+            Debug.Log($"{targetTag}にぶつかったので自分を消去しました。");
             
         }
     }

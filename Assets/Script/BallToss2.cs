@@ -33,6 +33,7 @@ public class BallToss2 : MonoBehaviour
                 // 1. ドローンの現在の速度ベクトル（XYZの合力）を取得
                 Vector3 droneVelocityVector = droneRb.linearVelocity;
 
+                Debug.Log($"ドローンの衝突前のスピード:{droneVelocityVector}");
                 // 2. ドローンの速度ベクトルを tossBoost 倍にする
                 Vector3 boostedVelocity = droneVelocityVector * tossBoost;
 
@@ -41,9 +42,10 @@ public class BallToss2 : MonoBehaviour
                 
 
                 // 4. ボールの速度を完全に上書き
+                droneRb.linearVelocity=Vector3.zero;
                 ballRb.linearVelocity = boostedVelocity;
 
-                Debug.Log($"トス成功! 合力速度: {boostedVelocity.magnitude} (倍率: {tossBoost})");
+                Debug.Log($"トス成功! 合力速度: {boostedVelocity} (倍率: {tossBoost})");
             }
         }
     }

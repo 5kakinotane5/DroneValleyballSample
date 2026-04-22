@@ -13,6 +13,30 @@
 ｛ネットの高さは4.8であり余裕をもって安全高度を4.9とする。
 　ネットを超える地点Aのx座標/球の速度｝
 トス強度を上げる。
+
+問題点
+現在はspikeFlightTimeによってスパイクが依存されて想定した地点に打球できてない
+//Spike Success!衝突座標:(2.14, 15.15, -0.79)/予測座標:(-19.00, 0.00, 0.00)/
+UnityEngine.Debug:Log (object)
+AdvancedDroneSpiker:OnCollisionEnter (UnityEngine.Collision) (at Assets/Script/AdvancedDroneSpiker.cs:181)
+UnityEngine.Physics:OnSceneContact (UnityEngine.PhysicsScene,intptr,int)
+
+ドローンの衝突前のスピード:(-20.92, -13.03, 0.82)
+UnityEngine.Debug:Log (object)
+BallToss2:OnCollisionEnter (UnityEngine.Collision) (at Assets/Script/BallToss2.cs:36)
+UnityEngine.Physics:OnSceneContact (UnityEngine.PhysicsScene,intptr,int)
+
+トス成功! 合力速度: (-41.84, -26.06, 1.65) (倍率: 2)
+UnityEngine.Debug:Log (object)
+BallToss2:OnCollisionEnter (UnityEngine.Collision) (at Assets/Script/BallToss2.cs:48)
+UnityEngine.Physics:OnSceneContact (UnityEngine.PhysicsScene,intptr,int)
+
+court にぶつかったので自分を消去しました。消失地点: (-18.23, 0.00, 0.08)
+UnityEngine.Debug:Log (object)
+DestroyOnCollision:OnCollisionEnter (UnityEngine.Collision) (at Assets/Script/DestoryOnCollision.cs:18)
+UnityEngine.Physics:OnSceneContact (UnityEngine.PhysicsScene,intptr,int)
+
+
 */
 
 using UnityEngine;
@@ -37,7 +61,7 @@ public class AdvancedDroneSpiker : MonoBehaviour
     private Rigidbody targetRb;
     private Vector3 requiredDroneVel;//ドローンの必要速度
     private Vector3 pointA;//衝突予測地点A
-    private Vector3 pointB=new Vector3(-20f,0f,0f);
+    private Vector3 pointB=new Vector3(-19f,0f,0f);
 
     private Vector3 standbyPoint;//軌道に入るための待ち構え地点
     private float timeUntilImpact;//地点Aで衝突するまでの残り時間
@@ -149,14 +173,14 @@ public class AdvancedDroneSpiker : MonoBehaviour
                 Debug.LogWarning("Trajectory too low! Net collision predicted.");
                 return false; // 低すぎる場合は打ち合わない
             }
-
+            
             Vector3 vBallPost=new Vector3(vBallx,vBallY,vBallZ);
 
             requiredDroneVel=vBallPost/2f;//地点Aでドローンが衝突する際の必要な速度=ボールの必要速度/トス強度
 
             //軌道に入り待ち構えするためのスタンバイ地点を逆算
             //もしtbがrunnupTimeより短い場合は即座にStrikingに移行できるように調整
-            float actualRunup=Mathf.Min(runupTime,tb);
+            float actualRunup=Mathf.Min(runupTime,tb);//助走に掛けれる時間
             standbyPoint=pointA-(requiredDroneVel*actualRunup);
             return true;
         }
@@ -175,7 +199,7 @@ public class AdvancedDroneSpiker : MonoBehaviour
             if (ballRb != null)
             {
                 Vector3 hitPoint=collision.contacts[0].point;
-                Debug.Log($"Spike Success!衝突座標:{hitPoint}/予測座標:{pointB}");
+                Debug.Log($"Spike Success!衝突座標:{hitPoint}/予測座標:{pointB}/");
 
                 lastSpikedBall = collision.gameObject; // このボールを記憶
                 currentState = State.Returning; // 即座に帰還状態へ
