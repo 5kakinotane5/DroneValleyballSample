@@ -242,10 +242,10 @@ PrefabInstance:
       addedObject: {fileID: 1392019827}
     - targetCorrespondingSourceObject: {fileID: 7231887364440564934, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1392019839}
+      addedObject: {fileID: 1392019843}
     - targetCorrespondingSourceObject: {fileID: 7231887364440564934, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1392019843}
+      addedObject: {fileID: 1392019847}
   m_SourcePrefab: {fileID: 100100000, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
 --- !u!1 &223108501
 GameObject:
@@ -1190,27 +1190,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 4.3, y: 0.5, z: 3.8}
   m_Center: {x: 0.005462408, y: 0.03441158, z: -0.04479432}
---- !u!114 &1392019839
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1392019825}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8b5951709d7b0284ab6d7f5f45f731e7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AdvancedDroneSpiker
-  ballTag: injectionball
-  spikeHeight: 15
-  initialPos: {x: 10.5, y: 6, z: 0}
-  vMax: 10
-  spikeFlightTime: 0.5
-  runupTime: 0.8
-  netX: 0
-  netHeightSafe: 4.9
-  currentState: 0
 --- !u!114 &1392019843
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1226,6 +1205,27 @@ MonoBehaviour:
   targetTag: injectionball
   tossBoost: 2
   minTossSpeed: 0
+--- !u!114 &1392019847
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1392019825}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63ae1280d5314414287bf5f8598677a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DroneSpikeMultiple
+  ballTag: injectionball
+  spikeHeight: 10
+  initialPos: {x: 10.5, y: 6, z: 0}
+  vMax: 10
+  spikeFlightTime: 0.2
+  runupTime: 0.3
+  netX: 0
+  netHeightSafe: 4.9
+  currentState: 0
 --- !u!1001 &1476472310
 PrefabInstance:
   m_ObjectHideFlags: 0

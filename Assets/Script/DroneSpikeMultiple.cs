@@ -41,13 +41,13 @@ UnityEngine.Physics:OnSceneContact (UnityEngine.PhysicsScene,intptr,int)
 
 using UnityEngine;
 
-public class AdvancedDroneSpiker : MonoBehaviour
+public class DroneSpikeMultiple : MonoBehaviour
 {
     [Header("基本設定")]
     public string ballTag="injectionball";
     public float spikeHeight=10f;//地点Aの高さ打撃位置
-    public Vector3 initialPos;
-    //public Vector3 initialPos=new Vector3(10.5f,6.0f,0f);
+    //public Vector3 initialPos;
+    public Vector3 initialPos=new Vector3(10.5f,6.0f,0f);
     public float vMax=10f;
 
     [Header("弾道パラメータ")]
@@ -105,8 +105,11 @@ public class AdvancedDroneSpiker : MonoBehaviour
                 Debug.DrawRay(transform.position,requiredDroneVel,Color.blue);
                 break;
             case State.Returning:
+                
                 Hover(initialPos);
-                if(Vector3.Distance(transform.position,initialPos)<0.3f){
+                Vector3 targetXY=new Vector3(initialPos.x,transform.position.y,initialPos.z);
+                Debug.Log($"目標X: {initialPos.x} / 現在X: {transform.position.x}");
+                if(Vector3.Distance(transform.position,targetXY)<2.0f){
                     currentState=State.Hovering;
                 }
                 break;
@@ -114,15 +117,18 @@ public class AdvancedDroneSpiker : MonoBehaviour
         }
 
         void FindAndCalculateBall(){
-            GameObject ball=GameObject.FindGameObjectWithTag(ballTag);
-            if(ball==null || ball==lastSpikedBall) return;
-            targetRb=ball.GetComponent<Rigidbody>();
-            if (targetRb==null) return;
+            GameObject[] balls=GameObject.FindGameObjectsWithTag(ballTag);//全てのボールタグが付いているものを取得
+            foreach(GameObject ball in balls){
+                if(ball==lastSpikedBall) continue;
 
-            //ボールが上昇中かつ目標高より低いときに計算
-            if(targetRb.linearVelocity.y>0 && targetRb.position.y<spikeHeight){
-                if(CalculateTrajectory()){
-                    currentState=State.MovingToTrajectory;
+                targetRb=ball.GetComponent<Rigidbody>();
+                if(targetRb==null) continue;
+
+                if(targetRb.linearVelocity.y>0 && targetRb.position.y<spikeHeight){
+                    if (CalculateTrajectory()){
+                        currentState=State.MovingToTrajectory;
+                        return;
+                    }
                 }
             }
         }
@@ -149,7 +155,7 @@ public class AdvancedDroneSpiker : MonoBehaviour
             timeUntilImpact=tb;
 
              //2,地点Bをランダムに決定-21<x<10.5),y=0,-10<z<10f
-            Vector3 pointB=new Vector3(Random.Range(-21f,-10.5f),0f,Random.Range(-10f,10f));
+            Vector3 pointB=new Vector3(Random.Range(-21f,-5f),0f,Random.Range(-10f,10f));
             
             
 
@@ -227,5 +233,7 @@ public class AdvancedDroneSpiker : MonoBehaviour
         Vector3 moveForce=(diff*2.0f*logFactor)+antiGraviy-(rb.linearVelocity*0.7f);
 
         rb.AddForce(moveForce,ForceMode.Acceleration);
+        
+    
     }
 }
