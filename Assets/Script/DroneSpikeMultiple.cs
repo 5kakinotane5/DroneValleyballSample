@@ -51,8 +51,8 @@ public class DroneSpikeMultiple : MonoBehaviour
     public float vMax=10f;
 
     [Header("弾道パラメータ")]
-    [SerializeField] private float spikeFlightTime=0.2f;//地点AからBまでの滞空時間
-    [SerializeField] private float runupTime=0.3f;
+    [SerializeField] private float spikeFlightTime=0.4f;//地点AからBまでの滞空時間
+    [SerializeField] private float runupTime=0.2f;
 
     [Header("ネット安全設定")]
     public float netX = 0f;            // ネットのX座標
@@ -108,7 +108,7 @@ public class DroneSpikeMultiple : MonoBehaviour
                 
                 Hover(initialPos);
                 Vector3 targetXY=new Vector3(initialPos.x,transform.position.y,initialPos.z);
-                Debug.Log($"目標X: {initialPos.x} / 現在X: {transform.position.x}");
+                //Debug.Log($"目標X: {initialPos.x} / 現在X: {transform.position.x}");
                 if(Vector3.Distance(transform.position,targetXY)<2.0f){
                     currentState=State.Hovering;
                 }
@@ -155,7 +155,7 @@ public class DroneSpikeMultiple : MonoBehaviour
             timeUntilImpact=tb;
 
              //2,地点Bをランダムに決定-21<x<10.5),y=0,-10<z<10f
-            Vector3 pointB=new Vector3(Random.Range(-21f,-5f),0f,Random.Range(-10f,10f));
+            Vector3 pointB=new Vector3(Random.Range(-21f,-5f),0f,Random.Range(-9f,9f));
             
             
 
@@ -193,12 +193,6 @@ public class DroneSpikeMultiple : MonoBehaviour
         }
 
         
-    }
-    void OnDrawGizmos()
-    {
-        Gizmos.color = Color.yellow;
-        // 指定した座標（targetPosition）に球体を描画
-        Gizmos.DrawWireSphere(pointA, 4f);
     }
     private void OnCollisionEnter(Collision collision){
         if(collision.gameObject.CompareTag(ballTag) && currentState==State.Striking){

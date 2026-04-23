@@ -5,7 +5,7 @@ public class BallToss:MonoBehaviour
     public string targetTag="valleyball";
 
     [Header("トスの強さ倍率")]
-    public float tossBoost=1.2f;
+    public float tossBoost=2f;
 
     [Header("最低限の跳ね上がり力")]
     public float minTossForce=5f;

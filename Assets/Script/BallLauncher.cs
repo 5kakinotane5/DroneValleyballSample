@@ -64,7 +64,7 @@ public class BallLauncher: MonoBehaviour
     [Header("角度調整")]
     
     [Range(-90f,45f)] 
-    public float launchAngle= -45f;//-45でｙ軸正に45/
+    public float launchAngle= -90f;//-45でｙ軸正に45/
     
     [Range(-180f,180f)] 
     public float horizontalAngle=90f;
@@ -72,7 +72,7 @@ public class BallLauncher: MonoBehaviour
     void Update(){
         transform.localRotation=Quaternion.Euler(launchAngle,horizontalAngle,0);
 
-        if(Keyboard.current!=null && Keyboard.current.enterKey.wasPressedThisFrame){
+        if(Keyboard.current!=null && Keyboard.current.spaceKey.wasPressedThisFrame){
             Launch();
         }
     }
