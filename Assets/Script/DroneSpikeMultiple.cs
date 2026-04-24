@@ -79,6 +79,8 @@ public class DroneSpikeMultiple : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (VolleyballManager.Instance.currentPhase==GamePhase.Spiking){
+
         if(currentState==State.MovingToTrajectory || currentState==State.Striking){
             timeUntilImpact-=Time.fixedDeltaTime;
         }
@@ -113,10 +115,12 @@ public class DroneSpikeMultiple : MonoBehaviour
                     currentState=State.Hovering;
                 }
                 break;
-
         }
 
-        void FindAndCalculateBall(){
+        }
+    }
+
+    void FindAndCalculateBall(){
             GameObject[] balls=GameObject.FindGameObjectsWithTag(ballTag);//全てのボールタグが付いているものを取得
             foreach(GameObject ball in balls){
                 if(ball==lastSpikedBall) continue;
@@ -132,8 +136,7 @@ public class DroneSpikeMultiple : MonoBehaviour
                 }
             }
         }
-
-        bool CalculateTrajectory(){
+    bool CalculateTrajectory(){
             float g=Physics.gravity.y;
             float y0=targetRb.position.y;//ドローンの現在のy座標
             float vy0=targetRb.linearVelocity.y;//ドローンの現在のy成分の速度
@@ -191,9 +194,6 @@ public class DroneSpikeMultiple : MonoBehaviour
             standbyPoint=pointA-(requiredDroneVel*actualRunup);
             return true;
         }
-
-        
-    }
     private void OnCollisionEnter(Collision collision){
         if(collision.gameObject.CompareTag(ballTag) && currentState==State.Striking){
             Rigidbody ballRb = collision.gameObject.GetComponent<Rigidbody>();

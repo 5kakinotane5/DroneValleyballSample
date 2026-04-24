@@ -14,6 +14,10 @@ public class RandomBallLauncher : MonoBehaviour
         if (Keyboard.current!=null && Keyboard.current.enterKey.wasPressedThisFrame)
         {
             ShootBall();
+            /*
+            if (ValleyballManager.Instance != null){
+            ValleyballManager.Instance.StartPlay}
+            */
         }
     }
 

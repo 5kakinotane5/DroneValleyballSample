@@ -79,38 +79,41 @@ public class AdvancedDroneSpiker : MonoBehaviour
 
     void FixedUpdate()
     {
-        if(currentState==State.MovingToTrajectory || currentState==State.Striking){
-            timeUntilImpact-=Time.fixedDeltaTime;
-        }
-        switch (currentState)
-        {
-            case State.Hovering:
-                FindAndCalculateBall();
-                Hover(initialPos);
-                break;
-            
-            case State.MovingToTrajectory:
-                //待ち構えフェーズ：計算された直線軌道上のスタンバイ地点へ急行
-                MoveToPoint(standbyPoint);
+        //if (VolleyballManager.Instance.currentPhase==GamePhase.Spiking){
+
+            if(currentState==State.MovingToTrajectory || currentState==State.Striking){
+                timeUntilImpact-=Time.fixedDeltaTime;
+            }
+            switch (currentState)
+            {
+                case State.Hovering:
+                    FindAndCalculateBall();
+                    Hover(initialPos);
+                    break;
                 
-                if(timeUntilImpact<=runupTime){
-                    currentState=State.Striking;
-                }
-                break;
-            case State.Striking:
-                //アタックフェーズ：地点Aを通り地点Bへ向かう直線軌道上に入る
-                rb.linearVelocity=requiredDroneVel;
+                case State.MovingToTrajectory:
+                    //待ち構えフェーズ：計算された直線軌道上のスタンバイ地点へ急行
+                    MoveToPoint(standbyPoint);
+                    
+                    if(timeUntilImpact<=runupTime){
+                        currentState=State.Striking;
+                    }
+                    break;
+                case State.Striking:
+                    //アタックフェーズ：地点Aを通り地点Bへ向かう直線軌道上に入る
+                    rb.linearVelocity=requiredDroneVel;
 
-                Debug.DrawLine(standbyPoint,pointA,Color.red);
-                Debug.DrawRay(transform.position,requiredDroneVel,Color.blue);
-                break;
-            case State.Returning:
-                Hover(initialPos);
-                if(Vector3.Distance(transform.position,initialPos)<0.3f){
-                    currentState=State.Hovering;
-                }
-                break;
+                    Debug.DrawLine(standbyPoint,pointA,Color.red);
+                    Debug.DrawRay(transform.position,requiredDroneVel,Color.blue);
+                    break;
+                case State.Returning:
+                    Hover(initialPos);
+                    if(Vector3.Distance(transform.position,initialPos)<0.3f){
+                        currentState=State.Hovering;
+                    }
+                    break;
 
+            
         }
 
         void FindAndCalculateBall(){
