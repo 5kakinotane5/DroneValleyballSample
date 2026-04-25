@@ -39,7 +39,7 @@ public class RandomBallLauncher : MonoBehaviour
         float randomZ = Random.Range(-10f, 10f);
         //Vector3 targetPoint = new Vector3(randomX, 0f, randomZ);
         Vector3 targetPoint=new Vector3(18.27f,0f,-5.7f);//この場合ドローンはスパイクできない
-        Debug.Log($"予想落下地点：{targetPoint}");
+        //Debug.Log($"予想落下地点：{targetPoint}");
         // 3. 必要な初速を物理計算で出す
         Vector3 startPoint = transform.position;
         float vx = (targetPoint.x - startPoint.x) / flightTime;
@@ -49,5 +49,10 @@ public class RandomBallLauncher : MonoBehaviour
 
         // 4. 速度をセット
         ballRb.linearVelocity = new Vector3(vx, vy, vz);
+        
+        //発射と同時にマネージャーのフェーズを変える
+        if(VolleyballManager.Instance != null){
+            VolleyballManager.Instance.StartPlay();
+        }
     }
 }

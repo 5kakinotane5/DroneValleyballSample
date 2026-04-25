@@ -1030,15 +1030,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4107087419166036123, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 11.1197
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 4107087419166036123, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4107087419166036123, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 8.31575
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4107087419166036123, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
       propertyPath: m_LocalRotation.w
@@ -1071,6 +1071,8 @@ PrefabInstance:
     m_RemovedComponents:
     - {fileID: 8568643765957692755, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
     - {fileID: 2563241277741419850, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
+    - {fileID: 601169720156759787, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
+    - {fileID: 5257381745561260550, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
@@ -1097,7 +1099,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DroneReceiver
   targetBall: {fileID: 8662993477060767682, guid: 1cdd11fc4020e434b8b268275c63ccbf, type: 3}
   moveSpeed: 10
-  returnTargetPos: {x: 0, y: 0, z: 0}
+  returnTargetPos: {x: 10, y: 1, z: 0}
   returnFlightTime: 1.5
 --- !u!1 &1238548356
 GameObject:

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class DroneReceiver : MonoBehaviour
+public class ManageReceiver : MonoBehaviour
 {
     public Rigidbody targetBall;
     public float moveSpeed = 10f;
@@ -11,20 +11,20 @@ public class DroneReceiver : MonoBehaviour
 
     void Update()
     {
-        
-        if (targetBall == null)
-        {
-            GameObject ball = GameObject.Find("injectionball(Clone)");
-            if (ball != null) targetBall = ball.GetComponent<Rigidbody>();
+        if (VolleyballManager.Instance.currentPhase==GamePhase.Receiving){
+            if (targetBall == null)
+            {
+                GameObject ball = GameObject.Find("injectionball(Clone)");
+                if (ball != null) targetBall = ball.GetComponent<Rigidbody>();
+            }
+
+            if (targetBall == null) return;
+
+            Vector3 landingPos = PredictLandingPoint(targetBall.position, targetBall.linearVelocity, transform.position.y);
+            Vector3 targetPos = new Vector3(landingPos.x, transform.position.y, landingPos.z);
+            Debug.Log($"移動先の座標：{landingPos}");
+            transform.position = Vector3.MoveTowards(transform.position, targetPos, moveSpeed * Time.deltaTime);
         }
-
-        if (targetBall == null) return;
-
-        Vector3 landingPos = PredictLandingPoint(targetBall.position, targetBall.linearVelocity, transform.position.y);
-        Vector3 targetPos = new Vector3(landingPos.x, transform.position.y, landingPos.z);
-        Debug.Log($"移動先の座標：{landingPos}");
-        transform.position = Vector3.MoveTowards(transform.position, targetPos, moveSpeed * Time.deltaTime);
-    
     }
 
     private void OnCollisionEnter(Collision collision)
