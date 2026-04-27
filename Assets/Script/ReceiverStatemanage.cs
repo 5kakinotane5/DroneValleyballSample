@@ -48,6 +48,7 @@ public class ReceiverStatemanage : MonoBehaviour
                 if (Vector3.Distance(transform.position, initialPos) < 0.3f)
                 {
                     currentState=State.Waiting;
+                    VolleyballManger.Instance.currentPhase==GamePhase.Spiking;
                 }
                 break;
         }
