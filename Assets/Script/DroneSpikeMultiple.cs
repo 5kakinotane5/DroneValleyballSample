@@ -79,7 +79,6 @@ public class DroneSpikeMultiple : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (VolleyballManager.Instance.currentPhase==GamePhase.Spiking){
 
         if(currentState==State.MovingToTrajectory || currentState==State.Striking){
             timeUntilImpact-=Time.fixedDeltaTime;
@@ -117,7 +116,7 @@ public class DroneSpikeMultiple : MonoBehaviour
                 break;
         }
 
-        }
+        
     }
 
     void FindAndCalculateBall(){

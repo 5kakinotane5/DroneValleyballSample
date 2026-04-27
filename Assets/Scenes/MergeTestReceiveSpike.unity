@@ -1078,14 +1078,14 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 3725777149201631777, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 890808357}
+      addedObject: {fileID: 890808363}
   m_SourcePrefab: {fileID: 100100000, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
 --- !u!1 &890808356 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3725777149201631777, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
   m_PrefabInstance: {fileID: 890808355}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &890808357
+--- !u!114 &890808363
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1097,9 +1097,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df75f2fa75a1ec64db20d32f4bebaed8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DroneReceiver
-  targetBall: {fileID: 8662993477060767682, guid: 1cdd11fc4020e434b8b268275c63ccbf, type: 3}
+  targetBall: {fileID: 0}
   moveSpeed: 10
-  returnTargetPos: {x: 10, y: 1, z: 0}
+  returnTargetPos: {x: 10, y: 0, z: 0}
   returnFlightTime: 1.5
 --- !u!1 &1238548356
 GameObject:
