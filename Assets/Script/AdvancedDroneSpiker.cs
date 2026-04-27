@@ -169,7 +169,6 @@ public class AdvancedDroneSpiker : MonoBehaviour
             float vBallZ=(pointB.z-pointA.z)/spikeFlightTime;
             float vBallY=(pointB.y-pointA.y-0.5f*g*spikeFlightTime*spikeFlightTime)/spikeFlightTime;
 
-
             //ネット回避チェック
             float tNet=(netX-pointA.x)/vBallx;
             float yNet=pointA.y+(vBallY*tNet)+(0.5f*g*tNet*tNet);
@@ -188,15 +187,8 @@ public class AdvancedDroneSpiker : MonoBehaviour
             standbyPoint=pointA-(requiredDroneVel*actualRunup);
             return true;
         }
-
-        
     }
-    void OnDrawGizmos()
-    {
-        Gizmos.color = Color.yellow;
-        // 指定した座標（targetPosition）に球体を描画
-        Gizmos.DrawWireSphere(pointA, 4f);
-    }
+    
     private void OnCollisionEnter(Collision collision){
         if(collision.gameObject.CompareTag(ballTag) && currentState==State.Striking){
             Rigidbody ballRb = collision.gameObject.GetComponent<Rigidbody>();
