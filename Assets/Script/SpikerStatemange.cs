@@ -41,13 +41,13 @@ UnityEngine.Physics:OnSceneContact (UnityEngine.PhysicsScene,intptr,int)
 
 using UnityEngine;
 
-public class AdvancedDroneSpiker : MonoBehaviour
+public class SpikerStatemanage : MonoBehaviour
 {
     [Header("基本設定")]
     public string ballTag="injectionball";
     public float spikeHeight=10f;//地点Aの高さ打撃位置
-    public Vector3 initialPos;
-    //public Vector3 initialPos=new Vector3(10.5f,6.0f,0f);
+    //public Vector3 initialPos;
+    public Vector3 initialPos=new Vector3(10.5f,6.0f,0f);
     public float vMax=10f;
 
     [Header("弾道パラメータ")]
@@ -68,8 +68,8 @@ public class AdvancedDroneSpiker : MonoBehaviour
     private float timeUntilImpact;//地点Aで衝突するまでの残り時間
     private GameObject lastSpikedBall;
     
-    enum State {Hovering,MovingToTrajectory,Striking,Returning}
-    [SerializeField] private State currentState=State.Hovering;
+    enum State {Waiting,Hovering,MovingToTrajectory,Striking,Returning}
+    [SerializeField] private State currentState=State.Waiting;
 
     void Start(){
         rb=GetComponent<Rigidbody>();
@@ -81,56 +81,87 @@ public class AdvancedDroneSpiker : MonoBehaviour
     {
         //if (VolleyballManager.Instance.currentPhase==GamePhase.Spiking){
 
-            if(currentState==State.MovingToTrajectory || currentState==State.Striking){
-                timeUntilImpact-=Time.fixedDeltaTime;
-            }
-            switch (currentState)
-            {
-                case State.Hovering:
-                    FindAndCalculateBall();
-                    Hover(initialPos);
-                    break;
-                
-                case State.MovingToTrajectory:
-                    //待ち構えフェーズ：計算された直線軌道上のスタンバイ地点へ急行
-                    MoveToPoint(standbyPoint);
-                    
-                    if(timeUntilImpact<=runupTime){
-                        currentState=State.Striking;
-                    }
-                    break;
-                case State.Striking:
-                    //アタックフェーズ：地点Aを通り地点Bへ向かう直線軌道上に入る
-                    rb.linearVelocity=requiredDroneVel;
-
-                    Debug.DrawLine(standbyPoint,pointA,Color.red);
-                    Debug.DrawRay(transform.position,requiredDroneVel,Color.blue);
-                    break;
-                case State.Returning:
-                    Hover(initialPos);
-                    if(Vector3.Distance(transform.position,initialPos)<0.3f){
-                        currentState=State.Hovering;
-                    }
-                    break;
-
-            
+        if(currentState==State.MovingToTrajectory || currentState==State.Striking){
+            timeUntilImpact-=Time.fixedDeltaTime;
         }
+        switch (currentState)
+        {
+            case State.Waiting:
+                if (VolleyballManager.Instance.currentPhase == GamePhase.Spiking)
+                {
+                    Debug.Log("stateをhoveringへ");
+                    currentState=State.Hovering;
+                }
+                Hover(initialPos);
+                FindAndCalculateBall();
 
-        void FindAndCalculateBall(){
+                break;
+            case State.Hovering:
+                Hover(initialPos);
+                break;
+            
+            case State.MovingToTrajectory:
+                //待ち構えフェーズ：計算された直線軌道上のスタンバイ地点へ急行
+                MoveToPoint(standbyPoint);
+                
+                if(timeUntilImpact<=runupTime){
+                    Debug.Log($"timeUntillImpact:{timeUntilImpact}, runupTime:{runupTime}");
+                    currentState=State.Striking;
+                }
+                break;
+            case State.Striking:
+                //アタックフェーズ：地点Aを通り地点Bへ向かう直線軌道上に入る
+                rb.linearVelocity=requiredDroneVel;
+
+                Debug.DrawLine(standbyPoint,pointA,Color.red);
+                Debug.DrawRay(transform.position,requiredDroneVel,Color.blue);
+                break;
+            case State.Returning:
+                Hover(initialPos);
+                if(Vector3.Distance(transform.position,initialPos)<0.3f){
+                    VolleyballManager.Instance.currentPhase=GamePhase.Waiting;
+                    currentState=State.Waiting;
+                }
+                break;   
+        }
+    }
+    
+    private void OnCollisionEnter(Collision collision){
+        if(collision.gameObject.CompareTag(ballTag) && currentState==State.Striking){
+            Rigidbody ballRb = collision.gameObject.GetComponent<Rigidbody>();
+            if (ballRb != null)
+            {
+                Vector3 hitPoint=collision.contacts[0].point;
+                Debug.Log($"Spike Success!衝突座標:{hitPoint}/予測座標:{pointB}/");
+
+                lastSpikedBall = collision.gameObject; // このボールを記憶
+                currentState = State.Returning; // 即座に帰還状態へ
+                Debug.Log("Spike Success! Returning home.");
+            }
+        }
+    }
+
+    void FindAndCalculateBall(){
             GameObject ball=GameObject.FindGameObjectWithTag(ballTag);
             if(ball==null || ball==lastSpikedBall) return;
             targetRb=ball.GetComponent<Rigidbody>();
             if (targetRb==null) return;
 
             //ボールが上昇中かつ目標高より低いときに計算
-            if(targetRb.linearVelocity.y>0 && targetRb.position.y<spikeHeight){
+            if(targetRb.linearVelocity.y>0 && targetRb.position.y<spikeHeight && VolleyballManager.Instance.currentPhase==GamePhase.Spiking){
                 if(CalculateTrajectory()){
                     currentState=State.MovingToTrajectory;
                 }
             }
+
+            if (VolleyballManager.Instance.currentPhase == GamePhase.Spiking)
+            {
+                Debug.Log("MovingToTrajectoryへ移行");
+                currentState=State.MovingToTrajectory;   
+            }
         }
 
-        bool CalculateTrajectory(){
+    bool CalculateTrajectory(){
             float g=Physics.gravity.y;
             float y0=targetRb.position.y;//ドローンの現在のy座標
             float vy0=targetRb.linearVelocity.y;//ドローンの現在のy成分の速度
@@ -187,22 +218,6 @@ public class AdvancedDroneSpiker : MonoBehaviour
             standbyPoint=pointA-(requiredDroneVel*actualRunup);
             return true;
         }
-    }
-    
-    private void OnCollisionEnter(Collision collision){
-        if(collision.gameObject.CompareTag(ballTag) && currentState==State.Striking){
-            Rigidbody ballRb = collision.gameObject.GetComponent<Rigidbody>();
-            if (ballRb != null)
-            {
-                Vector3 hitPoint=collision.contacts[0].point;
-                Debug.Log($"Spike Success!衝突座標:{hitPoint}/予測座標:{pointB}/");
-
-                lastSpikedBall = collision.gameObject; // このボールを記憶
-                currentState = State.Returning; // 即座に帰還状態へ
-                Debug.Log("Spike Success! Returning home.");
-            }
-        }
-    }
 
     void MoveToPoint(Vector3 target){
         Vector3 diff=target-transform.position;

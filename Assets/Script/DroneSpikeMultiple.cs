@@ -93,20 +93,19 @@ public class DroneSpikeMultiple : MonoBehaviour
             case State.MovingToTrajectory:
                 //待ち構えフェーズ：計算された直線軌道上のスタンバイ地点へ急行
                 MoveToPoint(standbyPoint);
-                
                 if(timeUntilImpact<=runupTime){
                     currentState=State.Striking;
                 }
                 break;
+
             case State.Striking:
                 //アタックフェーズ：地点Aを通り地点Bへ向かう直線軌道上に入る
                 rb.linearVelocity=requiredDroneVel;
-
                 Debug.DrawLine(standbyPoint,pointA,Color.red);
                 Debug.DrawRay(transform.position,requiredDroneVel,Color.blue);
                 break;
+
             case State.Returning:
-                
                 Hover(initialPos);
                 Vector3 targetXY=new Vector3(initialPos.x,transform.position.y,initialPos.z);
                 //Debug.Log($"目標X: {initialPos.x} / 現在X: {transform.position.x}");
@@ -114,27 +113,10 @@ public class DroneSpikeMultiple : MonoBehaviour
                     currentState=State.Hovering;
                 }
                 break;
-        }
-
-        
+        }        
     }
 
-    void FindAndCalculateBall(){
-            GameObject[] balls=GameObject.FindGameObjectsWithTag(ballTag);//全てのボールタグが付いているものを取得
-            foreach(GameObject ball in balls){
-                if(ball==lastSpikedBall) continue;
-
-                targetRb=ball.GetComponent<Rigidbody>();
-                if(targetRb==null) continue;
-
-                if(targetRb.linearVelocity.y>0 && targetRb.position.y<spikeHeight){
-                    if (CalculateTrajectory()){
-                        currentState=State.MovingToTrajectory;
-                        return;
-                    }
-                }
-            }
-        }
+    
     bool CalculateTrajectory(){
             float g=Physics.gravity.y;
             float y0=targetRb.position.y;//ドローンの現在のy座標
@@ -158,8 +140,6 @@ public class DroneSpikeMultiple : MonoBehaviour
 
              //2,地点Bをランダムに決定-21<x<10.5),y=0,-10<z<10f
             Vector3 pointB=new Vector3(Random.Range(-21f,-5f),0f,Random.Range(-9f,9f));
-            
-            
 
             //3,地点A(a,b,c)の座標確定
             //spikeFlightTime:地点Aから地点Bまでのスパイクの移動時間
@@ -167,13 +147,10 @@ public class DroneSpikeMultiple : MonoBehaviour
             //pointA=new Vector3(,spikeHeight,)
             pointA=new Vector3(targetRb.position.x+(targetRb.linearVelocity.x*tb),spikeHeight,targetRb.position.z+(targetRb.linearVelocity.z*tb));
 
-           
-
             //4ボールの必要速度を算出
             float vBallx=(pointB.x-pointA.x)/spikeFlightTime;
             float vBallZ=(pointB.z-pointA.z)/spikeFlightTime;
             float vBallY=(pointB.y-pointA.y-0.5f*g*spikeFlightTime*spikeFlightTime)/spikeFlightTime;
-
 
             //ネット回避チェック
             float tNet=(netX-pointA.x)/vBallx;
@@ -207,6 +184,23 @@ public class DroneSpikeMultiple : MonoBehaviour
             }
         }
     }
+
+    void FindAndCalculateBall(){
+            GameObject[] balls=GameObject.FindGameObjectsWithTag(ballTag);//全てのボールタグが付いているものを取得
+            foreach(GameObject ball in balls){
+                if(ball==lastSpikedBall) continue;
+
+                targetRb=ball.GetComponent<Rigidbody>();
+                if(targetRb==null) continue;
+
+                if(targetRb.linearVelocity.y>0 && targetRb.position.y<spikeHeight){
+                    if (CalculateTrajectory()){
+                        currentState=State.MovingToTrajectory;
+                        return;
+                    }
+                }
+            }
+        }
 
     void MoveToPoint(Vector3 target){
         Vector3 diff=target-transform.position;

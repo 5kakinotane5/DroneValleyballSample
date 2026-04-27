@@ -7,22 +7,23 @@ public class ReceiverStatemanage : MonoBehaviour
 
 
     // ★追加：レシーブを落とす目標地点（X, Y, Z）と、そこまでの時間
-    public Vector3 initialPos = new Vector3(10f, 0f, 1f); // 後でインスペクターで設定します
+    public Vector3 initialPos = new Vector3(10f, 1f, 0f); // 後でインスペクターで設定します
     public float returnFlightTime = 1.5f; // ふわっと上げるための時間（秒）
 
     enum State {Waiting,Hovering,MovingToTrajectory,Receiving,Returning}
-    [SerializeFiled] private State currentState=State.Waiting;
+    [SerializeField] private State currentState=State.Waiting;
 
     void FixedUpdate()
     {
         switch (currentState)
         {
             case State.Waiting:
-            Hover(initialPos);
-                if (VolleyballManager.Instance.currentPhase == GamePhase.Spiking)
+            //Hover(initialPos);
+                if (VolleyballManager.Instance.currentPhase == GamePhase.Receiving)
                 {
                     currentState=State.Hovering;
                 }
+                Hover(initialPos);
                 break;
 
             case State.Hovering:
@@ -31,7 +32,7 @@ public class ReceiverStatemanage : MonoBehaviour
                 break;
 
             case State.MovingToTrajectory:
-                Vector3 landingPos=new Vector3(PredictLandingPoint(targetBall.position,targetBall.linearVelocity,transform.position.y));
+                Vector3 landingPos=PredictLandingPoint(targetBall.position,targetBall.linearVelocity,transform.position.y);
                 Vector3 targetPos=new Vector3(landingPos.x,transform.position.y,landingPos.z);
                 
                 Hover(targetPos);
@@ -48,37 +49,20 @@ public class ReceiverStatemanage : MonoBehaviour
                 if (Vector3.Distance(transform.position, initialPos) < 0.3f)
                 {
                     currentState=State.Waiting;
-                    VolleyballManger.Instance.currentPhase==GamePhase.Spiking;
+                    VolleyballManager.Instance.currentPhase=GamePhase.Spiking;
                 }
                 break;
         }
-        break;
-        
-
-        if (targetBall == null)
-        {
-            GameObject ball = GameObject.Find("injectionball(Clone)");
-            if (ball != null) targetBall = ball.GetComponent<Rigidbody>();
-        }
-
-        if (targetBall == null) return;
-
-        Vector3 landingPos = PredictLandingPoint(targetBall.position, targetBall.linearVelocity, transform.position.y);
-        Vector3 targetPos = new Vector3(landingPos.x, transform.position.y, landingPos.z);
-        Debug.Log($"移動先の座標：{landingPos}");
-        transform.position = Vector3.MoveTowards(transform.position, targetPos, moveSpeed * Time.deltaTime);
-    
     }
-
-    private void FindCalculateBall()
+    void FindAndCalculateBall()
     {
-        Gameobject ball=GameObject.FindGameObjectWithTag(ballTag);
-        if (ball==null || ball==lastSpikeBall) return;
+        GameObject ball=GameObject.Find("injectionball(Clone)");
+        if (ball==null) return;
         targetBall=ball.GetComponent<Rigidbody>();
         currentState=State.MovingToTrajectory;
     }
 
-    private void OnCollisionEnter(Collision collision)
+    void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.name.Contains("injectionball"))
         {
@@ -109,6 +93,8 @@ public class ReceiverStatemanage : MonoBehaviour
     }
 
     void Hover(Vector3 target){
+        Rigidbody rb;
+        rb=GetComponent<Rigidbody>();
         Vector3 diff=target-transform.position;
         float distance=diff.magnitude;
 
@@ -137,4 +123,5 @@ public class ReceiverStatemanage : MonoBehaviour
         float t = Mathf.Max((-b + Mathf.Sqrt(discriminant)) / (2 * a), (-b - Mathf.Sqrt(discriminant)) / (2 * a));
         return new Vector3(startPos.x + velocity.x * t, targetY, startPos.z + velocity.z * t);
     }
+    
 }
