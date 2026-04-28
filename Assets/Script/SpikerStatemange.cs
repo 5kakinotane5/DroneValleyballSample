@@ -52,14 +52,16 @@ public class SpikerStatemanage : MonoBehaviour
                 if (VolleyballManager.Instance.currentPhase == GamePhase.Spiking)
                 {
                     Debug.Log("stateをhoveringへ");
+                    //FindAndCalculateBall();
                     currentState=State.Hovering;
                 }
                 Hover(initialPos);
-                FindAndCalculateBall();
 
                 break;
             case State.Hovering:
                 Hover(initialPos);
+                FindAndCalculateBall();
+
                 break;
             
             case State.MovingToTrajectory:
@@ -79,6 +81,7 @@ public class SpikerStatemanage : MonoBehaviour
                 Debug.DrawRay(transform.position,requiredDroneVel,Color.blue);
                 break;
             case State.Returning:
+                lastSpikedBall=null;
                 VolleyballManager.Instance.currentPhase=GamePhase.Waiting;
                 Hover(initialPos);
                 Vector2 posA=new Vector2(transform.position.x,transform.position.z);
@@ -153,15 +156,11 @@ public class SpikerStatemanage : MonoBehaviour
              //2,地点Bをランダムに決定-21<x<10.5),y=0,-10<z<10f
             Vector3 pointB=new Vector3(Random.Range(-21f,-10.5f),0f,Random.Range(-10f,10f));
             
-            
-
             //3,地点A(a,b,c)の座標確定
             //spikeFlightTime:地点Aから地点Bまでのスパイクの移動時間
             //vx=(targetRb.position.x-pointB.x)/spikeHeight,vz=(targetRb.position.z-pointB.z)/spikeHeight
             //pointA=new Vector3(,spikeHeight,)
             pointA=new Vector3(targetRb.position.x+(targetRb.linearVelocity.x*tb),spikeHeight,targetRb.position.z+(targetRb.linearVelocity.z*tb));
-
-           
 
             //4ボールの必要速度を算出
             float vBallx=(pointB.x-pointA.x)/spikeFlightTime;
