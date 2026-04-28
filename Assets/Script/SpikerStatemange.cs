@@ -1,44 +1,3 @@
-/*
-トスされた球の弾道計算
-球が高さbの時の時刻tbと地点Aの座標(a,b,c)を求める
-球の狙う位置(地点B)を-21<x<-10.5,y=0,-10<z<10からランダムに地点Bを決める
-地点Aでドローンが球と衝突するときに必用な速度を求める。
-球の速度はドローンが球と当たった時にドローンの速度の二倍の速度になる。
-ドローンは現在位置から、上記の求めた速度で地点Aを通りこの速度のベクトルで同じ傾きな直線状の軌道に入る。
-そして、球に衝突できるようにドローンは待ち構え地点Aへ求めた速度で飛行する。
-ボールと衝突後ドローンは初期位置の座標(10.5,h,0)に戻りホバリングする
-改善点
-地点Bにマーカーをつける。
-ネットに引っかからないようにする。
-｛ネットの高さは4.8であり余裕をもって安全高度を4.9とする。
-　ネットを超える地点Aのx座標/球の速度｝
-トス強度を上げる。
-
-問題点
-現在はspikeFlightTimeによってスパイクが依存されて想定した地点に打球できてない
-//Spike Success!衝突座標:(2.14, 15.15, -0.79)/予測座標:(-19.00, 0.00, 0.00)/
-UnityEngine.Debug:Log (object)
-AdvancedDroneSpiker:OnCollisionEnter (UnityEngine.Collision) (at Assets/Script/AdvancedDroneSpiker.cs:181)
-UnityEngine.Physics:OnSceneContact (UnityEngine.PhysicsScene,intptr,int)
-
-ドローンの衝突前のスピード:(-20.92, -13.03, 0.82)
-UnityEngine.Debug:Log (object)
-BallToss2:OnCollisionEnter (UnityEngine.Collision) (at Assets/Script/BallToss2.cs:36)
-UnityEngine.Physics:OnSceneContact (UnityEngine.PhysicsScene,intptr,int)
-
-トス成功! 合力速度: (-41.84, -26.06, 1.65) (倍率: 2)
-UnityEngine.Debug:Log (object)
-BallToss2:OnCollisionEnter (UnityEngine.Collision) (at Assets/Script/BallToss2.cs:48)
-UnityEngine.Physics:OnSceneContact (UnityEngine.PhysicsScene,intptr,int)
-
-court にぶつかったので自分を消去しました。消失地点: (-18.23, 0.00, 0.08)
-UnityEngine.Debug:Log (object)
-DestroyOnCollision:OnCollisionEnter (UnityEngine.Collision) (at Assets/Script/DestoryOnCollision.cs:18)
-UnityEngine.Physics:OnSceneContact (UnityEngine.PhysicsScene,intptr,int)
-
-
-*/
-
 using UnityEngine;
 
 public class SpikerStatemanage : MonoBehaviour
@@ -150,6 +109,7 @@ public class SpikerStatemanage : MonoBehaviour
             //ボールが上昇中かつ目標高より低いときに計算
             if(targetRb.linearVelocity.y>0 && targetRb.position.y<spikeHeight && VolleyballManager.Instance.currentPhase==GamePhase.Spiking){
                 if(CalculateTrajectory()){
+                    Debug.Log("calculatetrajectory");
                     currentState=State.MovingToTrajectory;
                 }
             }
@@ -181,7 +141,7 @@ public class SpikerStatemanage : MonoBehaviour
             if (tb<0) return false;
 
             timeUntilImpact=tb;
-
+            Debug.Log($"timeUtilImpact:{timeUntilImpact}");
              //2,地点Bをランダムに決定-21<x<10.5),y=0,-10<z<10f
             Vector3 pointB=new Vector3(Random.Range(-21f,-10.5f),0f,Random.Range(-10f,10f));
             

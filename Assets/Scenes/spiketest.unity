@@ -1746,7 +1746,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RandomBallLauncher
   ballPrefab: {fileID: 3380572386424972372, guid: 1cdd11fc4020e434b8b268275c63ccbf, type: 3}
-  flightTime: 5
+  flightTime: 4
 --- !u!1 &1802770291
 GameObject:
   m_ObjectHideFlags: 0
