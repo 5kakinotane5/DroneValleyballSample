@@ -10,8 +10,8 @@ public class SpikerStatemanage : MonoBehaviour
     public float vMax=10f;
 
     [Header("弾道パラメータ")]
-    [SerializeField] private float spikeFlightTime=0.2f;//地点AからBまでの滞空時間
-    [SerializeField] private float runupTime=0.3f;
+    [SerializeField] private float spikeFlightTime=0.6f;//地点AからBまでの滞空時間
+    [SerializeField] private float runupTime=0.2f;
 
     [Header("ネット安全設定")]
     public float netX = 0f;            // ネットのX座標
@@ -27,6 +27,8 @@ public class SpikerStatemanage : MonoBehaviour
     private float timeUntilImpact;//地点Aで衝突するまでの残り時間
     private GameObject lastSpikedBall;
     
+    private float boost=2f;
+
     enum State {Waiting,Hovering,MovingToTrajectory,Striking,Returning}
     [SerializeField] private State currentState=State.Waiting;
 
@@ -34,12 +36,13 @@ public class SpikerStatemanage : MonoBehaviour
         rb=GetComponent<Rigidbody>();
         rb.useGravity=false;
         transform.position=initialPos;
+        //ballTossScript = Object.FindFirstObjectByType<BallToss2>();
     }
 
     void FixedUpdate()
     {
         //if (VolleyballManager.Instance.currentPhase==GamePhase.Spiking){
-
+        
         if(currentState==State.MovingToTrajectory || currentState==State.Striking){
             timeUntilImpact-=Time.fixedDeltaTime;
         }
@@ -76,8 +79,11 @@ public class SpikerStatemanage : MonoBehaviour
                 Debug.DrawRay(transform.position,requiredDroneVel,Color.blue);
                 break;
             case State.Returning:
+                VolleyballManager.Instance.currentPhase=GamePhase.Waiting;
                 Hover(initialPos);
-                if(Vector3.Distance(transform.position,initialPos)<0.3f){
+                Vector2 posA=new Vector2(transform.position.x,transform.position.z);
+                Vector2 posB=new Vector2(initialPos.x,initialPos.z);
+                if(Vector2.Distance(posA,posB)<0.3f){
                     VolleyballManager.Instance.currentPhase=GamePhase.Waiting;
                     currentState=State.Waiting;
                 }
@@ -101,11 +107,12 @@ public class SpikerStatemanage : MonoBehaviour
     }
 
     void FindAndCalculateBall(){
+            if(currentState!=State.Waiting && currentState!=State.Hovering) return;
             GameObject ball=GameObject.FindGameObjectWithTag(ballTag);
             if(ball==null || ball==lastSpikedBall) return;
             targetRb=ball.GetComponent<Rigidbody>();
             if (targetRb==null) return;
-
+            //Debug.Log($"targetRb:{targetRb.linearVelocity.y}");
             //ボールが上昇中かつ目標高より低いときに計算
             if(targetRb.linearVelocity.y>0 && targetRb.position.y<spikeHeight && VolleyballManager.Instance.currentPhase==GamePhase.Spiking){
                 if(CalculateTrajectory()){
@@ -113,12 +120,13 @@ public class SpikerStatemanage : MonoBehaviour
                     currentState=State.MovingToTrajectory;
                 }
             }
-
+            /*
             if (VolleyballManager.Instance.currentPhase == GamePhase.Spiking)
             {
                 Debug.Log("MovingToTrajectoryへ移行");
                 currentState=State.MovingToTrajectory;   
             }
+            */
         }
 
     bool CalculateTrajectory(){
@@ -170,7 +178,11 @@ public class SpikerStatemanage : MonoBehaviour
             
             Vector3 vBallPost=new Vector3(vBallx,vBallY,vBallZ);
 
-            requiredDroneVel=vBallPost/2f;//地点Aでドローンが衝突する際の必要な速度=ボールの必要速度/トス強度
+            // CalculateTrajectory の中の「4ボールの必要速度を算出」部分を修正
+            //float boost = (ballTossScript != null) ? ballTossScript.tossBoost : 2.0f; // 安全策
+
+            requiredDroneVel = vBallPost / boost;
+            //requiredDroneVel=vBallPost/2f;//地点Aでドローンが衝突する際の必要な速度=ボールの必要速度/トス強度
 
             //軌道に入り待ち構えするためのスタンバイ地点を逆算
             //もしtbがrunnupTimeより短い場合は即座にStrikingに移行できるように調整

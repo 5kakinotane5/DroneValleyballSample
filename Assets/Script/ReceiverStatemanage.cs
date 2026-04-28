@@ -45,11 +45,11 @@ public class ReceiverStatemanage : MonoBehaviour
                 break;
             */
             case State.Returning:
+                VolleyballManager.Instance.currentPhase=GamePhase.Spiking;
                 Hover(initialPos);
                 if (Vector3.Distance(transform.position, initialPos) < 0.3f)
                 {
                     currentState=State.Waiting;
-                    VolleyballManager.Instance.currentPhase=GamePhase.Spiking;
                 }
                 break;
         }

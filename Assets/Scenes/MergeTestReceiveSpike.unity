@@ -1097,7 +1097,7 @@ MonoBehaviour:
   targetBall: {fileID: 8662993477060767682, guid: 1cdd11fc4020e434b8b268275c63ccbf, type: 3}
   moveSpeed: 10
   initialPos: {x: 10, y: 1, z: 0}
-  returnFlightTime: 5
+  returnFlightTime: 3
   currentState: 0
 --- !u!1 &1238548356
 GameObject:
@@ -1341,7 +1341,7 @@ MonoBehaviour:
   initialPos: {x: 10.5, y: 6, z: 0}
   vMax: 10
   spikeFlightTime: 0.2
-  runupTime: 0.3
+  runupTime: 0.4
   netX: 0
   netHeightSafe: 4.9
   currentState: 0
