@@ -51,12 +51,10 @@ public class SpikerStatemanage : MonoBehaviour
             case State.Waiting:
                 if (VolleyballManager.Instance.currentPhase == GamePhase.Spiking)
                 {
-                    Debug.Log("stateをhoveringへ");
-                    //FindAndCalculateBall();
+                    //Debug.Log("stateをhoveringへ");
                     currentState=State.Hovering;
                 }
                 Hover(initialPos);
-
                 break;
             case State.Hovering:
                 Hover(initialPos);
@@ -68,7 +66,7 @@ public class SpikerStatemanage : MonoBehaviour
                 MoveToPoint(standbyPoint);
                 
                 if(timeUntilImpact<=runupTime){
-                    Debug.Log($"timeUntillImpact:{timeUntilImpact}, runupTime:{runupTime}");
+                    //Debug.Log($"timeUntillImpact:{timeUntilImpact}, runupTime:{runupTime}");
                     currentState=State.Striking;
                 }
                 break;
@@ -76,8 +74,6 @@ public class SpikerStatemanage : MonoBehaviour
                 //アタックフェーズ：地点Aを通り地点Bへ向かう直線軌道上に入る
                 rb.linearVelocity=requiredDroneVel;
 
-                Debug.DrawLine(standbyPoint,pointA,Color.red);
-                Debug.DrawRay(transform.position,requiredDroneVel,Color.blue);
                 break;
             case State.Returning:
                 lastSpikedBall=null;
@@ -101,11 +97,11 @@ public class SpikerStatemanage : MonoBehaviour
             if (ballRb != null)
             {
                 Vector3 hitPoint=collision.contacts[0].point;
-                Debug.Log($"Spike Success!衝突座標:{hitPoint}/予測座標:{pointB}/");
+                //Debug.Log($"Spike Success!衝突座標:{hitPoint}/予測座標:{pointB}/");
 
                 lastSpikedBall = collision.gameObject; // このボールを記憶
                 currentState = State.Returning; // 即座に帰還状態へ
-                Debug.Log("Spike Success! Returning home.");
+                //Debug.Log("Spike Success! Returning home.");
             }
         }
     }
@@ -113,32 +109,33 @@ public class SpikerStatemanage : MonoBehaviour
     void FindAndCalculateBall(){
             if(currentState!=State.Waiting && currentState != State.Hovering)
             {
-                Debug.Log("currentStatewaitorhover");
+                //Debug.Log("currentStatewaitorhover");
+                return;
             }
             GameObject ball=GameObject.FindGameObjectWithTag(ballTag);
             if(ball==null || ball == lastSpikedBall)
             {
-                Debug.Log("ballnull");
+                //Debug.Log("ballnull");
                 return;
             }
             targetRb=ball.GetComponent<Rigidbody>();
             if (targetRb == null)
             {
-                Debug.Log("targetRBnull");
+                //Debug.Log("targetRBnull");
                 return;
             }
             //Debug.Log($"targetRb:{targetRb.linearVelocity.y}");
             //ボールが上昇中かつ目標高より低いときに計算
             if(targetRb.linearVelocity.y>0 && targetRb.position.y<spikeHeight && VolleyballManager.Instance.currentPhase==GamePhase.Spiking){
                 if(CalculateTrajectory()){
-                    Debug.Log("calculatetrajectory");
+                    //Debug.Log("calculatetrajectory");
                     currentState=State.MovingToTrajectory;
                 }
             }
-            Debug.Log($"targetRb.linearVelocity.y:{targetRb.linearVelocity.y}");
+            /*Debug.Log($"targetRb.linearVelocity.y:{targetRb.linearVelocity.y}");
             Debug.Log($"targetRb.position.y:{targetRb.linearVelocity.y}");
             Debug.Log($"VolleyballManager.Instance.currentPhase:{VolleyballManager.Instance.currentPhase}");
-            Debug.Log("なんもない");
+            Debug.Log("なんもない");*/
         }
 
     bool CalculateTrajectory(){
@@ -161,7 +158,7 @@ public class SpikerStatemanage : MonoBehaviour
             if (tb<0) return false;
 
             timeUntilImpact=tb;
-            Debug.Log($"timeUtilImpact:{timeUntilImpact}");
+            //Debug.Log($"timeUtilImpact:{timeUntilImpact}");
              //2,地点Bをランダムに決定-21<x<10.5),y=0,-10<z<10f
             Vector3 pointB=new Vector3(Random.Range(-21f,-10.5f),0f,Random.Range(-10f,10f));
             

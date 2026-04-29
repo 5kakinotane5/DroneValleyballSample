@@ -26,7 +26,7 @@ public class BallDestruction : MonoBehaviour
         // 2. 奈落判定：高さがしきい値を下回ったら即削除
         if (transform.position.y < deathYThreshold)
         {
-            Debug.Log($"{gameObject.name} が場外に落ちたため削除されました。");
+            //Debug.Log($"{gameObject.name} が場外に落ちたため削除されました。");
             Destroy(gameObject);
         }
     }
@@ -39,7 +39,7 @@ public class BallDestruction : MonoBehaviour
             // ターゲットタグの指定がない、もしくはタグが一致する場合
             if (string.IsNullOrEmpty(targetTag) || collision.gameObject.CompareTag(targetTag))
             {
-                Debug.Log($"{gameObject.name} が {collision.gameObject.name} に接触したため削除されました。");
+                //Debug.Log($"{gameObject.name} が {collision.gameObject.name} に接触したため削除されました。");
                 Destroy(gameObject);
             }
         }

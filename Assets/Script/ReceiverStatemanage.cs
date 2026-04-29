@@ -82,7 +82,7 @@ public class ReceiverStatemanage : MonoBehaviour
                 // ボールに計算した速度をピタッとセット！
                 ballRb.linearVelocity = new Vector3(vx, vy, vz);
 
-                Debug.Log("セッターのような完璧なレシーブ！");
+                //Debug.Log("セッターのような完璧なレシーブ！");
 
                 // 待機するための魔法（そのまま）
                 collision.gameObject.name = "ReceivedBall";
