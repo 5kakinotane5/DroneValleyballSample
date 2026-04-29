@@ -37,8 +37,8 @@ public class RandomBallLauncher : MonoBehaviour
         // ※ここの数字を自分のコートの座標に合わせて微調整してください
         float randomX = Random.Range(1f, 21f);
         float randomZ = Random.Range(-10f, 10f);
-        //Vector3 targetPoint = new Vector3(randomX, 0f, randomZ);
-        Vector3 targetPoint=new Vector3(18.27f,0f,-5.7f);//この場合ドローンはスパイクできない
+        Vector3 targetPoint = new Vector3(randomX, 0f, randomZ);
+        //Vector3 targetPoint=new Vector3(18.27f,0f,-5.7f);//この場合ドローンはスパイクできない
         //Debug.Log($"予想落下地点：{targetPoint}");
         // 3. 必要な初速を物理計算で出す
         Vector3 startPoint = transform.position;
