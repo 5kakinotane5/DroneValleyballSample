@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 3317820517980777314}
   - component: {fileID: 8662993477060767682}
   - component: {fileID: 3939181855743007892}
+  - component: {fileID: 1154045135243719175}
   m_Layer: 7
   m_Name: injectionball
   m_TagString: injectionball
@@ -155,3 +156,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DestroyOnCollision
   targetTag: court
   destroySelf: 0
+--- !u!114 &1154045135243719175
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3380572386424972372}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c4407bbd1cd215408e7d6ed28871fdd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallDestruction
+  lifeTime: 20
+  deathYThreshold: -2
+  destroyOnCollision: 0
+  targetTag: Court

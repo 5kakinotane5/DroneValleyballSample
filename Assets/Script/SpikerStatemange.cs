@@ -61,7 +61,6 @@ public class SpikerStatemanage : MonoBehaviour
             case State.Hovering:
                 Hover(initialPos);
                 FindAndCalculateBall();
-
                 break;
             
             case State.MovingToTrajectory:
@@ -82,6 +81,8 @@ public class SpikerStatemanage : MonoBehaviour
                 break;
             case State.Returning:
                 lastSpikedBall=null;
+                targetRb=null;
+                timeUntilImpact=0;
                 VolleyballManager.Instance.currentPhase=GamePhase.Waiting;
                 Hover(initialPos);
                 Vector2 posA=new Vector2(transform.position.x,transform.position.z);
@@ -110,11 +111,22 @@ public class SpikerStatemanage : MonoBehaviour
     }
 
     void FindAndCalculateBall(){
-            if(currentState!=State.Waiting && currentState!=State.Hovering) return;
+            if(currentState!=State.Waiting && currentState != State.Hovering)
+            {
+                Debug.Log("currentStatewaitorhover");
+            }
             GameObject ball=GameObject.FindGameObjectWithTag(ballTag);
-            if(ball==null || ball==lastSpikedBall) return;
+            if(ball==null || ball == lastSpikedBall)
+            {
+                Debug.Log("ballnull");
+                return;
+            }
             targetRb=ball.GetComponent<Rigidbody>();
-            if (targetRb==null) return;
+            if (targetRb == null)
+            {
+                Debug.Log("targetRBnull");
+                return;
+            }
             //Debug.Log($"targetRb:{targetRb.linearVelocity.y}");
             //ボールが上昇中かつ目標高より低いときに計算
             if(targetRb.linearVelocity.y>0 && targetRb.position.y<spikeHeight && VolleyballManager.Instance.currentPhase==GamePhase.Spiking){
@@ -123,13 +135,10 @@ public class SpikerStatemanage : MonoBehaviour
                     currentState=State.MovingToTrajectory;
                 }
             }
-            /*
-            if (VolleyballManager.Instance.currentPhase == GamePhase.Spiking)
-            {
-                Debug.Log("MovingToTrajectoryへ移行");
-                currentState=State.MovingToTrajectory;   
-            }
-            */
+            Debug.Log($"targetRb.linearVelocity.y:{targetRb.linearVelocity.y}");
+            Debug.Log($"targetRb.position.y:{targetRb.linearVelocity.y}");
+            Debug.Log($"VolleyballManager.Instance.currentPhase:{VolleyballManager.Instance.currentPhase}");
+            Debug.Log("なんもない");
         }
 
     bool CalculateTrajectory(){
