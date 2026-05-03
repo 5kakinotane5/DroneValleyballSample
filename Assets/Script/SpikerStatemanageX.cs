@@ -11,7 +11,7 @@ public class SpikerStatemanageX : MonoBehaviour
     public string targetTag = "injectionball"; // タグ名を統一
 
     [Header("ドローンの速度の何倍で飛ばすか")]
-    public float tossBoost = 2f;
+    public float tossBoost = 3f;
 
     [Header("最低限の跳ね上がり速度 (m/s)")]
     public float minTossSpeed = 5f;
@@ -49,30 +49,7 @@ public class SpikerStatemanageX : MonoBehaviour
         rb=GetComponent<Rigidbody>();
         rb.useGravity=false;
         transform.position=initialPos;
-        //ballTossScript = Object.FindFirstObjectByType<BallToss2>();
-    }
-/*
-case State.Hovering:
-initialposでhoverするようにする。
-FindAndCalculateBallを実行{
-CalculateTrajectoryが成功したらStateをMovingToTrajectoryへ
-CalculateTrajectory{
-１，レシーブされた球の弾道計算をする←ここを関数化した方がよさそう。（ある点を引数に到着するまでの時間を返す関数などに）
-２，スパイクで狙う相手コートの位置を決定する
-３，ボールに必要な球の速さを求める←ここでspikeFlightTimeで割っているから、vmaxよりでかい速度を出す。まずは、magnitudeしたときに
-最大でもvmaxと同じ値になるようにする。一旦普通にこのまま計算しvmax以下だったら、そのまま値で使う。それ以外の場合は上限をつくる。
-vmaxよりも速度が求められる場合はspikeFlightTimeを増やし、ドローンがvmaxで狙う位置にコントロールできるようにする。
-恐らく今まではここで求められた速度が速すぎたために、hoveringで計算された速度を実装するまでのラグでうまくいかなかった。
-４，ネット回避チェック
-ネットに当たりそうだったら、ネットギリギリの高さで返すtarget.linearVelocity.y>0となるような山なりの球に変更する。またこのときはなるべく
-ドローンの速度を落とすようにする。vmax以下は絶対。
-}
-}
-case State.MovingToTrajectory:
-
-case State.Striking:
-
-*/
+        }
     void FixedUpdate()
     {
         //if (VolleyballManager.Instance.currentPhase==GamePhase.Spiking){
@@ -83,12 +60,12 @@ case State.Striking:
         switch (currentState)
         {
             case State.Waiting:
+                rb.linearVelocity=Vector3.zero;
                 if (VolleyballManager.Instance.currentPhase == GamePhase.Spiking)
                 {
                     //Debug.Log("stateをhoveringへ");
                     currentState=State.Hovering;
                 }
-                Hover(initialPos);
                 break;
             case State.Hovering:
                 Hover(initialPos);
@@ -115,9 +92,7 @@ case State.Striking:
                 timeUntilImpact=0;
                 VolleyballManager.Instance.currentPhase=GamePhase.Waiting;
                 Hover(initialPos);
-                Vector2 posA=new Vector2(transform.position.x,transform.position.z);
-                Vector2 posB=new Vector2(initialPos.x,initialPos.z);
-                if(Vector2.Distance(posA,posB)<0.3f){
+                if(Vector3.Distance(transform.position, initialPos)<0.3f){
                     VolleyballManager.Instance.currentPhase=GamePhase.Waiting;
                     currentState=State.Waiting;
                 }
@@ -202,7 +177,6 @@ case State.Striking:
             if (vBallPost.magnitude > vMax)
             {
                 //vBallPost=vBallPost.normalized*vMaxDrone;
-                
                 float a=0.25f*g*g;
                 float b=g*spikeHeight-vMax*vMax;
                 float c=spikeHeight*spikeHeight+BAx*BAx+BAz*BAz;
@@ -310,14 +284,19 @@ case State.Striking:
     void MoveToPoint(Vector3 target){
         Vector3 diff=target-transform.position;
         //P制御で目的地に吸い付くように移動
-        rb.linearVelocity=diff*10f;
+        rb.linearVelocity=diff/0.8f;
         if(rb.linearVelocity.magnitude>vMax){
             rb.linearVelocity=rb.linearVelocity.normalized*vMax;
         }
     }
     void Hover(Vector3 target){
         Vector3 diff=target-transform.position;
-        Vector3 speed=diff.normalized*vMaxDrone;
+        if (diff.magnitude < 0.3f)
+        {
+            rb.linearVelocity=Vector3.zero;
+            transform.position=target;
+        }
+        Vector3 speed=diff.normalized*vMaxDrone/8f;
         rb.linearVelocity=speed;
         /*
         float currentSpeed=rb.linearVelocity.magnitude;

@@ -1324,9 +1324,9 @@ MonoBehaviour:
   ballTag: injectionball
   spikeHeight: 10
   initialPos: {x: 10.5, y: 6, z: 0}
-  vMaxDrone: 30
-  spikeFlightTime: 0.2
-  runupTime: 0.6
+  vMaxDrone: 60
+  spikeFlightTime: 0.3
+  runupTime: 0.4
   netX: 0
   netHeightSafe: 4.9
   currentState: 0

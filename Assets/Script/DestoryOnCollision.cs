@@ -17,7 +17,7 @@ public class DestroyOnCollision : MonoBehaviour
             Vector3 hitPoint=collision.contacts[0].point;
             Debug.Log($"{targetTag} にぶつかったので自分を消去しました。消失地点: {hitPoint}");
             Destroy(gameObject);
-            Debug.Log($"{targetTag}にぶつかったので自分を消去しました。");
+            //Debug.Log($"{targetTag}にぶつかったので自分を消去しました。");
             
         }
     }
