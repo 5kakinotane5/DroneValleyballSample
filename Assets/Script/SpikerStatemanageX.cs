@@ -1,6 +1,10 @@
+using System;
+using Unity.Mathematics;
+using Unity.VisualScripting;
 using UnityEngine;
-
-public class SpikerStatemanage : MonoBehaviour
+using UnityEngine.UIElements;
+using Random=UnityEngine.Random;
+public class SpikerStatemanageX : MonoBehaviour
 {
     [Header("基本設定")]
     [Header("判定するターゲットのタグ")]    
@@ -11,11 +15,13 @@ public class SpikerStatemanage : MonoBehaviour
 
     [Header("最低限の跳ね上がり速度 (m/s)")]
     public float minTossSpeed = 5f;
+
     public string ballTag="injectionball";
     public float spikeHeight=10f;//地点Aの高さ打撃位置
     //public Vector3 initialPos;
     public Vector3 initialPos=new Vector3(10.5f,6.0f,0f);
-    public float vMax=10f;
+    public float vMaxDrone=40f;//droneの最高速
+    public float vMax=>vMaxDrone*tossBoost;
 
     [Header("弾道パラメータ")]
     [SerializeField] private float spikeFlightTime=0.6f;//地点AからBまでの滞空時間
@@ -34,8 +40,7 @@ public class SpikerStatemanage : MonoBehaviour
     private Vector3 standbyPoint;//軌道に入るための待ち構え地点
     private float timeUntilImpact;//地点Aで衝突するまでの残り時間
     private GameObject lastSpikedBall;
-    
-    private float boost=2f;
+    private float g=Physics.gravity.y;
 
     enum State {Waiting,Hovering,MovingToTrajectory,Striking,Returning}
     [SerializeField] private State currentState=State.Waiting;
@@ -46,7 +51,28 @@ public class SpikerStatemanage : MonoBehaviour
         transform.position=initialPos;
         //ballTossScript = Object.FindFirstObjectByType<BallToss2>();
     }
+/*
+case State.Hovering:
+initialposでhoverするようにする。
+FindAndCalculateBallを実行{
+CalculateTrajectoryが成功したらStateをMovingToTrajectoryへ
+CalculateTrajectory{
+１，レシーブされた球の弾道計算をする←ここを関数化した方がよさそう。（ある点を引数に到着するまでの時間を返す関数などに）
+２，スパイクで狙う相手コートの位置を決定する
+３，ボールに必要な球の速さを求める←ここでspikeFlightTimeで割っているから、vmaxよりでかい速度を出す。まずは、magnitudeしたときに
+最大でもvmaxと同じ値になるようにする。一旦普通にこのまま計算しvmax以下だったら、そのまま値で使う。それ以外の場合は上限をつくる。
+vmaxよりも速度が求められる場合はspikeFlightTimeを増やし、ドローンがvmaxで狙う位置にコントロールできるようにする。
+恐らく今まではここで求められた速度が速すぎたために、hoveringで計算された速度を実装するまでのラグでうまくいかなかった。
+４，ネット回避チェック
+ネットに当たりそうだったら、ネットギリギリの高さで返すtarget.linearVelocity.y>0となるような山なりの球に変更する。またこのときはなるべく
+ドローンの速度を落とすようにする。vmax以下は絶対。
+}
+}
+case State.MovingToTrajectory:
 
+case State.Striking:
+
+*/
     void FixedUpdate()
     {
         //if (VolleyballManager.Instance.currentPhase==GamePhase.Spiking){
@@ -100,19 +126,24 @@ public class SpikerStatemanage : MonoBehaviour
     }
     
     private void OnCollisionEnter(Collision collision){
-        if(collision.gameObject.CompareTag(ballTag) && currentState==State.Striking){
-            Rigidbody ballRb = collision.gameObject.GetComponent<Rigidbody>();
-            if (ballRb != null)
-            {
-                Vector3 hitPoint=collision.contacts[0].point;
-                //Debug.Log($"Spike Success!衝突座標:{hitPoint}/予測座標:{pointB}/");
+    if(collision.gameObject.CompareTag(ballTag) && currentState == State.Striking){
+        Rigidbody ballRb = collision.gameObject.GetComponent<Rigidbody>();
+        if (ballRb != null) {
+            // ★ ここで計算結果を反映させる！
+            // vBallPost = requiredDroneVel * tossBoost の関係
+            Vector3 finalBallVelocity = requiredDroneVel * tossBoost;
 
-                lastSpikedBall = collision.gameObject; // このボールを記憶
-                currentState = State.Returning; // 即座に帰還状態へ
-                //Debug.Log("Spike Success! Returning home.");
-            }
+            // ボールの速度を計算値で上書き（一度ゼロにする必要はありません）
+            ballRb.linearVelocity = finalBallVelocity;
+
+            // ドローン自身は衝突の反動で止める
+            rb.linearVelocity = Vector3.zero;
+
+            lastSpikedBall = collision.gameObject;
+            currentState = State.Returning;
         }
     }
+}
 
     void FindAndCalculateBall(){
             if(currentState!=State.Waiting && currentState != State.Hovering)
@@ -147,62 +178,134 @@ public class SpikerStatemanage : MonoBehaviour
         }
 
     bool CalculateTrajectory(){
-            float g=Physics.gravity.y;
-            float y0=targetRb.position.y;//ドローンの現在のy座標
-            float vy0=targetRb.linearVelocity.y;//ドローンの現在のy成分の速度
-
-            //1地点Aの時刻tbを求める
-            float a=0.5f*g;
-            float b=vy0;
-            float c=y0-spikeHeight;
-            float det=b*b-4*a*c;
-
-            if(det<0) return false;
-
-            float t_rising=(-b+Mathf.Sqrt(det))/(2*a);
-            float t_falling=(-b-Mathf.Sqrt(det))/(2*a);
-            float tb=Mathf.Max(t_rising,t_falling);
-
-            if (tb<0) return false;
-
-            timeUntilImpact=tb;
+            float t=CalculateFalling(spikeHeight);
+            if(t==-1) return false;
+            timeUntilImpact=t;//球とドローンが当たるまでの時間
             //Debug.Log($"timeUtilImpact:{timeUntilImpact}");
              //2,地点Bをランダムに決定-21<x<10.5),y=0,-10<z<10f
             Vector3 pointB=new Vector3(Random.Range(-21f,-10.5f),0f,Random.Range(-10f,10f));
             
             //3,地点A(a,b,c)の座標確定
             //spikeFlightTime:地点Aから地点Bまでのスパイクの移動時間
-            //vx=(targetRb.position.x-pointB.x)/spikeHeight,vz=(targetRb.position.z-pointB.z)/spikeHeight
-            //pointA=new Vector3(,spikeHeight,)
-            pointA=new Vector3(targetRb.position.x+(targetRb.linearVelocity.x*tb),spikeHeight,targetRb.position.z+(targetRb.linearVelocity.z*tb));
+            pointA=new Vector3(targetRb.position.x+(targetRb.linearVelocity.x*t),spikeHeight,targetRb.position.z+(targetRb.linearVelocity.z*t));
+
+            float BAx=pointB.x-pointA.x;
+            float BAz=pointB.z-pointA.z;
 
             //4ボールの必要速度を算出
-            float vBallx=(pointB.x-pointA.x)/spikeFlightTime;
-            float vBallZ=(pointB.z-pointA.z)/spikeFlightTime;
+            float vBallX=BAx/spikeFlightTime;
+            float vBallZ=BAz/spikeFlightTime;
             float vBallY=(pointB.y-pointA.y-0.5f*g*spikeFlightTime*spikeFlightTime)/spikeFlightTime;
-
+            Vector3 vBallPost=new Vector3(vBallX,vBallY,vBallZ);
+            Debug.Log($"vBallPost:{vBallPost.magnitude},vMax:{vMax}");
+            Debug.Log($"pointB(狙う位置):{pointB}");
+            if (vBallPost.magnitude > vMax)
+            {
+                //vBallPost=vBallPost.normalized*vMaxDrone;
+                
+                float a=0.25f*g*g;
+                float b=g*spikeHeight-vMax*vMax;
+                float c=spikeHeight*spikeHeight+BAx*BAx+BAz*BAz;
+                float det=b*b-4f*a*c;
+                if (det < 0f)
+                {
+                    Debug.Log("det<0");
+                    return false;
+                }
+                float t_rising=(-b+Mathf.Sqrt(det))/(2f*a);
+                float t_falling=(-b-Mathf.Sqrt(det))/(2f*a);
+                float tb=Mathf.Max(t_rising,t_falling);//球とドローンが当たり、地面に着くまでの時間
+                tb=Mathf.Sqrt(tb);
+            
+                vBallX=BAx/tb;
+                vBallZ=BAz/tb;
+                vBallY=(pointA.y -pointB.y+0.5f * g * tb * tb) / tb;
+                vBallPost=new Vector3(vBallX,vBallY,vBallZ);
+            }
             //ネット回避チェック
-            float tNet=(netX-pointA.x)/vBallx;
+            float tNet=(netX-pointA.x)/vBallX;
             float yNet=pointA.y+(vBallY*tNet)+(0.5f*g*tNet*tNet);
-            if(yNet<netHeightSafe){
+            /*if(yNet<netHeightSafe){
                 Debug.LogWarning("Trajectory too low! Net collision predicted.");
                 return false; // 低すぎる場合は打ち合わない
+            }*/
+            if (yNet < netHeightSafe)
+            {
+                Debug.LogWarning("Trajectory too low! Recalculating for Lob...");
+
+                // 1. ネットの少し上（安全圏）をターゲットにする
+                float targetNetY = netHeightSafe + 0.5f; // 50cmの余裕を持たせる
+                // 3. ネットを越えるために必要な Y 初速を逆算
+                // 式： y = y0 + vy*t + 0.5*g*t^2  =>  vy = (y - y0 - 0.5*g*t^2) / t
+                float requiredVBallY = (targetNetY - pointA.y - 0.5f * g * tNet * tNet) / tNet;
+
+                // 4. この新しい Y 初速で地面 (pointB.y) に着くまでの時間を再計算
+                // 二次方程式の解の公式： 0.5*g*t^2 + vy*t + (y0 - yB) = 0
+                float a_quad = 0.5f * g;
+                float b_quad = requiredVBallY;
+                float c_quad = pointA.y - pointB.y;
+                float det_quad = b_quad * b_quad - 4f * a_quad * c_quad;
+
+                if (det_quad >= 0) {
+                    float t_new = (-b_quad - Mathf.Sqrt(det_quad)) / (2f * a_quad); // 落下地点までの時間
+                    
+                    // 5. 新しい滞空時間に合わせて水平速度を修正
+                    vBallX = (pointB.x - pointA.x) / t_new;
+                    vBallZ = (pointB.z - pointA.z) / t_new;
+                    vBallY = requiredVBallY;
+
+                    vBallPost = new Vector3(vBallX, vBallY, vBallZ);
+                    
+                    // 6. ドローンの必要速度を更新
+                    requiredDroneVel = vBallPost / tossBoost;
+
+                    // vMaxを超えていないか最終チェック
+                    if (requiredDroneVel.magnitude > vMaxDrone) {
+                        Debug.Log("Lob is too fast for drone. Giving up.");
+                        return false; 
+                    }
+                } else {
+                    return false;
+                }
             }
             
-            Vector3 vBallPost=new Vector3(vBallx,vBallY,vBallZ);
 
             // CalculateTrajectory の中の「4ボールの必要速度を算出」部分を修正
             //float boost = (ballTossScript != null) ? ballTossScript.tossBoost : 2.0f; // 安全策
 
-            requiredDroneVel = vBallPost / boost;
+            requiredDroneVel = vBallPost / tossBoost;
             //requiredDroneVel=vBallPost/2f;//地点Aでドローンが衝突する際の必要な速度=ボールの必要速度/トス強度
 
             //軌道に入り待ち構えするためのスタンバイ地点を逆算
             //もしtbがrunnupTimeより短い場合は即座にStrikingに移行できるように調整
-            float actualRunup=Mathf.Min(runupTime,tb);//助走に掛けれる時間
+            float actualRunup=Mathf.Min(runupTime,t);//助走に掛けれる時間
             standbyPoint=pointA-(requiredDroneVel*actualRunup);
+            Debug.Log($"requiredDroneVel:{requiredDroneVel}");
+            Debug.Log($"vBallPost.magnitude球の速度:{vBallPost.magnitude}");
             return true;
         }
+
+    float CalculateFalling(float h)//上昇中の球がある高さhに到達までの時間tbを返す
+    {
+        float y0=targetRb.position.y;//ドローンの現在のy座標
+        float vy0=targetRb.linearVelocity.y;//ドローンの現在のy成分の速度
+
+        //1地点Aの時刻tbを求める
+        float a=0.5f*g;
+        float b=vy0;
+        float c=y0-h;
+        float det=b*b-4*a*c;
+
+        if(det<0) return -1;
+
+        float t_rising=(-b+Mathf.Sqrt(det))/(2*a);
+        float t_falling=(-b-Mathf.Sqrt(det))/(2*a);
+        float tb=Mathf.Max(t_rising,t_falling);
+
+        if (tb<0) return -1;
+
+        return tb;
+    }
 
     void MoveToPoint(Vector3 target){
         Vector3 diff=target-transform.position;
@@ -214,53 +317,15 @@ public class SpikerStatemanage : MonoBehaviour
     }
     void Hover(Vector3 target){
         Vector3 diff=target-transform.position;
+        Vector3 speed=diff.normalized*vMaxDrone;
+        rb.linearVelocity=speed;
+        /*
         float currentSpeed=rb.linearVelocity.magnitude;
         float speedDiff=Mathf.Max(0f,vMax-currentSpeed);
         float logFactor=Mathf.Log10(speedDiff+1.0f);
-
         Vector3 antiGraviy=-Physics.gravity;
         Vector3 moveForce=(diff*2.0f*logFactor)+antiGraviy-(rb.linearVelocity*0.7f);
-
         rb.AddForce(moveForce,ForceMode.Acceleration);
-    }
-    void OnCollisionSpike(Collision collision)
-    {
-        if (collision.gameObject.CompareTag(targetTag))
-        {
-            Debug.Log("collision");
-            Rigidbody ballRb = collision.gameObject.GetComponent<Rigidbody>();
-
-            if (ballRb != null)
-            {
-                //一度完全停止
-                ballRb.linearVelocity=Vector3.zero;
-                ballRb.angularVelocity=Vector3.zero;
-
-                // 1. ドローンの現在の速度ベクトル（XYZの合力）を取得
-                Vector3 droneVelocityVector = rb.linearVelocity;
-
-                //Debug.Log($"ドローンの衝突前のスピード:{droneVelocityVector}");
-                // 2. ドローンの速度ベクトルを tossBoost 倍にする
-                Vector3 boostedVelocity = droneVelocityVector * tossBoost;
-
-                // 3. 最低限の跳ね上がり（上方向への保障）を追加
-                // ドローンが止まっていても、ボールが当たれば少し上に跳ねるようにする
-                
-
-                // 4. ボールの速度を完全に上書き
-                rb.linearVelocity=Vector3.zero;
-                ballRb.linearVelocity = boostedVelocity;
-
-                //Debug.Log($"トス成功! 合力速度: {boostedVelocity} (倍率: {tossBoost})");
-            }
-        }
+        */
     }
 }
-/*
-void Hover(Vector3 target){
-        Vector3 diff=target-transform.position;
-        Vector3 hoverv=diff.normalized*vMax;
-
-        rb.linearVelocity=hoverv;
-    }
-*/
