@@ -36,10 +36,10 @@ public class BallDestruction : MonoBehaviour
         // 3. 衝突判定（床やネットに触れたら消す設定用）
         if (destroyOnCollision)
         {
-            // ターゲットタグの指定がない、もしくはタグが一致する場合
+      // ターゲットタグの指定がない、もしくはタグが一致する場合
             if (string.IsNullOrEmpty(targetTag) || collision.gameObject.CompareTag(targetTag))
             {
-                //Debug.Log($"{gameObject.name} が {collision.gameObject.name} に接触したため削除されました。");
+                Debug.Log($"{gameObject.name} が {collision.gameObject.name} に接触したため削除されました。");
                 Destroy(gameObject);
             }
         }

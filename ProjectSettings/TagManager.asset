@@ -7,6 +7,8 @@ TagManager:
   - valleyball
   - injectionball
   - court
+  - Ally
+  - Enemy
   layers:
   - Default
   - TransparentFX
