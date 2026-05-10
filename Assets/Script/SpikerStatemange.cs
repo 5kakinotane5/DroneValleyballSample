@@ -3,14 +3,6 @@ using UnityEngine;
 public class SpikerStatemanage : MonoBehaviour
 {
     [Header("基本設定")]
-    [Header("判定するターゲットのタグ")]    
-    public string targetTag = "injectionball"; // タグ名を統一
-
-    [Header("ドローンの速度の何倍で飛ばすか")]
-    public float tossBoost = 2f;
-
-    [Header("最低限の跳ね上がり速度 (m/s)")]
-    public float minTossSpeed = 5f;
     public string ballTag="injectionball";
     public float spikeHeight=10f;//地点Aの高さ打撃位置
     //public Vector3 initialPos;
@@ -195,8 +187,7 @@ public class SpikerStatemanage : MonoBehaviour
             //float boost = (ballTossScript != null) ? ballTossScript.tossBoost : 2.0f; // 安全策
 
             requiredDroneVel = vBallPost / boost;
-            //requiredDroneVel=vBallPost/2f;//地点Aでドローンが衝突する際の必要な速度=ボールの必要速度/トス強度
-
+            //地点Aでドローンが衝突する際の必要な速度=ボールの必要速度/トス強度
             //軌道に入り待ち構えするためのスタンバイ地点を逆算
             //もしtbがrunnupTimeより短い場合は即座にStrikingに移行できるように調整
             float actualRunup=Mathf.Min(runupTime,tb);//助走に掛けれる時間
@@ -223,44 +214,4 @@ public class SpikerStatemanage : MonoBehaviour
 
         rb.AddForce(moveForce,ForceMode.Acceleration);
     }
-    void OnCollisionSpike(Collision collision)
-    {
-        if (collision.gameObject.CompareTag(targetTag))
-        {
-            Debug.Log("collision");
-            Rigidbody ballRb = collision.gameObject.GetComponent<Rigidbody>();
-
-            if (ballRb != null)
-            {
-                //一度完全停止
-                ballRb.linearVelocity=Vector3.zero;
-                ballRb.angularVelocity=Vector3.zero;
-
-                // 1. ドローンの現在の速度ベクトル（XYZの合力）を取得
-                Vector3 droneVelocityVector = rb.linearVelocity;
-
-                //Debug.Log($"ドローンの衝突前のスピード:{droneVelocityVector}");
-                // 2. ドローンの速度ベクトルを tossBoost 倍にする
-                Vector3 boostedVelocity = droneVelocityVector * tossBoost;
-
-                // 3. 最低限の跳ね上がり（上方向への保障）を追加
-                // ドローンが止まっていても、ボールが当たれば少し上に跳ねるようにする
-                
-
-                // 4. ボールの速度を完全に上書き
-                rb.linearVelocity=Vector3.zero;
-                ballRb.linearVelocity = boostedVelocity;
-
-                //Debug.Log($"トス成功! 合力速度: {boostedVelocity} (倍率: {tossBoost})");
-            }
-        }
-    }
 }
-/*
-void Hover(Vector3 target){
-        Vector3 diff=target-transform.position;
-        Vector3 hoverv=diff.normalized*vMax;
-
-        rb.linearVelocity=hoverv;
-    }
-*/
