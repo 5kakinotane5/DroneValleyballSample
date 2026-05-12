@@ -783,8 +783,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.21125373, y: 0.109114364, z: -0.023728576, w: 0.97103184}
-  m_LocalPosition: {x: -9.847302, y: 22.702444, z: -41.526722}
+  m_LocalRotation: {x: 0.09234892, y: 0.07103186, z: -0.0065952176, w: 0.993168}
+  m_LocalPosition: {x: -6.9484224, y: 17.197054, z: -45.479088}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1272,14 +1272,14 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 3725777149201631777, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 853073788}
+      addedObject: {fileID: 853073794}
   m_SourcePrefab: {fileID: 100100000, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
 --- !u!1 &853073787 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3725777149201631777, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
   m_PrefabInstance: {fileID: 853073786}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &853073788
+--- !u!114 &853073794
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1288,14 +1288,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 853073787}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47ea4cd20b4b0ea4e8d3d581409084df, type: 3}
+  m_Script: {fileID: 11500000, guid: 54390d2610d82a944831c2b5b6caaf6f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReceiverAllyEnemy
   myTeam: 1
-  targetBall: {fileID: 0}
-  moveSpeed: 10
+  targetBall: {fileID: 8662993477060767682, guid: 1cdd11fc4020e434b8b268275c63ccbf, type: 3}
+  moveSpeed: 20
   initialPos: {x: -10, y: 1, z: 0}
-  returnFlightTime: 1.5
+  returnFlightTime: 3.5
   currentState: 0
 --- !u!1001 &890808355
 PrefabInstance:
@@ -1359,14 +1359,14 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 3725777149201631777, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 890808357}
+      addedObject: {fileID: 890808363}
   m_SourcePrefab: {fileID: 100100000, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
 --- !u!1 &890808356 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3725777149201631777, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
   m_PrefabInstance: {fileID: 890808355}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &890808357
+--- !u!114 &890808363
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1375,14 +1375,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 890808356}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47ea4cd20b4b0ea4e8d3d581409084df, type: 3}
+  m_Script: {fileID: 11500000, guid: 54390d2610d82a944831c2b5b6caaf6f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReceiverAllyEnemy
   myTeam: 0
-  targetBall: {fileID: 0}
-  moveSpeed: 10
+  targetBall: {fileID: 8662993477060767682, guid: 1cdd11fc4020e434b8b268275c63ccbf, type: 3}
+  moveSpeed: 20
   initialPos: {x: 10, y: 1, z: 0}
-  returnFlightTime: 1.5
+  returnFlightTime: 3.5
   currentState: 0
 --- !u!1 &1238548356
 GameObject:
@@ -1393,7 +1393,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1238548358}
-  - component: {fileID: 1238548357}
+  - component: {fileID: 1238548359}
   m_Layer: 0
   m_Name: VolleyballSystem
   m_TagString: Untagged
@@ -1401,19 +1401,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1238548357
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1238548356}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8ed520b9d7d310745935f64f2a3bd908, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VolleyballManager
-  currentPhase: 0
 --- !u!4 &1238548358
 Transform:
   m_ObjectHideFlags: 0
@@ -1429,6 +1416,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1238548359
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1238548356}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5bf6a2002ccaa24794fd3be13a2d7c5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MatchManager
+  currentPossesion: 0
+  touchCount: 0
+  currentPhase: 0
 --- !u!1 &1254476180
 GameObject:
   m_ObjectHideFlags: 0
@@ -2128,9 +2130,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 1769980535}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b4519eebbf728ff4d906f235a2ca6a22, type: 3}
+  m_Script: {fileID: 11500000, guid: 064ed8a33d1e51a4682545875583791f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::RandomBallLauncher
+  m_EditorClassIdentifier: Assembly-CSharp::AllyEnemyballlauncher
   ballPrefab: {fileID: 3380572386424972372, guid: 1cdd11fc4020e434b8b268275c63ccbf, type: 3}
   flightTime: 3
 --- !u!1 &1979314663 stripped

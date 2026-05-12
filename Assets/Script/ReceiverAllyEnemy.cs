@@ -9,7 +9,7 @@ public class ReceiverAllyEnemy : MonoBehaviour
 
     // ★追加：レシーブを落とす目標地点（X, Y, Z）と、そこまでの時間
     public Vector3 initialPos = new Vector3(10f, 1f, 0f); // 後でインスペクターで設定します
-    public float returnFlightTime = 1.5f; // ふわっと上げるための時間（秒）
+    public float returnFlightTime = 3f; // ふわっと上げるための時間（秒）
 
     enum State {Waiting,Hovering,MovingToTrajectory,Receiving,Returning}
     [SerializeField] private State currentState=State.Waiting;
@@ -20,11 +20,11 @@ public class ReceiverAllyEnemy : MonoBehaviour
         {
             case State.Waiting:
             //Hover(initialPos);
-                Debug.Log($"match.manager.instance.currentphase:{MatchManager.Instance.currentPossesion}");
-                /*if (VolleyballManager.Instance.currentPhase == GamePhase.Receiving && MatchManager.Instance.currentPossesion ==  myTeam )
+                //Debug.Log($"currentphase:{MatchManager.Instance.currentPhase},currentPossesion:{MatchManager.Instance.currentPossesion},myTeam:{myTeam}");
+                if (MatchManager.Instance.currentPhase == MatchManager.GamePhase.Receiving && MatchManager.Instance.currentPossesion ==  myTeam )
                 {
                     currentState=State.Hovering;
-                }*/
+                }
                 Hover(initialPos);
                 break;
 
@@ -47,7 +47,7 @@ public class ReceiverAllyEnemy : MonoBehaviour
                 break;
             */
             case State.Returning:
-                VolleyballManager.Instance.currentPhase=GamePhase.Spiking;
+                MatchManager.Instance.currentPhase=MatchManager.GamePhase.Spiking;
                 Hover(initialPos);
                 if (Vector3.Distance(transform.position, initialPos) < 0.3f)
                 {
@@ -66,7 +66,8 @@ public class ReceiverAllyEnemy : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.name.Contains("injectionball"))
+        //if (collision.gameObject.name.Contains("injectionball"))
+        if(collision.gameObject.CompareTag("injectionball"))
         {
             Rigidbody ballRb = collision.gameObject.GetComponent<Rigidbody>();
             if (ballRb != null)
@@ -87,7 +88,7 @@ public class ReceiverAllyEnemy : MonoBehaviour
                 //Debug.Log("セッターのような完璧なレシーブ！");
 
                 // 待機するための魔法（そのまま）
-                collision.gameObject.name = "ReceivedBall";
+                //collision.gameObject.name = "ReceivedBall";
                 targetBall = null;
                 currentState=State.Returning;
             }
@@ -126,4 +127,11 @@ public class ReceiverAllyEnemy : MonoBehaviour
         return new Vector3(startPos.x + velocity.x * t, targetY, startPos.z + velocity.z * t);
     }
     
+    public void ResetToInitialState()
+    {
+        currentState=State.Waiting;
+        targetBall=null;
+        transform.position=initialPos;
+        GetComponent<Rigidbody>().linearVelocity=Vector3.zero;
+    }
 }

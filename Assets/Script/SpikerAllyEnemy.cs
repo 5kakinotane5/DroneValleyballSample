@@ -54,7 +54,6 @@ public class SpikerAllyEnemy : MonoBehaviour
         }
     void FixedUpdate()
     {
-        //if (VolleyballManager.Instance.currentPhase==GamePhase.Spiking){
         
         if(currentState==State.MovingToTrajectory || currentState==State.Striking){
             timeUntilImpact-=Time.fixedDeltaTime;
@@ -62,8 +61,10 @@ public class SpikerAllyEnemy : MonoBehaviour
         switch (currentState)
         {
             case State.Waiting:
+                //Debug.Log($"currentphase:{MatchManager.Instance.currentPhase},currentPossesion:{MatchManager.Instance.currentPossesion},myTeam:{myTeam}");
+
                 rb.linearVelocity=Vector3.zero;
-                if (VolleyballManager.Instance.currentPhase == GamePhase.Spiking  && MatchManager.Instance.currentPossesion ==  myTeam)
+                if (MatchManager.Instance.currentPhase == MatchManager.GamePhase.Spiking  && MatchManager.Instance.currentPossesion ==  myTeam)
                 {
                     //Debug.Log("stateをhoveringへ");
                     currentState=State.Hovering;
@@ -86,21 +87,21 @@ public class SpikerAllyEnemy : MonoBehaviour
             case State.Striking:
                 //アタックフェーズ：地点Aを通り地点Bへ向かう直線軌道上に入る
                 rb.linearVelocity=requiredDroneVel;
-
+                if (myTeam == Team.Ally){
+                    MatchManager.Instance.ChangePossesion(Team.Enemy);
+                }else{
+                    MatchManager.Instance.ChangePossesion(Team.Ally);
+                }
                 break;
             case State.Returning:
                 lastSpikedBall=null;
                 targetRb=null;
                 timeUntilImpact=0;
-                VolleyballManager.Instance.currentPhase=GamePhase.Waiting;
+                //MatchManager.Instance.currentPhase=MatchManager.GamePhase.Waiting;
                 Hover(initialPos);
                 if(Vector3.Distance(transform.position, initialPos)<0.3f){
-                    VolleyballManager.Instance.currentPhase=GamePhase.Waiting;
-                    if (myTeam == Team.Ally){
-                        MatchManager.Instance.currentPossesion=Team.Enemy;
-                    }else{
-                        MatchManager.Instance.currentPossesion=Team.Ally;
-                    }
+                    //MatchManager.Instance.currentPhase=MatchManager.GamePhase.Waiting;
+                    
                     currentState=State.Waiting;
                 }
                 break;   
@@ -147,16 +148,12 @@ public class SpikerAllyEnemy : MonoBehaviour
             }
             //Debug.Log($"targetRb:{targetRb.linearVelocity.y}");
             //ボールが上昇中かつ目標高より低いときに計算
-            if(targetRb.linearVelocity.y>0 && targetRb.position.y<spikeHeight && VolleyballManager.Instance.currentPhase==GamePhase.Spiking){
+            if(targetRb.linearVelocity.y>0 && targetRb.position.y<spikeHeight && MatchManager.Instance.currentPhase==MatchManager.GamePhase.Spiking){
                 if(CalculateTrajectory()){
                     //Debug.Log("calculatetrajectory");
                     currentState=State.MovingToTrajectory;
                 }
             }
-            /*Debug.Log($"targetRb.linearVelocity.y:{targetRb.linearVelocity.y}");
-            Debug.Log($"targetRb.position.y:{targetRb.linearVelocity.y}");
-            Debug.Log($"VolleyballManager.Instance.currentPhase:{VolleyballManager.Instance.currentPhase}");
-            Debug.Log("なんもない");*/
         }
 
     bool CalculateTrajectory(){
@@ -165,7 +162,16 @@ public class SpikerAllyEnemy : MonoBehaviour
             timeUntilImpact=t;//球とドローンが当たるまでの時間
             //Debug.Log($"timeUtilImpact:{timeUntilImpact}");
              //2,地点Bをランダムに決定-21<x<10.5),y=0,-10<z<10f
-            Vector3 pointB=new Vector3(Random.Range(-21f,-10.5f),0f,Random.Range(-10f,10f));
+            Vector3 pointB;
+            if (MatchManager.Instance.currentPossesion == Team.Ally)
+            {
+                pointB=new Vector3(Random.Range(-21f,-10.5f),0f,Random.Range(-10f,10f));
+            }
+            else
+            {
+                pointB=new Vector3(Random.Range(21f,10.5f),0f,Random.Range(-10f,10f));
+            }
+            //Vector3 pointB=new Vector3(Random.Range(-21f,-10.5f),0f,Random.Range(-10f,10f));
             
             //3,地点A(a,b,c)の座標確定
             //spikeFlightTime:地点Aから地点Bまでのスパイクの移動時間
@@ -179,7 +185,7 @@ public class SpikerAllyEnemy : MonoBehaviour
             float vBallZ=BAz/spikeFlightTime;
             float vBallY=(pointB.y-pointA.y-0.5f*g*spikeFlightTime*spikeFlightTime)/spikeFlightTime;
             Vector3 vBallPost=new Vector3(vBallX,vBallY,vBallZ);
-            Debug.Log($"vBallPost:{vBallPost.magnitude},vMax:{vMax}");
+            //Debug.Log($"vBallPost:{vBallPost.magnitude},vMax:{vMax}");
             Debug.Log($"pointB(狙う位置):{pointB}");
             if (vBallPost.magnitude > vMax)
             {
@@ -212,7 +218,7 @@ public class SpikerAllyEnemy : MonoBehaviour
             }*/
             if (yNet < netHeightSafe)
             {
-                Debug.LogWarning("Trajectory too low! Recalculating for Lob...");
+                //Debug.LogWarning("Trajectory too low! Recalculating for Lob...");
                 float x2=pointA.x+(netHeightSafe-pointB.y)/(pointA.y-pointB.y)*(pointA.x-pointB.x);
                 float t0=(Mathf.Sqrt(((netHeightSafe-pointA.y)*(pointB.x-pointA.x)/(x2-pointA.x)+pointA.y)*2/g*(pointB.x-pointA.x)/(x2-pointB.x)));
                 vBallX=BAx/t0;
@@ -232,8 +238,8 @@ public class SpikerAllyEnemy : MonoBehaviour
             //もしtbがrunnupTimeより短い場合は即座にStrikingに移行できるように調整
             float actualRunup=Mathf.Min(runupTime,t);//助走に掛けれる時間
             standbyPoint=pointA-(requiredDroneVel*actualRunup);
-            Debug.Log($"requiredDroneVel:{requiredDroneVel}");
-            Debug.Log($"vBallPost.magnitude球の速度:{vBallPost.magnitude}");
+            //Debug.Log($"requiredDroneVel:{requiredDroneVel}");
+            //Debug.Log($"vBallPost.magnitude球の速度:{vBallPost.magnitude}");
             return true;
         }
 
@@ -284,5 +290,12 @@ public class SpikerAllyEnemy : MonoBehaviour
         Vector3 moveForce=(diff*2.0f*logFactor)+antiGraviy-(rb.linearVelocity*0.7f);
         rb.AddForce(moveForce,ForceMode.Acceleration);
         */
+    }
+    public void ResetToInitialState()
+    {
+        currentState=State.Waiting;
+        targetRb=null;
+        transform.position=initialPos;
+        GetComponent<Rigidbody>().linearVelocity=Vector3.zero;
     }
 }
