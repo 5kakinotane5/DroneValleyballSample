@@ -54,5 +54,6 @@ public class RandomBallLauncher : MonoBehaviour
         if(VolleyballManager.Instance != null){
             VolleyballManager.Instance.StartPlay();
         }
+        
     }
 }

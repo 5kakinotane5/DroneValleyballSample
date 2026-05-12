@@ -20,10 +20,11 @@ public class ReceiverAllyEnemy : MonoBehaviour
         {
             case State.Waiting:
             //Hover(initialPos);
-                if (VolleyballManager.Instance.currentPhase == GamePhase.Receiving && MatchManager.Instance.currentPossesion ==  myTeam )
+                Debug.Log($"match.manager.instance.currentphase:{MatchManager.Instance.currentPossesion}");
+                /*if (VolleyballManager.Instance.currentPhase == GamePhase.Receiving && MatchManager.Instance.currentPossesion ==  myTeam )
                 {
                     currentState=State.Hovering;
-                }
+                }*/
                 Hover(initialPos);
                 break;
 
