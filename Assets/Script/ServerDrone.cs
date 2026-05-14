@@ -1,25 +1,27 @@
 using UnityEngine;
 using System.Collections;
-
-public class ServeDrone : MonoBehaviour
+using UnityEngine.InputSystem;
+using System.Diagnostics;
+public class ServerDrone : MonoBehaviour
 {
     public GameObject ballPrefab;
 
     [Header("1. トス（斜方投射）の設定")]
     public float timeToReachHitPoint = 1.2f;
     public float hitPointForwardOffset = 1.0f;
-    public float hitPointHeightOffset = 3.0f;
+    public float hitPointHeightOffset = 6.0f;
 
     [Header("2. スパイク（ランダム着地）の設定")]
-    public float serveFlightTime = 0.25f;
-    public float courtMinX = -4.5f;
-    public float courtMaxX = 4.5f;
-    public float courtMinZ = 10.0f;
-    public float courtMaxZ = 18.0f;
+    public float serveFlightTime = 1f;
+    public float courtMinX = 15f;
+    public float courtMaxX = 21f;
+    public float courtMinZ = -10.0f;
+    public float courtMaxZ = 10.0f;
 
     private Vector3 originalPos;
     private Quaternion originalRot;
     private bool isServing = false;
+    [SerializeField] private Serve myServe;
 
     void Start()
     {
@@ -34,7 +36,8 @@ public class ServeDrone : MonoBehaviour
             transform.rotation = originalRot;
         }
 
-        if (Input.GetKeyDown(KeyCode.Space) && !isServing)
+        //if (Input.GetKeyDown(KeyCode.Space) && !isServing)
+        if (Keyboard.current!=null && Keyboard.current.spaceKey.wasPressedThisFrame && !isServing && ServeManager.Instance.currentPossesion==myServe)
         {
             StartCoroutine(RealJumpServeSequence());
         }
@@ -49,7 +52,6 @@ public class ServeDrone : MonoBehaviour
             0f,
             Random.Range(courtMinZ, courtMaxZ)
         );
-
         Vector3 dirToTarget = (randomTargetPos - originalPos);
         dirToTarget.y = 0;
         dirToTarget.Normalize();
