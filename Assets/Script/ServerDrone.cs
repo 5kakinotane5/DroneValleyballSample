@@ -143,6 +143,10 @@ public class ServerDrone : MonoBehaviour
             // ここで確実にプログラムの速度が乗る！
             ballRb.linearVelocity = spikeVelocity;
             ball.name = "injectionball(Clone)";
+            if(MatchManager.Instance != null)
+            {
+                MatchManager.Instance.StartPlay();
+            }
         }
 
         // 【着地と復帰】
