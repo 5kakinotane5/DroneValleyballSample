@@ -1081,38 +1081,13 @@ PrefabInstance:
       addedObject: {fileID: 508050332}
     - targetCorrespondingSourceObject: {fileID: 7231887364440564934, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 508050331}
+      addedObject: {fileID: 508050337}
   m_SourcePrefab: {fileID: 100100000, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
 --- !u!1 &508050330 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7231887364440564934, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
   m_PrefabInstance: {fileID: 508050329}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &508050331
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 508050330}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3453e91f550db9d41a36292b55510406, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SpikerAllyEnemy
-  myTeam: 1
-  targetTag: injectionball
-  tossBoost: 2
-  minTossSpeed: 5
-  ballTag: injectionball
-  spikeHeight: 10
-  initialPos: {x: -10.5, y: 6, z: 0}
-  vMaxDrone: 40
-  spikeFlightTime: 0.6
-  runupTime: 0.2
-  netX: 0
-  netHeightSafe: 4.9
-  currentState: 0
 --- !u!54 &508050332
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1161,6 +1136,35 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 4.408121, y: 1.2991048, z: 4.130223}
   m_Center: {x: -0.048597652, y: -0.10872016, z: -0.2099057}
+--- !u!114 &508050337
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 508050330}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 816ab928a3e1f0843acf14381c5d1dfe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpikerAllyEnemyV2
+  myTeam: 1
+  tossBoost: 2
+  ballTag: injectionball
+  spikeHeight: 10
+  initialPos: {x: -10.5, y: 6, z: 0}
+  vMaxDrone: 40
+  spikeFlightTime: 0.6
+  runupTime: 0.2
+  netX: 0
+  netHeightSafe: 4.9
+  trajectoryCheckRadius: 3
+  trajectoryAvoidSpeed: 25
+  trajectorySamples: 30
+  dodgeRadius: 3
+  dodgeSpeed: 15
+  isAvoidingTrajectory: 0
+  currentState: 0
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -1384,6 +1388,119 @@ MonoBehaviour:
   initialPos: {x: 10, y: 1, z: 0}
   returnFlightTime: 3.5
   currentState: 0
+--- !u!1 &1014509754
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1014509758}
+  - component: {fileID: 1014509757}
+  - component: {fileID: 1014509756}
+  - component: {fileID: 1014509755}
+  m_Layer: 0
+  m_Name: Plane
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!64 &1014509755
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1014509754}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &1014509756
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1014509754}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &1014509757
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1014509754}
+  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!4 &1014509758
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1014509754}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.42, y: -0.13, z: -5.989}
+  m_LocalScale: {x: 8.811928, y: 0.7765, z: 6.0149064}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1238548356
 GameObject:
   m_ObjectHideFlags: 0
@@ -1605,13 +1722,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1392019825}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3453e91f550db9d41a36292b55510406, type: 3}
+  m_Script: {fileID: 11500000, guid: 816ab928a3e1f0843acf14381c5d1dfe, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SpikerAllyEnemy
+  m_EditorClassIdentifier: Assembly-CSharp::SpikerAllyEnemyV2
   myTeam: 0
-  targetTag: injectionball
   tossBoost: 2
-  minTossSpeed: 5
   ballTag: injectionball
   spikeHeight: 10
   initialPos: {x: 10.5, y: 6, z: 0}
@@ -1620,6 +1735,12 @@ MonoBehaviour:
   runupTime: 0.2
   netX: 0
   netHeightSafe: 4.9
+  trajectoryCheckRadius: 4
+  trajectoryAvoidSpeed: 25
+  trajectorySamples: 30
+  dodgeRadius: 3
+  dodgeSpeed: 15
+  isAvoidingTrajectory: 0
   currentState: 0
 --- !u!1001 &1476472310
 PrefabInstance:
@@ -1746,7 +1867,9 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 8870536244367974070, guid: 070d920cd610725429f912abd83405d8, type: 3}
+    - {fileID: 6730090177949456487, guid: 070d920cd610725429f912abd83405d8, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 8193633226675352195, guid: 070d920cd610725429f912abd83405d8, type: 3}
@@ -2403,3 +2526,4 @@ SceneRoots:
   - {fileID: 508050329}
   - {fileID: 1769980537}
   - {fileID: 1238548358}
+  - {fileID: 1014509758}
