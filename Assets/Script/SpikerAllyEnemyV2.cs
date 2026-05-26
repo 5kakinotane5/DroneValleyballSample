@@ -349,16 +349,38 @@ public class SpikerAllyEnemyV2 : MonoBehaviour
             vBallPost = new Vector3(vBallX, vBallY, vBallZ);
         }
 
-        float tNet = (netX - pointA.x) / vBallX;
-        float yNet = pointA.y + (vBallY * tNet) + (0.5f * g * tNet * tNet);
-        if (yNet < netHeightSafe)
+        // ネットクリアランス保証（閉形式）
+        // yNet = pointA.y + alpha*(pointB.y-pointA.y) + 0.5*g*tb^2*alpha*(alpha-1)
+        // alpha = (netX-pointA.x)/BAx (ネットが全行程のどの割合の位置か)
+        if (Mathf.Abs(vBallX) > 0.001f)
         {
-            float x2 = pointA.x + (netHeightSafe - pointB.y) / (pointA.y - pointB.y) * (pointA.x - pointB.x);
-            float t0 = Mathf.Sqrt(((netHeightSafe - pointA.y) * (pointB.x - pointA.x) / (x2 - pointA.x) + pointA.y) * 2 / g * (pointB.x - pointA.x) / (x2 - pointB.x));
-            vBallX = BAx / t0;
-            vBallZ = BAz / t0;
-            vBallY = (netHeightSafe - pointA.y) / (x2 - pointA.x) * vBallX - 0.5f * g * (x2 - pointA.x) / vBallX;
-            vBallPost = new Vector3(vBallX, vBallY, vBallZ);
+            float alpha = (netX - pointA.x) / BAx;
+            if (alpha > 0f && alpha < 1f)
+            {
+                float currentTb = BAx / vBallX;
+                float tNetCheck = alpha * currentTb;
+                float yNet = pointA.y + vBallY * tNetCheck + 0.5f * g * tNetCheck * tNetCheck;
+                float neededY = netHeightSafe + 0.5f; // 50cm余裕
+
+                if (yNet < neededY)
+                {
+                    // neededY を満たす最小 tb を求める
+                    float linY = pointA.y + alpha * (pointB.y - pointA.y);
+                    float curveFactor = 0.5f * g * alpha * (alpha - 1f); // g<0, alpha*(alpha-1)<0 → 正の値
+                    if (curveFactor > 0.0001f)
+                    {
+                        float tb2Min = (neededY - linY) / curveFactor;
+                        if (tb2Min > currentTb * currentTb)
+                        {
+                            float tbNew = Mathf.Sqrt(tb2Min);
+                            vBallX = BAx / tbNew;
+                            vBallZ = BAz / tbNew;
+                            vBallY = (pointB.y - pointA.y - 0.5f * g * tbNew * tbNew) / tbNew;
+                            vBallPost = new Vector3(vBallX, vBallY, vBallZ);
+                        }
+                    }
+                }
+            }
         }
 
         requiredDroneVel = vBallPost / tossBoost;

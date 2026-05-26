@@ -4,7 +4,7 @@ public class BallDestruction : MonoBehaviour
 {
     [Header("消去設定")]
     [Tooltip("射出されてから自動で消えるまでの時間")]
-    public float lifeTime = 20f; 
+    public float lifeTime = 120f;
 
     [Tooltip("この高さより下に落ちたら即座に消去する")]
     public float deathYThreshold = -2f;

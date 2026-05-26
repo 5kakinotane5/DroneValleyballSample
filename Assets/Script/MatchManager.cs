@@ -25,6 +25,13 @@ public class MatchManager : MonoBehaviour
     {
         currentPhase=GamePhase.Receiving;
     }
+
+    public void ResetGame()
+    {
+        currentPhase = GamePhase.Waiting;
+        currentPossesion = Team.Ally;
+        touchCount = 0;
+    }
     /*
     public void OnResetButtonClicked()
     {

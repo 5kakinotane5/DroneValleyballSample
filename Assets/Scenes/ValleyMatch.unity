@@ -1300,6 +1300,10 @@ MonoBehaviour:
   moveSpeed: 20
   initialPos: {x: -10, y: 1, z: 0}
   returnFlightTime: 3.5
+  courtXMin: -21
+  courtXMax: 0
+  courtZMin: -10
+  courtZMax: 10
   currentState: 0
 --- !u!1001 &890808355
 PrefabInstance:
@@ -1387,6 +1391,10 @@ MonoBehaviour:
   moveSpeed: 20
   initialPos: {x: 10, y: 1, z: 0}
   returnFlightTime: 3.5
+  courtXMin: 0
+  courtXMax: 21
+  courtZMin: -10
+  courtZMax: 10
   currentState: 0
 --- !u!1 &1014509754
 GameObject:
