@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using UnityEngine.InputSystem;
 
 public class ServeDrone : MonoBehaviour
 {
@@ -34,7 +35,7 @@ public class ServeDrone : MonoBehaviour
             transform.rotation = originalRot;
         }
 
-        if (Input.GetKeyDown(KeyCode.Space) && !isServing)
+        if (Keyboard.current.spaceKey.wasPressedThisFrame && !isServing)
         {
             StartCoroutine(RealJumpServeSequence());
         }
