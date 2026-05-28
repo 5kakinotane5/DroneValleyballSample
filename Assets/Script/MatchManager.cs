@@ -7,6 +7,7 @@ public class MatchManager : MonoBehaviour
     public static MatchManager Instance;
     public Team currentPossesion = Team.Ally;
     public int touchCount = 0;
+    [HideInInspector] public Team lastTeamToHit = Team.Ally;
 
     public enum GamePhase { Waiting,Receiving,Spiking}
     public GamePhase currentPhase;
@@ -31,6 +32,7 @@ public class MatchManager : MonoBehaviour
         currentPhase = GamePhase.Waiting;
         currentPossesion = Team.Ally;
         touchCount = 0;
+        lastTeamToHit = Team.Ally;
     }
     /*
     public void OnResetButtonClicked()

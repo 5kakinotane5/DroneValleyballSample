@@ -112,6 +112,9 @@ public class SpikerAllyEnemy : MonoBehaviour
     if(collision.gameObject.CompareTag(ballTag) && currentState == State.Striking){
         Rigidbody ballRb = collision.gameObject.GetComponent<Rigidbody>();
         if (ballRb != null) {
+            if (MatchManager.Instance != null)
+                MatchManager.Instance.lastTeamToHit = myTeam;
+
             // ★ ここで計算結果を反映させる！
             // vBallPost = requiredDroneVel * tossBoost の関係
             Vector3 finalBallVelocity = requiredDroneVel * tossBoost;

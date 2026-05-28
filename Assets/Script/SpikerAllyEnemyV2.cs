@@ -143,6 +143,9 @@ public class SpikerAllyEnemyV2 : MonoBehaviour
         Rigidbody ballRb = collision.gameObject.GetComponent<Rigidbody>();
         if (ballRb == null) return;
 
+        if (MatchManager.Instance != null)
+            MatchManager.Instance.lastTeamToHit = myTeam;
+
         ballRb.linearVelocity = requiredDroneVel * tossBoost;
         rb.linearVelocity = Vector3.zero;
 

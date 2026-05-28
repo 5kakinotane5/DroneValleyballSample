@@ -109,6 +109,9 @@ public class ReceiverAllyEnemy : MonoBehaviour
             Rigidbody ballRb = collision.gameObject.GetComponent<Rigidbody>();
             if (ballRb != null)
             {
+                if (MatchManager.Instance != null)
+                    MatchManager.Instance.lastTeamToHit = myTeam;
+
                 Vector3 startPos = collision.transform.position;
                 float vx = (initialPos.x - startPos.x) / returnFlightTime;
                 float vz = (initialPos.z - startPos.z) / returnFlightTime;

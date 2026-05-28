@@ -21,6 +21,7 @@ public class BallResetOnCollision : MonoBehaviour
         }
 
         hasReset = true;
+        DetermineScore();
         ResetAll();
         Destroy(gameObject);
     }
@@ -32,6 +33,12 @@ public class BallResetOnCollision : MonoBehaviour
             hasReset = true;
             ResetAll();
         }
+    }
+
+    void DetermineScore()
+    {
+        if (ScoreManager.Instance == null) return;
+        ScoreManager.Instance.DetermineScore(transform.position);
     }
 
     void ResetAll()
