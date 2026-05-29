@@ -6,164 +6,165 @@ public class ServeDrone : MonoBehaviour
 {
     public GameObject ballPrefab;
 
-    [Header("1. トス（斜方投射）の設定")]
-    public float timeToReachHitPoint = 1.2f;
-    public float hitPointForwardOffset = 1.0f;
-    public float hitPointHeightOffset = 3.0f;
+    [Header("サーブするチーム（SpikerAllyEnemyV2があれば自動設定）")]
+    public Team serveTeam = Team.Ally;
 
-    [Header("2. スパイク（ランダム着地）の設定")]
-    public float serveFlightTime = 0.25f;
-    public float courtMinX = -4.5f;
-    public float courtMaxX = 4.5f;
-    public float courtMinZ = 10.0f;
-    public float courtMaxZ = 18.0f;
+    [Header("サーブ位置（自コート外）")]
+    public Vector3 allyServePosition  = new Vector3(23f, 1f, 0f);
+    public Vector3 enemyServePosition = new Vector3(-23f, 1f, 0f);
 
-    private Vector3 originalPos;
-    private Quaternion originalRot;
+    [Header("サーブ先 X 範囲（相手コート）")]
+    public float allyTargetMinX  = -20f;
+    public float allyTargetMaxX  = -2f;
+    public float enemyTargetMinX = 2f;
+    public float enemyTargetMaxX = 20f;
+
+    [Header("サーブ先 Z 範囲（共通）")]
+    public float targetMinZ = -9f;
+    public float targetMaxZ = 9f;
+
+    [Header("ネット設定")]
+    public float netX         = 0f;
+    public float netHeight    = 6.0f;
+    public float netClearance = 0.5f;
+
+    [Header("移動時間（秒）")]
+    public float moveToServeTime = 1.5f;
+    public float moveToSpikeTime = 2.0f;
+
+    [Header("飛行時間の探索範囲（短いほど速い弾道）")]
+    public float minFlightTime  = 1.0f;
+    public float maxFlightTime  = 6.0f;
+    public float flightTimeStep = 0.05f;
+
+    private Vector3 spikePosition;
     private bool isServing = false;
+    private Rigidbody rb;
 
     void Start()
     {
-        originalPos = transform.position;
-        originalRot = transform.rotation;
+        rb = GetComponent<Rigidbody>();
+
+        SpikerAllyEnemyV2 spiker = GetComponent<SpikerAllyEnemyV2>();
+        if (spiker != null)
+        {
+            serveTeam     = spiker.MyTeam;
+            spikePosition = spiker.initialPos;
+        }
+        else
+        {
+            spikePosition = transform.position;
+        }
     }
 
     void Update()
     {
-        if (!isServing)
-        {
-            transform.rotation = originalRot;
-        }
+        if (Keyboard.current == null) return;
 
-        if (Keyboard.current.spaceKey.wasPressedThisFrame && !isServing)
-        {
-            StartCoroutine(RealJumpServeSequence());
-        }
+        bool isMyServe = MatchManager.Instance != null &&
+            MatchManager.Instance.serveRight   == serveTeam &&
+            MatchManager.Instance.currentPhase == MatchManager.GamePhase.Waiting;
+
+        if (Keyboard.current.spaceKey.wasPressedThisFrame && !isServing && isMyServe)
+            StartCoroutine(ServeSequence());
     }
 
-    IEnumerator RealJumpServeSequence()
+    IEnumerator ServeSequence()
     {
         isServing = true;
+        if (rb != null) rb.isKinematic = true;
 
-        Vector3 randomTargetPos = new Vector3(
-            Random.Range(courtMinX, courtMaxX),
-            0f,
-            Random.Range(courtMinZ, courtMaxZ)
-        );
+        // 1. コート外のサーブ位置へ移動
+        Vector3 servePos = serveTeam == Team.Ally ? allyServePosition : enemyServePosition;
+        yield return StartCoroutine(MoveSmooth(transform.position, servePos, moveToServeTime));
 
-        Vector3 dirToTarget = (randomTargetPos - originalPos);
-        dirToTarget.y = 0;
-        dirToTarget.Normalize();
+        // 2. 相手コート内のランダムな着弾点を決定
+        float targetX = serveTeam == Team.Ally
+            ? Random.Range(allyTargetMinX, allyTargetMaxX)
+            : Random.Range(enemyTargetMinX, enemyTargetMaxX);
+        float targetZ = Random.Range(targetMinZ, targetMaxZ);
+        Vector3 targetPos = new Vector3(targetX, 0f, targetZ);
 
-        Vector3 hitPoint = originalPos + dirToTarget * hitPointForwardOffset + Vector3.up * hitPointHeightOffset;
+        // 3. ネットを越える発射速度を計算
+        Vector3 spawnPos = transform.position + Vector3.up * 0.3f;
+        Vector3 launchVel = CalculateServeVelocity(spawnPos, targetPos);
 
-        Vector3 spawnPos = transform.position + Vector3.up * 0.5f;
+        // 4. ボール生成・発射
         GameObject ball = Instantiate(ballPrefab, spawnPos, Quaternion.identity);
         Rigidbody ballRb = ball.GetComponent<Rigidbody>();
 
-        // ==========================================
-        // ★追加：ドローンとボールの物理的な衝突判定を無視する
-        // ==========================================
-        Collider ballCollider = ball.GetComponent<Collider>();
-        Collider droneCollider = GetComponent<Collider>();
-
-        if (ballCollider != null && droneCollider != null)
-        {
-            Physics.IgnoreCollision(droneCollider, ballCollider, true);
-        }
-        // ==========================================
+        Collider ballCol  = ball.GetComponent<Collider>();
+        Collider droneCol = GetComponent<Collider>();
+        if (ballCol != null && droneCol != null)
+            Physics.IgnoreCollision(droneCol, ballCol, true);
 
         if (ballRb != null)
         {
-            float gravity = Physics.gravity.y;
-            Vector3 diff = hitPoint - spawnPos;
-            float vx = diff.x / timeToReachHitPoint;
-            float vz = diff.z / timeToReachHitPoint;
-            float vy = (diff.y - 0.5f * gravity * timeToReachHitPoint * timeToReachHitPoint) / timeToReachHitPoint;
-            ballRb.linearVelocity = new Vector3(vx, vy, vz);
-        }
-
-        // 【ドローンの上昇】
-        yield return new WaitForSeconds(timeToReachHitPoint * 0.3f);
-
-        float jumpDuration = timeToReachHitPoint * 0.6f;
-        float elapsed = 0f;
-        Vector3 jumpTargetPos = originalPos + Vector3.up * hitPointHeightOffset;
-
-        while (elapsed < jumpDuration)
-        {
-            elapsed += Time.deltaTime;
-            float t = elapsed / jumpDuration;
-            float tSin = Mathf.Sin(t * Mathf.PI * 0.5f);
-
-            float nextY = Mathf.Lerp(originalPos.y, jumpTargetPos.y, tSin);
-            transform.position = new Vector3(originalPos.x, nextY, originalPos.z);
-            transform.rotation = originalRot;
-            yield return null;
-        }
-        transform.position = jumpTargetPos;
-        transform.rotation = originalRot;
-
-        // 【同期待ち】
-        float attackDuration = 0.05f;
-        float remainingTime = timeToReachHitPoint - (timeToReachHitPoint * 0.3f + jumpDuration) - attackDuration;
-        if (remainingTime > 0)
-        {
-            yield return new WaitForSeconds(remainingTime);
-        }
-
-        // 【スパイク（衝突判定は無視されているので邪魔されない！）】
-        if (ballRb != null)
-        {
-            Vector3 currentBallPos = ball.transform.position;
-
-            Vector3 targetDiff = randomTargetPos - currentBallPos;
-            float spvx = targetDiff.x / serveFlightTime;
-            float spvz = targetDiff.z / serveFlightTime;
-            float g = Physics.gravity.y;
-            float spvy = (targetDiff.y - 0.5f * g * serveFlightTime * serveFlightTime) / serveFlightTime;
-            Vector3 spikeVelocity = new Vector3(spvx, spvy, spvz);
-
-            Vector3 attackStartPos = transform.position;
-            Vector3 attackDirection = spikeVelocity.normalized;
-            Vector3 attackEndPos = currentBallPos - attackDirection * 0.3f;
-
-            elapsed = 0f;
-            while (elapsed < attackDuration)
-            {
-                elapsed += Time.deltaTime;
-                transform.position = Vector3.Lerp(attackStartPos, attackEndPos, elapsed / attackDuration);
-                transform.rotation = originalRot;
-                yield return null;
-            }
-            transform.position = attackEndPos;
-            transform.rotation = originalRot;
-
-            // ここで確実にプログラムの速度が乗る！
-            ballRb.linearVelocity = spikeVelocity;
+            ballRb.linearVelocity = launchVel;
             ball.name = "injectionball(Clone)";
-            if(MatchManager.Instance != null)
-            {
-                MatchManager.Instance.StartPlay();
-            }
         }
 
-        // 【着地と復帰】
-        yield return new WaitForSeconds(0.4f);
+        // 5. 相手チームにレシーブ開始を通知（possesion を相手に切り替え）
+        Team receiver = serveTeam == Team.Ally ? Team.Enemy : Team.Ally;
+        if (MatchManager.Instance != null)
+            MatchManager.Instance.ChangePossesion(receiver);
 
-        elapsed = 0f;
-        Vector3 currentPos = transform.position;
+        // 6. スパイク位置へ戻る
+        yield return StartCoroutine(MoveSmooth(transform.position, spikePosition, moveToSpikeTime));
 
-        while (elapsed < 0.5f)
+        if (rb != null)
+        {
+            rb.isKinematic     = false;
+            rb.linearVelocity  = Vector3.zero;
+        }
+        transform.position = spikePosition;
+        isServing = false;
+    }
+
+    IEnumerator MoveSmooth(Vector3 from, Vector3 to, float duration)
+    {
+        float elapsed = 0f;
+        while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
-            transform.position = Vector3.Lerp(currentPos, originalPos, elapsed / 0.5f);
-            transform.rotation = originalRot;
+            float t = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(elapsed / duration));
+            transform.position = Vector3.Lerp(from, to, t);
             yield return null;
         }
-        transform.position = originalPos;
-        transform.rotation = originalRot;
+        transform.position = to;
+    }
 
-        isServing = false;
+    // ネットをクリアできる最小飛行時間で速度ベクトルを求める
+    Vector3 CalculateServeVelocity(Vector3 start, Vector3 target)
+    {
+        float g = Physics.gravity.y;
+
+        // ネットが start-target 間にあるか確認
+        float dx = target.x - start.x;
+        float alphaNet = Mathf.Abs(dx) > 0.001f ? (netX - start.x) / dx : -1f;
+        bool checkNet = alphaNet > 0.01f && alphaNet < 0.99f;
+
+        for (float T = minFlightTime; T <= maxFlightTime; T += flightTimeStep)
+        {
+            float vx = (target.x - start.x) / T;
+            float vz = (target.z - start.z) / T;
+            float vy = (target.y - start.y - 0.5f * g * T * T) / T;
+
+            if (checkNet)
+            {
+                float tNet = alphaNet * T;
+                float yNet = start.y + vy * tNet + 0.5f * g * tNet * tNet;
+                if (yNet < netHeight + netClearance) continue;
+            }
+
+            return new Vector3(vx, vy, vz);
+        }
+
+        // フォールバック：最大飛行時間で計算
+        float vxF = (target.x - start.x) / maxFlightTime;
+        float vzF = (target.z - start.z) / maxFlightTime;
+        float vyF = (target.y - start.y - 0.5f * g * maxFlightTime * maxFlightTime) / maxFlightTime;
+        Debug.LogWarning("[ServeDrone] ネットクリア可能な弾道が見つかりませんでした。maxFlightTime で代替します。");
+        return new Vector3(vxF, vzF, vyF);
     }
 }

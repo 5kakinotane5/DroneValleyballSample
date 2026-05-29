@@ -80,6 +80,10 @@ public class ScoreManager : MonoBehaviour
             allyScore++;
         else
             enemyScore++;
+
+        if (MatchManager.Instance != null)
+            MatchManager.Instance.serveRight = scoringTeam;
+
         UpdateScoreUI();
         ShowResult(reason);
         Debug.Log($"[Score] {scoringTeam} scored ({reason}) | Ally {allyScore} - {enemyScore} Enemy");
@@ -123,15 +127,12 @@ public class ScoreManager : MonoBehaviour
 
     void SetupUI()
     {
-        Canvas canvas = FindFirstObjectByType<Canvas>();
-        if (canvas == null)
-        {
-            var go = new GameObject("ScoreCanvas");
-            canvas = go.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            go.AddComponent<UnityEngine.UI.CanvasScaler>();
-            go.AddComponent<UnityEngine.UI.GraphicRaycaster>();
-        }
+        // 既存Canvasのモード・スケール設定に依存しないよう、スコア専用Canvasを必ず新規作成する
+        var go = new GameObject("ScoreCanvas");
+        var canvas = go.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        go.AddComponent<UnityEngine.UI.CanvasScaler>(); // ConstantPixelSize（デフォルト）
+        go.AddComponent<UnityEngine.UI.GraphicRaycaster>();
 
         if (scoreText == null)
             scoreText = CreateTMP(canvas, "ScoreText",

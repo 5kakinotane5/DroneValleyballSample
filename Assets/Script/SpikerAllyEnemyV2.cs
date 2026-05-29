@@ -4,6 +4,7 @@ using Random = UnityEngine.Random;
 public class SpikerAllyEnemyV2 : MonoBehaviour
 {
     [SerializeField] private Team myTeam;
+    public Team MyTeam => myTeam;
 
     [Header("ドローンの速度の何倍で飛ばすか")]
     public float tossBoost = 2f;

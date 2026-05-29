@@ -8,16 +8,19 @@ public class AllyEnemyballlauncher : MonoBehaviour
     [Header("着弾までの時間（秒）")]
     public float flightTime = 3f;
 
+    [Header("サーブするチーム")]
+    public Team serveTeam = Team.Ally;
+
     void Update()
     {
+        bool isMyServe = MatchManager.Instance != null &&
+            MatchManager.Instance.serveRight == serveTeam &&
+            MatchManager.Instance.currentPhase == MatchManager.GamePhase.Waiting;
+
         // エンターキーで発射！
-        if (Keyboard.current!=null && Keyboard.current.enterKey.wasPressedThisFrame)
+        if (Keyboard.current != null && Keyboard.current.enterKey.wasPressedThisFrame && isMyServe)
         {
             ShootBall();
-            /*
-            if (ValleyballManager.Instance != null){
-            ValleyballManager.Instance.StartPlay}
-            */
         }
     }
 

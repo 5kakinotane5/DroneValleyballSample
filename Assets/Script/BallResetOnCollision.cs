@@ -17,7 +17,9 @@ public class BallResetOnCollision : MonoBehaviour
 
         foreach (var tag in ignoreTags)
         {
-            if (!string.IsNullOrEmpty(tag) && other.CompareTag(tag)) return;
+            if (string.IsNullOrEmpty(tag)) continue;
+            // 衝突相手本体、または親階層にタグが設定されている場合は無視
+            if (other.CompareTag(tag) || other.transform.root.gameObject.CompareTag(tag)) return;
         }
 
         hasReset = true;
