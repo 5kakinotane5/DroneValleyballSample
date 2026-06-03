@@ -1,3 +1,4 @@
+// A/Dでコース・Kキー押し込みで速度を調整するプレイヤー入力コントローラ
 using UnityEngine;
 using UnityEngine.InputSystem;
 
