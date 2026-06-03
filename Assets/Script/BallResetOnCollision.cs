@@ -9,7 +9,6 @@
   ・ScoreManager          ← DetermineScore(position) を呼んで得点を確定させる
   ・MatchManager          ← ResetGame() を呼んでフェーズとサーブ権をリセット
   ・SpikerAllyEnemyV2     ← ResetToInitialState() を呼んで初期位置に戻す
-  ・SpikerAllyEnemy       ← ResetToInitialState() を呼ぶ（V2 に移行すれば不要）
   ・ReceiverAllyEnemy     ← ResetToInitialState() を呼んで初期位置に戻す
 
 注意:
@@ -68,9 +67,6 @@ public class BallResetOnCollision : MonoBehaviour
             MatchManager.Instance.ResetGame();
 
         foreach (var s in FindObjectsByType<SpikerAllyEnemyV2>(FindObjectsSortMode.None))
-            s.ResetToInitialState();
-
-        foreach (var s in FindObjectsByType<SpikerAllyEnemy>(FindObjectsSortMode.None))
             s.ResetToInitialState();
 
         foreach (var r in FindObjectsByType<ReceiverAllyEnemy>(FindObjectsSortMode.None))
