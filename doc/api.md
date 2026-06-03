@@ -9,7 +9,7 @@
 
 ## 公開API
 
-### `void Spike(double course, double velocity)`
+### `void Spike(float course, float velocity)`
 
 コースと速度を指定して、ドローンをボールに当たりに行かせるため。
 
@@ -21,6 +21,6 @@
 
 ドローンがスパイクの準備を完了しているかどうかを確認するため。
 
-### `double maxVelocity`
+### `float maxVelocity`
 
 ドローンの最大速度。
