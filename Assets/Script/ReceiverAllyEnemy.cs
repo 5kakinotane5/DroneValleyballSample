@@ -1,3 +1,4 @@
+// 落下予測とアウト判定付きAIレシーバー（Ally/Enemy対応）
 /*
 【ReceiverAllyEnemy】
 概要:
