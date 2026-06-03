@@ -7,14 +7,15 @@
   の 3 条件でボールを削除する。
 
 他スクリプトとの関係:
-  ・特定のスクリプトから参照されていない（ボール Prefab に単独アタッチ）
+  ・ServeDrone が生成するサーブボールの Prefab にコンポーネントとしてアタッチされており、
+    タイムアウト・場外落下・コート着弾のいずれかでボールを安全に消去する役割を担う。
+  ・DestoryOnCollision と役割が重複するため、同一 Prefab に両方をアタッチしないこと。
 
-【注意 ─ 重複注意】
-  BallResetOnCollision も衝突時にボールを削除する機能を持つ。
-  両方を同じ Prefab にアタッチすると二重削除エラーが起きる恐れがある。
-  BallResetOnCollision を使う場合は BallDestruction の destroyOnCollision を
-  false にするか、このスクリプトを外すこと。
-  DestoryOnCollision（スペルミスあり）とも機能が重複している。
+注意:
+  BallResetOnCollision も衝突時にボールを削除するが、あちらは得点判定・リセット処理まで
+  行う高機能版。サーブボールに得点判定が不要な場合は destroyOnCollision=true にして
+  このスクリプトを使用する。BallResetOnCollision と同じ Prefab に共存させる場合は
+  destroyOnCollision=false に設定し、時間・高度による削除のみ有効にすること。
 */
 using UnityEngine;
 

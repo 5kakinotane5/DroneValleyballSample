@@ -1,17 +1,18 @@
 /*
-【DestoryOnCollision】（スペルミス: Destroy の誤り）
+【DestoryOnCollision】（クラス名にスペルミスあり: Destroy の誤り）
 概要:
-  指定タグのオブジェクトに衝突したとき自分自身を削除するシンプルなスクリプト。
+  指定タグのオブジェクトに衝突したとき自分自身を削除するスクリプト。
   衝突地点の座標をデバッグログに出力する。
-  destroySelf フラグがあるが、実際は常に自身を削除する動作になっている。
 
 他スクリプトとの関係:
-  ・特定のスクリプトから参照されていない（アタッチ先単独）
+  ・ServeDrone が生成するサーブボールの Prefab にコンポーネントとしてアタッチされており、
+    コート（Court タグ等）に着弾したタイミングでボールを消去する役割を担う。
+  ・BallDestruction と役割が重複しているため、同一 Prefab に両方をアタッチしないこと。
 
-【注意 ─ 削除候補】
-  BallDestruction（destroyOnCollision=true 時）や BallResetOnCollision と
-  機能がほぼ同じ。クラス名のスペルミス（DestoryOnCollision）もあるため、
-  BallResetOnCollision または BallDestruction に統一して削除推奨。
+注意:
+  BallResetOnCollision も衝突時にボールを削除するが、あちらは得点判定・リセット処理まで
+  行う高機能版。サーブボールに得点判定が不要な場合はこのスクリプトを使用する。
+  クラス名のスペルミスは、他スクリプトから型名で参照していない限り動作に影響しない。
 */
 using UnityEngine;
 
