@@ -1,3 +1,4 @@
+// サーブ権を確認してEnterキーでボールを手動発射するランチャー
 /*
 【AllyEnemyballlauncher】
 概要:
