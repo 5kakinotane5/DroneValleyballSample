@@ -1,3 +1,17 @@
+/*
+【ReceiverAllyEnemy】
+概要:
+  現行システムの主力レシーバー。MatchManager のフェーズ・チームを監視し、
+  Receiving フェーズかつ自チームの所持ターンになるとボールの落下地点を予測して移動・レシーブする。
+  アウト判定機能（IsBallGoingOut）を持ち、コート外へ飛ぶボールはレシーブしない。
+  Ally/Enemy 両チームに対応（myTeam で切り替え）。
+
+動作フロー: Waiting → Hovering → MovingToTrajectory → (衝突) → Returning
+
+他スクリプトとの関係:
+  ・MatchManager          ← フェーズ/チームを参照、Returning 時に currentPhase を Spiking へ変更
+  ・BallResetOnCollision  ← ラリー終了時に ResetToInitialState() を呼ばれる
+*/
 using UnityEngine;
 
 public class ReceiverAllyEnemy : MonoBehaviour

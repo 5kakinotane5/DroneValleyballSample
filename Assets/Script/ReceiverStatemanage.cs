@@ -1,3 +1,19 @@
+/*
+【ReceiverStatemanage】
+概要:
+  VolleyballManager ベースのレシーバー（状態機械あり）。
+  Waiting → Hovering → MovingToTrajectory → Returning の状態遷移で
+  ボールの落下地点を予測して移動し、衝突時に initialPos へ飛ばす。
+  チームの概念はなく、単一ドローン用。
+
+他スクリプトとの関係:
+  ・VolleyballManager  ← currentPhase を監視・更新
+
+【注意 ─ 削除候補】
+  ReceiverAllyEnemy（MatchManager 系）が Ally/Enemy 対応・アウト判定付きの
+  上位互換版のため、このスクリプトは旧バージョン。
+  VolleyballManager 系を MatchManager 系に移行後は削除推奨。
+*/
 using UnityEngine;
 
 public class ReceiverStatemanage : MonoBehaviour

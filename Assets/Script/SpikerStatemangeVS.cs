@@ -1,3 +1,17 @@
+/*
+【SpikerStatemangeVS】
+概要:
+  VolleyballManager ベースのスパイカー（VS 付き派生版）。
+  SpikerStatemange とコードが完全に同一で、クラス名だけが異なる。
+  作成目的・用途が不明確な派生ファイル。
+
+他スクリプトとの関係:
+  ・VolleyballManager  ← currentPhase を監視・更新
+
+【注意 ─ 削除候補】
+  SpikerStatemange と完全に重複。どちらか一方に統合すること。
+  現行の MatchManager 系（SpikerAllyEnemyV2）への移行後はどちらも削除推奨。
+*/
 using UnityEngine;
 
 public class SpikerStatemanageVS : MonoBehaviour

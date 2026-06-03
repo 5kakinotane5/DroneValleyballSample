@@ -1,3 +1,21 @@
+/*
+【ServeDrone】
+概要:
+  自動サーブを担当するドローン。MatchManager のサーブ権・フェーズを監視し、
+  自チームのサーブ権があるとき Space キーでサーブシーケンスを開始する。
+  コート外のサーブ位置に移動 → ネットを越える弾道を計算 → ボールを生成・発射
+  → スパイク位置に戻る という流れをコルーチンで実行する。
+
+他スクリプトとの関係:
+  ・MatchManager          ← serveRight / currentPhase を参照して発動判断
+                            発射後に ChangePossesion() を呼んで受け側に切り替え
+  ・SpikerAllyEnemyV2     ← Start() 時に同 GameObject の myTeam / initialPos を取得
+
+注意:
+  AllyEnemyballlauncher（手動サーブ）と役割が重複するが、
+  ServeDrone は自動でコート外に移動してから発射する点で機能が上位。
+  どちらか一方を選択して使用すること。
+*/
 using UnityEngine;
 using System.Collections;
 using UnityEngine.InputSystem;

@@ -1,3 +1,19 @@
+/*
+【DroneReceiver】
+概要:
+  ボールの落下地点を予測して移動し、衝突時に指定地点（returnTargetPos）へ
+  飛ばすシンプルなレシーバー。GameObject.Find でボールを検索する。
+  フェーズ・チーム管理なし（VolleyballManager / MatchManager 非依存）。
+
+他スクリプトとの関係:
+  ・なし（単体アタッチ用）
+
+【注意 ─ 削除候補】
+  ManageReceiver（VolleyballManager 系）や ReceiverAllyEnemy（MatchManager 系）と
+  レシーブロジックが重複している。フェーズ・チーム管理がなく独立動作のみのため、
+  現行ゲームシステムには組み込まれていない旧バージョン。
+  ReceiverAllyEnemy に統一して削除推奨。
+*/
 using UnityEngine;
 
 public class DroneReceiver : MonoBehaviour

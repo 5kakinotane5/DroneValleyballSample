@@ -1002,7 +1002,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ReceiverAllyEnemy
   myTeam: 1
   targetBall: {fileID: 8662993477060767682, guid: 1cdd11fc4020e434b8b268275c63ccbf, type: 3}
-  moveSpeed: 20
+  moveSpeed: 10
   initialPos: {x: -10, y: 1, z: 0}
   returnFlightTime: 3.5
   courtXMin: -21
@@ -1097,7 +1097,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ReceiverAllyEnemy
   myTeam: 0
   targetBall: {fileID: 8662993477060767682, guid: 1cdd11fc4020e434b8b268275c63ccbf, type: 3}
-  moveSpeed: 20
+  moveSpeed: 10
   initialPos: {x: 10, y: 1, z: 0}
   returnFlightTime: 3.5
   courtXMin: 0
@@ -1469,7 +1469,7 @@ MonoBehaviour:
   ballTag: injectionball
   spikeHeight: 10
   initialPos: {x: 10.5, y: 6, z: 0}
-  vMaxDrone: 40
+  vMaxDrone: 50
   spikeFlightTime: 0.6
   runupTime: 0.2
   netX: 0
@@ -1497,7 +1497,7 @@ MonoBehaviour:
   serveTeam: 0
   allyServePosition: {x: 23, y: 1, z: 0}
   enemyServePosition: {x: -23, y: 1, z: 0}
-  allyTargetMinX: -20
+  allyTargetMinX: -22
   allyTargetMaxX: -2
   enemyTargetMinX: 2
   enemyTargetMaxX: 20

@@ -1,3 +1,19 @@
+/*
+【BallLauncher】
+概要:
+  インスペクターで角度（launchAngle / horizontalAngle）を調整し、
+  Space キーでボールを発射するシンプルなテスト用発射器。
+  ファイル内に旧バージョン（コメントアウト済み）と現行バージョンの 2 実装が存在する。
+  VolleyballManager / MatchManager 非依存。
+
+他スクリプトとの関係:
+  ・なし（単体アタッチ用）
+
+【注意 ─ 削除候補】
+  AllyEnemyballlauncher や RandomBallLauncher と目的が重複するテストツール。
+  発射角度・方向のデバッグ確認専用で、現行ゲームシステムには組み込まれていない。
+  確認が済んだ後は削除してよい。
+*/
 /*using UnityEngine;
 using UnityEngine.InputSystem;
 

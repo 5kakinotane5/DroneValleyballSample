@@ -1,3 +1,18 @@
+/*
+【DestoryOnCollision】（スペルミス: Destroy の誤り）
+概要:
+  指定タグのオブジェクトに衝突したとき自分自身を削除するシンプルなスクリプト。
+  衝突地点の座標をデバッグログに出力する。
+  destroySelf フラグがあるが、実際は常に自身を削除する動作になっている。
+
+他スクリプトとの関係:
+  ・特定のスクリプトから参照されていない（アタッチ先単独）
+
+【注意 ─ 削除候補】
+  BallDestruction（destroyOnCollision=true 時）や BallResetOnCollision と
+  機能がほぼ同じ。クラス名のスペルミス（DestoryOnCollision）もあるため、
+  BallResetOnCollision または BallDestruction に統一して削除推奨。
+*/
 using UnityEngine;
 
 public class DestroyOnCollision : MonoBehaviour

@@ -1,3 +1,22 @@
+/*
+【BallResetOnCollision】
+概要:
+  現行システムでボールの Prefab にアタッチする中核スクリプト。
+  ドローン・ネット以外のオブジェクトにボールが衝突したとき、
+  得点判定 → ゲームリセット → 自己削除 を一括で行う。
+
+他スクリプトとの関係:
+  ・ScoreManager          ← DetermineScore(position) を呼んで得点を確定させる
+  ・MatchManager          ← ResetGame() を呼んでフェーズとサーブ権をリセット
+  ・SpikerAllyEnemyV2     ← ResetToInitialState() を呼んで初期位置に戻す
+  ・SpikerAllyEnemy       ← ResetToInitialState() を呼ぶ（V2 に移行すれば不要）
+  ・ReceiverAllyEnemy     ← ResetToInitialState() を呼んで初期位置に戻す
+
+注意:
+  このスクリプト 1 つが得点・リセット・各ドローンへの通知をまとめて担う。
+  BallDestruction や DestoryOnCollision と削除タイミングが重複する場合があるため、
+  Prefab に複数の削除スクリプトを同時にアタッチしないよう注意。
+*/
 using UnityEngine;
 
 // ボールがドローン・ネット以外に衝突したとき、ボールを消去して試合をリセットする

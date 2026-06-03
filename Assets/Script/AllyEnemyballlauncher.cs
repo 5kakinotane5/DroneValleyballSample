@@ -1,3 +1,20 @@
+/*
+【AllyEnemyballlauncher】
+概要:
+  MatchManager ベースの手動サーブ発射器。
+  MatchManager でサーブ権が自チームかつ Waiting フェーズのとき、
+  Enter キーで自コート内のランダム地点にボールを発射する。
+  発射後に MatchManager.StartPlay() を呼んでフェーズを Receiving に変える。
+
+他スクリプトとの関係:
+  ・MatchManager  ← serveRight / currentPhase を参照して発動判断、発射後 StartPlay() を呼ぶ
+
+注意:
+  ServeDrone（自動サーブ）と役割が重複する。ServeDrone はコート外に移動してから
+  発射する高機能版のため、自動化する場合は ServeDrone を優先。
+  手動テスト用途のみであればこちらを残し、ServeDrone を外すこと。
+  RandomBallLauncher（VolleyballManager 系の旧ランチャー）とも目的が類似している。
+*/
 using UnityEngine;
 using UnityEngine.InputSystem;
 public class AllyEnemyballlauncher : MonoBehaviour

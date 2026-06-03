@@ -1,3 +1,19 @@
+/*
+【AiDrone3dTargetTag】
+概要:
+  タグ検索でボールを自動取得し、未来位置を物理計算で予測して
+  Rigidbody に加速度を加えるボール追跡 AI ドローン（AiDrone3d のタグ版）。
+  TargetTag に一致するオブジェクトを毎フレーム FindGameObjectWithTag で取得する。
+
+他スクリプトとの関係:
+  ・なし（単体アタッチ用）
+
+注意:
+  AiDrone3d（手動アサイン版）の改良版で、インスペクター設定が不要になっている。
+  ただし現行の MatchManager・SpikerAllyEnemyV2 系とは連携しておらず、
+  純粋な追跡動作のテスト用スクリプトとして位置づけられる。
+  設計書のレシーブモジュールやスパイクモジュールのベースとして活用できる可能性がある。
+*/
 using UnityEngine;
 //Ballタグ付けされたオブジェクトを追跡する機能です。
 public class AiDrone3dTargetTag : MonoBehaviour

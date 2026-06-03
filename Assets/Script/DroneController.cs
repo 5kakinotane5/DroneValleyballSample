@@ -1,3 +1,19 @@
+/*
+【DroneController】
+概要:
+  Rigidbody.linearVelocity を直接設定する方式の手動操作ドローンコントローラー。
+  WASD/矢印キーで前後左右、Space で上昇、LeftShift で下降、Q/E で旋回。
+  useGravity=false・freezeRotation=true で安定したホバリングを実現。
+
+他スクリプトとの関係:
+  ・なし（単体アタッチ用、プレイヤーコントローラとして機能）
+
+注意:
+  DroneTranslater と操作キーが同一で機能が重複している。
+  DroneController は Rigidbody ベース（物理あり）、
+  DroneTranslater は Transform.Translate ベース（物理なし）という違いがある。
+  物理衝突が必要な本番シーンでは DroneController を使用し、DroneTranslater を削除すること。
+*/
 using UnityEngine;
 using UnityEngine.InputSystem;
 

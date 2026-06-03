@@ -1,3 +1,19 @@
+/*
+【ManageReceiver】
+概要:
+  VolleyballManager の Receiving フェーズ中にボールの落下地点を予測して移動し、
+  衝突時に returnTargetPos へ飛ばすレシーバー。DroneReceiver にフェーズ監視を追加した版。
+  状態機械（State enum）は持たず、Update でフェーズを毎フレーム確認する。
+
+他スクリプトとの関係:
+  ・VolleyballManager  ← currentPhase == Receiving のときのみ動作
+
+【注意 ─ 削除候補】
+  ReceiverStatemanage（VolleyballManager 系・状態機械あり）と機能が重複しており、
+  こちらは状態機械なしの簡易版。ReceiverAllyEnemy（MatchManager 系・現行版）と比べると
+  チーム概念もなく機能が劣る。
+  VolleyballManager 系を整理する際に合わせて削除推奨。
+*/
 using UnityEngine;
 
 public class ManageReceiver : MonoBehaviour

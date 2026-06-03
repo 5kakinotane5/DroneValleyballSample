@@ -1,3 +1,22 @@
+/*
+【SpikerAllyEnemy】
+概要:
+  MatchManager ベースのスパイカー（V1）。
+  SpikerAllyEnemyV2 の前身で、ボール軌道回避・非ターゲット回避機能がない版。
+  Ally/Enemy 両チームに対応し、フェーズが Spiking になるとスパイクを実行する。
+
+動作フロー: Waiting → Hovering → MovingToTrajectory → Striking → Returning
+
+他スクリプトとの関係:
+  ・MatchManager          ← フェーズ/チームを参照・更新
+  ・BallResetOnCollision  ← ラリー終了時に ResetToInitialState() を呼ばれる
+
+【注意 ─ 削除候補】
+  SpikerAllyEnemyV2 がボール回避機能を追加した上位互換版のため、
+  このスクリプトは基本的に不要。ただし BallResetOnCollision から
+  FindObjectsByType<SpikerAllyEnemy>() で参照されているため、
+  削除するときは BallResetOnCollision 側の呼び出しも合わせて修正すること。
+*/
 using System;
 using System.Text.RegularExpressions;
 using Unity.Mathematics;

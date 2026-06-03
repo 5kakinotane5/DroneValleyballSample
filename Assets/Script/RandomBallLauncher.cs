@@ -1,3 +1,17 @@
+/*
+【RandomBallLauncher】
+概要:
+  VolleyballManager ベースのボール発射器。Enter キーで自コート側の
+  ランダム地点にボールを発射し、VolleyballManager.StartPlay() を呼ぶ。
+  チーム・サーブ権の概念なし。
+
+他スクリプトとの関係:
+  ・VolleyballManager  ← 発射後に StartPlay() を呼んでフェーズを Receiving へ変える
+
+【注意 ─ 削除候補】
+  AllyEnemyballlauncher（MatchManager 系・サーブ権考慮）が現行の上位互換版。
+  VolleyballManager 系移行後は削除推奨。
+*/
 using UnityEngine;
 using UnityEngine.InputSystem;
 public class RandomBallLauncher : MonoBehaviour

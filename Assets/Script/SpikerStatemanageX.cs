@@ -1,3 +1,18 @@
+/*
+【SpikerStatemanageX】
+概要:
+  VolleyballManager ベースのスパイカー（X 付き派生版）。
+  SpikerStatemange・SpikerStatemangeVS とほぼ同一の構造で、
+  速度上限の再計算ロジック（vMax 超過時の二次方程式解法）が追加されている。
+
+他スクリプトとの関係:
+  ・VolleyballManager  ← currentPhase を監視・更新
+
+【注意 ─ 削除候補】
+  SpikerAllyEnemy / SpikerAllyEnemyV2（MatchManager 系）に同じ速度上限再計算ロジックが
+  既に移植済みのため、このスクリプトの固有価値は低い。
+  VolleyballManager 系移行後は SpikerStatemange・SpikerStatemangeVS と共に削除推奨。
+*/
 using System;
 using Unity.Mathematics;
 using Unity.VisualScripting;

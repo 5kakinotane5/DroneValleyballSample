@@ -1,3 +1,24 @@
+/*
+【SpikerAllyEnemyV2】
+概要:
+  現行システムの主力スパイカー（最新版）。
+  MatchManager のフェーズ・チームを監視し、スパイクフェーズになると
+  ボールの弾道を予測してスパイクを実行する。
+  SpikerAllyEnemy（V1）に加え、ボール軌道回避と非ターゲットボール回避機能を備える。
+  Ally/Enemy 両チームに対応（myTeam で切り替え）。
+
+動作フロー: Waiting → Hovering → MovingToTrajectory → Striking → Returning
+
+他スクリプトとの関係:
+  ・MatchManager          ← フェーズ/チームを参照・更新
+  ・BallResetOnCollision  ← ラリー終了時に ResetToInitialState() を呼ばれる
+  ・ServeDrone            ← Start() 時にこのスクリプトの initialPos と myTeam を参照する
+  ・BallToss2             ← ボールに衝突したとき、ballRb.linearVelocity を直接上書きするため
+                            BallToss2 は不要（OnCollisionEnter 内でボール速度を設定）
+
+注意:
+  SpikerAllyEnemy（V1）より高機能なため、通常はこちらを使用する。
+*/
 using UnityEngine;
 using Random = UnityEngine.Random;
 

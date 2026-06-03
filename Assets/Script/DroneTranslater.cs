@@ -1,3 +1,18 @@
+/*
+【DroneTranslater】
+概要:
+  Transform.Translate を使う方式の手動操作ドローンコントローラー。
+  WASD/矢印キーで前後左右、Space で上昇、LeftShift で下降、Q/E で旋回。
+  Rigidbody を使わないため物理衝突の影響を受けない。
+
+他スクリプトとの関係:
+  ・なし（単体アタッチ用）
+
+【注意 ─ 削除候補】
+  DroneController（Rigidbody ベース）と操作キー・機能が完全に重複している。
+  バレーボールゲームはボールとの物理衝突が必要なため、DroneController を使用し
+  このスクリプトは削除推奨。テスト・デバッグ目的以外には使用しないこと。
+*/
 using UnityEngine;
 using UnityEngine.InputSystem;
 

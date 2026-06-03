@@ -1,3 +1,18 @@
+/*
+【AiDrone3d】
+概要:
+  ボールの未来位置を物理計算で予測し、必要な加速度を求めて Rigidbody に加える
+  ボール追跡 AI ドローン。ターゲットの Rigidbody を Inspector で直接アサインする。
+
+他スクリプトとの関係:
+  ・なし（単体アタッチ用）
+
+【注意 ─ 削除候補】
+  AiDrone3dTargetTag がタグ検索版として同じ追跡ロジックを実装しており、
+  こちらは Rigidbody を手動アサインする旧バージョンに相当する。
+  AiDrone3dTargetTag に統一して削除可能。
+  なお、両スクリプトともに現行の MatchManager・SpikerAllyEnemyV2 系とは連携していない。
+*/
 using UnityEngine;
 
 public class AiDrone3d : MonoBehaviour

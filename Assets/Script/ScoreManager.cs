@@ -1,3 +1,20 @@
+/*
+【ScoreManager】
+概要:
+  得失点の管理と UI 表示を担当するシングルトン。
+  ボールの着弾位置と最後に打ったチームをもとに得点チームを自動判定し、
+  スコアテキスト・結果テキスト（IN/OUT）を TextMeshPro で表示する。
+  UI が Inspector 未設定の場合は Canvas と TMP テキストを自動生成する。
+
+他スクリプトとの関係:
+  ・BallResetOnCollision  ← DetermineScore(ballPosition) を呼ばれる
+  ・MatchManager          ← DetermineScore 内で lastTeamToHit を参照、
+                            AddPoint 内で serveRight を更新する
+
+注意:
+  MatchManager と密接に連携しているため、VolleyballManager 系の旧シーンには
+  そのままでは対応しない。
+*/
 using System.Collections;
 using UnityEngine;
 using TMPro;

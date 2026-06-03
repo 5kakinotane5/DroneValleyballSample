@@ -1,3 +1,21 @@
+/*
+【BallDestruction】
+概要:
+  ボールの自動削除を担当する汎用スクリプト。
+  ①一定時間（lifeTime）経過後、②指定高度（deathYThreshold）以下に落ちたとき、
+  ③特定タグのオブジェクトに衝突したとき（destroyOnCollision=true の場合）
+  の 3 条件でボールを削除する。
+
+他スクリプトとの関係:
+  ・特定のスクリプトから参照されていない（ボール Prefab に単独アタッチ）
+
+【注意 ─ 重複注意】
+  BallResetOnCollision も衝突時にボールを削除する機能を持つ。
+  両方を同じ Prefab にアタッチすると二重削除エラーが起きる恐れがある。
+  BallResetOnCollision を使う場合は BallDestruction の destroyOnCollision を
+  false にするか、このスクリプトを外すこと。
+  DestoryOnCollision（スペルミスあり）とも機能が重複している。
+*/
 using UnityEngine;
 
 public class BallDestruction : MonoBehaviour

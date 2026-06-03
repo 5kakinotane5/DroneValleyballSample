@@ -1,3 +1,18 @@
+/*
+【SpikerStatemange】
+概要:
+  VolleyballManager ベースのスパイカー（状態機械あり）。
+  VolleyballManager の Spiking フェーズで動作し、ボールの弾道を予測してスパイクする。
+  Ally のみ想定（チーム概念なし）で、ネット回避ロジックを持つ。
+
+他スクリプトとの関係:
+  ・VolleyballManager  ← currentPhase を監視・更新
+
+【注意 ─ 削除候補】
+  SpikerStatemangeVS とコードが完全に同一（クラス名のみ異なる）。
+  SpikerAllyEnemyV2（MatchManager 系・現行版）が Ally/Enemy 対応・ボール回避付きの
+  上位互換版のため、VolleyballManager 系移行後は削除推奨。
+*/
 using UnityEngine;
 
 public class SpikerStatemanage : MonoBehaviour

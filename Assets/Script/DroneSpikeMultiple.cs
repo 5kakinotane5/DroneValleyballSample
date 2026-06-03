@@ -1,4 +1,20 @@
 /*
+【DroneSpikeMultiple】
+概要:
+  複数ボールに対応した旧スパイカー。FindGameObjectsWithTag で全ボールを取得し、
+  最初に条件を満たすボールをスパイク対象にする。
+  MatchManager / VolleyballManager 非依存の単体動作版。
+
+他スクリプトとの関係:
+  ・なし（単体アタッチ用）
+
+【注意 ─ 削除候補】
+  AdvancedDroneSpiker（単一ボール旧版）の複数ボール対応版という位置づけだが、
+  現行の SpikerAllyEnemyV2 が MatchManager 連携・ボール回避付きで上位互換のため
+  このスクリプトの独自価値は低い。AdvancedDroneSpiker ともどもシステムへの
+  組み込みがないため、削除推奨。
+*/
+/*
 トスされた球の弾道計算
 球が高さbの時の時刻tbと地点Aの座標(a,b,c)を求める
 球の狙う位置(地点B)を-21<x<-10.5,y=0,-10<z<10からランダムに地点Bを決める
