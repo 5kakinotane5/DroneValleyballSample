@@ -1,3 +1,4 @@
+// ボール弾道予測と回避機能付きAIスパイカー（Ally/Enemy対応）
 /*
 【SpikerAllyEnemyV2】
 概要:
