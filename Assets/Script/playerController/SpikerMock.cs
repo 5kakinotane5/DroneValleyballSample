@@ -1,3 +1,4 @@
+// PlayerControllerからSpike()を受け取るスパイカーのインターフェース定義（モック）
 public class SpikerMock
 {
     public bool isReady;
