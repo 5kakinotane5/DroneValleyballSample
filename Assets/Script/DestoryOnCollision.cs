@@ -1,3 +1,4 @@
+// 指定タグへの衝突でボールを即削除（ServeDroneのサーブ弾用）
 /*
 【DestoryOnCollision】（クラス名にスペルミスあり: Destroy の誤り）
 概要:
