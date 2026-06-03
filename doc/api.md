@@ -21,6 +21,6 @@
 
 ドローンがスパイクの準備を完了しているかどうかを確認するため。
 
-### `double maxVelocity`
+### `float maxVelocity`
 
 ドローンの最大速度。
