@@ -24,11 +24,6 @@ public class ReceiverAllyEnemy : MonoBehaviour
     public Vector3 initialPos = new Vector3(10f, 1f, 0f);
     public float returnFlightTime = 3f;
 
-    //追加した
-    [Header("トス変化の設定")]
-    public float highTossFlightTime = 3.0f; // 高いトスの滞空時間（秒）
-    public float lowTossFlightTime = 1.5f;  // 低いトスの滞空時間（秒）
-    public float distanceThreshold = 5.0f;  // 余裕と判定する「移動距離」の基準値
     [Header("コート境界設定（アウト判定）")]
     [Tooltip("AllyはX:0〜21, EnemyはX:-21〜0 をそれぞれ設定する")]
     public float courtXMin = 0f;
@@ -117,10 +112,11 @@ public class ReceiverAllyEnemy : MonoBehaviour
         return landing.x < courtXMin || landing.x > courtXMax ||
                landing.z < courtZMin || landing.z > courtZMax;
     }
-    //追加した
+
     void OnCollisionEnter(Collision collision)
     {
         // MovingToTrajectory または Hovering 状態のときだけレシーブする
+        // Returning 中に球が再接触しても無視（2重レシーブ防止）
         if (currentState != State.MovingToTrajectory && currentState != State.Hovering) return;
 
         if (collision.gameObject.CompareTag("injectionball"))
@@ -132,31 +128,10 @@ public class ReceiverAllyEnemy : MonoBehaviour
                     MatchManager.Instance.lastTeamToHit = myTeam;
 
                 Vector3 startPos = collision.transform.position;
-
-                // 【追加】ドローンが「元いた位置」から「今レシーブした位置」までどれだけ移動したか計算
-                float movedDistance = Vector3.Distance(initialPos, startPos);
-                float tossFlightTime;
-
-                // 【追加】移動距離によってトスの高さを変える！
-                if (movedDistance <= distanceThreshold)
-                {
-                    // 移動距離が短い（余裕で拾えた）＝ 高くて長いトス
-                    tossFlightTime = highTossFlightTime;
-                    Debug.Log($"余裕のレシーブ！(移動距離: {movedDistance:F1}) -> 高いトス！");
-                }
-                else
-                {
-                    // 移動距離が長い（ギリギリで拾った）＝ 低くて短いトス
-                    tossFlightTime = lowTossFlightTime;
-                    Debug.Log($"ギリギリのレシーブ！(移動距離: {movedDistance:F1}) -> 低いトス！");
-                }
-
-                // 物理演算を使って、指定した滞空時間（tossFlightTime）でピッタリ落下する初速度を計算
-                float vx = (initialPos.x - startPos.x) / tossFlightTime;
-                float vz = (initialPos.z - startPos.z) / tossFlightTime;
+                float vx = (initialPos.x - startPos.x) / returnFlightTime;
+                float vz = (initialPos.z - startPos.z) / returnFlightTime;
                 float gravity = Physics.gravity.y;
-                float vy = (initialPos.y - startPos.y - 0.5f * gravity * tossFlightTime * tossFlightTime) / tossFlightTime;
-
+                float vy = (initialPos.y - startPos.y - 0.5f * gravity * returnFlightTime * returnFlightTime) / returnFlightTime;
                 ballRb.linearVelocity = new Vector3(vx, vy, vz);
                 targetBall = null;
                 currentState = State.Returning;
