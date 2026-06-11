@@ -35,7 +35,9 @@ public class StaminaSystem : MonoBehaviour
 
     // ── 読み取り専用プロパティ ──────────────────────────────────────
 
-    public StaminaStage CurrentStage { get; private set; } = StaminaStage.Full;
+    public StaminaStage CurrentStage     { get; private set; } = StaminaStage.Full;
+    /// <summary>Exhausted 突入後、MAX 回復するまで true。この間は強制 Exhausted 固定。</summary>
+    public bool         IsLockedExhausted { get; private set; } = false;
 
     /// <summary>段階に応じたスパイク速度の倍率（EXHAUSTEDのみ制限）</summary>
     public float SpeedMultiplier
@@ -115,6 +117,7 @@ public class StaminaSystem : MonoBehaviour
     public void RecoverTick(bool isWaiting)
     {
         float rate = isWaiting ? waitingRecoveryRate : movingRecoveryRate;
+        if (IsLockedExhausted) rate *= 2f;
         stamina = Mathf.Min(maxStamina, stamina + rate * Time.fixedDeltaTime);
         RefreshStage();
     }
@@ -130,9 +133,22 @@ public class StaminaSystem : MonoBehaviour
 
     void RefreshStage()
     {
+        // Exhausted ロック中: MAX に達するまで強制 Exhausted
+        if (IsLockedExhausted)
+        {
+            CurrentStage = StaminaStage.Exhausted;
+            if (stamina >= maxStamina)
+                IsLockedExhausted = false;
+            return;
+        }
+
         if      (stamina >= 70f) CurrentStage = StaminaStage.Full;
         else if (stamina >= 40f) CurrentStage = StaminaStage.Normal;
         else if (stamina >= 10f) CurrentStage = StaminaStage.Low;
-        else                     CurrentStage = StaminaStage.Exhausted;
+        else
+        {
+            CurrentStage      = StaminaStage.Exhausted;
+            IsLockedExhausted = true;
+        }
     }
 }
