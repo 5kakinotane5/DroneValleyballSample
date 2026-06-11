@@ -66,10 +66,14 @@ public class SpikeController : MonoBehaviour
         GUI.Label(new Rect(x, y, w, lh), $"状態:  {stateStr}", labelStyle);
         y += lh;
 
-        // トス種別
-        string tossStr = spiker.IsHighToss
-            ? "高トス（強・弱 両方可）"
-            : "低トス（弱い球のみ）";
+        // トス品質
+        string tossStr;
+        switch (spiker.CurrentTossQuality)
+        {
+            case TossQuality.High:   tossStr = "高トス（強打OK）";     break;
+            case TossQuality.Medium: tossStr = "中トス（中程度まで）"; break;
+            default:                 tossStr = "低トス（弱い球のみ）"; break;
+        }
         GUI.Label(new Rect(x, y, w, lh), $"トス:  {tossStr}", labelStyle);
         y += lh;
 

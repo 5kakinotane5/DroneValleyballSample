@@ -2,6 +2,9 @@
 using UnityEngine;
 using Random = UnityEngine.Random;
 
+/// <summary>レシーバーのトス品質（3段階）</summary>
+public enum TossQuality { High, Medium, Low }
+
 /// <summary>
 /// SpikerAllyEnemyV2 の座標・速度制御をそのまま使用するスパイク専用ドローン。
 ///
@@ -57,8 +60,13 @@ public class SpikeDrone : MonoBehaviour
     [Tooltip("低トス時の速度上限（vMaxDrone に対する割合）")]
     public float weakVelocityRatio = 0.35f;
 
+    [Range(0.1f, 1.0f)]
+    [Tooltip("中トス時の速度上限（vMaxDrone に対する割合）")]
+    public float medVelocityRatio = 0.65f;
+
     [Header("トス判定")]
     public float highTossApexThreshold = 13f;
+    public float medTossApexThreshold  = 8f;
 
     [Header("相手コート着弾範囲")]
     [Tooltip("Ally は負値・Enemy は正値で設定")]
@@ -71,13 +79,25 @@ public class SpikeDrone : MonoBehaviour
     /// <summary>Hovering 状態（スパイク待機中）のときのみ true</summary>
     public bool isReady { get; private set; }
 
-    /// <summary>トス種別に応じた速度上限（コントローラーのチャージ上限に使用）</summary>
-    public float CurrentMaxVelocity => isHighToss
-        ? vMaxDrone
-        : vMaxDrone * weakVelocityRatio;
+    /// <summary>トス品質に応じた速度上限（コントローラーのチャージ上限に使用）</summary>
+    public float CurrentMaxVelocity
+    {
+        get
+        {
+            switch (tossQuality)
+            {
+                case TossQuality.High:   return vMaxDrone;
+                case TossQuality.Medium: return vMaxDrone * medVelocityRatio;
+                default:                 return vMaxDrone * weakVelocityRatio;
+            }
+        }
+    }
 
-    /// <summary>現在のトス種別（コントローラー表示用）</summary>
-    public bool IsHighToss => isHighToss;
+    /// <summary>現在のトス品質（コントローラー表示用）</summary>
+    public TossQuality CurrentTossQuality => tossQuality;
+
+    /// <summary>後方互換プロパティ（High のときのみ true）</summary>
+    public bool IsHighToss => tossQuality == TossQuality.High;
 
     /// <summary>コントローラーが毎フレーム設定するコース値（-1〜1）</summary>
     public float inputCourse   = 0f;
@@ -97,9 +117,9 @@ public class SpikeDrone : MonoBehaviour
     private float g = Physics.gravity.y;
 
     // API 用追加
-    private float pendingCourse;
-    private float pendingVelocity;
-    private bool  isHighToss;
+    private float       pendingCourse;
+    private float       pendingVelocity;
+    private TossQuality tossQuality = TossQuality.Low;
 
     enum State { Waiting, Hovering, MovingToTrajectory, Striking, Returning }
     [SerializeField] private State currentState = State.Waiting;
@@ -246,10 +266,19 @@ public class SpikeDrone : MonoBehaviour
             // Enemy: ランダム（トス制限あり）
             else
             {
-                pendingCourse   = Random.value > 0.5f ? 1f : -1f;
-                pendingVelocity = isHighToss
-                    ? (Random.value > 0.5f ? vMaxDrone : vMaxDrone * weakVelocityRatio)
-                    : vMaxDrone * weakVelocityRatio;
+                pendingCourse = Random.value > 0.5f ? 1f : -1f;
+                switch (tossQuality)
+                {
+                    case TossQuality.High:
+                        pendingVelocity = Random.value > 0.5f ? vMaxDrone : vMaxDrone * medVelocityRatio;
+                        break;
+                    case TossQuality.Medium:
+                        pendingVelocity = vMaxDrone * medVelocityRatio;
+                        break;
+                    default:
+                        pendingVelocity = vMaxDrone * weakVelocityRatio;
+                        break;
+                }
             }
 
             targetRb   = ballRb;
@@ -528,7 +557,13 @@ public class SpikeDrone : MonoBehaviour
         float apex = (vy > 0f)
             ? ballRb.position.y + (vy * vy) / (2f * Mathf.Abs(g))
             : ballRb.position.y;
-        isHighToss = apex > highTossApexThreshold;
+
+        if (apex > highTossApexThreshold)
+            tossQuality = TossQuality.High;
+        else if (apex > medTossApexThreshold)
+            tossQuality = TossQuality.Medium;
+        else
+            tossQuality = TossQuality.Low;
     }
 
     /// API の pendingCourse/pendingVelocity から実際の打球速度ベクトルを計算する
