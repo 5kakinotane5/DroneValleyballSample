@@ -6,8 +6,8 @@ public class SpikeController : MonoBehaviour
 {
     [SerializeField] private SpikeDrone spiker;
 
-    [Header("スタミナUI用（Enemyスパイカーを設定）")]
-    [SerializeField] private SpikeDrone enemySpiker;
+    [Header("スタミナUI用（EnemySpikeDroneを設定）")]
+    [SerializeField] private EnemySpikeDrone enemySpiker;
 
     private readonly float chargeRate = 20f;
     private readonly float courseRate = 1f;

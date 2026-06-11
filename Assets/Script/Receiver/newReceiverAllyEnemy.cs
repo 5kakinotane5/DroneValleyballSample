@@ -29,8 +29,8 @@ public class newReceiverAllyEnemy : MonoBehaviour
 
     public Vector3 initialPos = new Vector3(10f, 1f, 0f);
 
-    [Header("スタミナ連携（チームのスパイカーを設定）")]
-    [SerializeField] private SpikeDrone linkedSpiker;
+    [Header("スタミナ連携（チームのスパイカーの StaminaSystem を直接設定）")]
+    [SerializeField] private StaminaSystem linkedStamina;
 
     [Header("トス品質の設定（余裕時間ベース）")]
     [Tooltip("余裕時間がこれ以上 → 高トス")]
@@ -216,9 +216,7 @@ public class newReceiverAllyEnemy : MonoBehaviour
         labelTimer = labelDuration;
 
         // スタミナに応じてトス目標地点をブラす（Y方向はブレなし）
-        float blur = linkedSpiker != null && linkedSpiker.Stamina != null
-            ? linkedSpiker.Stamina.GetBlur()
-            : 0f;
+        float blur = linkedStamina != null ? linkedStamina.GetBlur() : 0f;
         Vector3 tossTarget = new Vector3(
             initialPos.x + Random.Range(-blur, blur),
             initialPos.y,
