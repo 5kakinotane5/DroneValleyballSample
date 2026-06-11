@@ -44,6 +44,10 @@ public class ScoreManager : MonoBehaviour
     public float courtHalfX = 21f;
     public float courtHalfZ = 10f;
 
+    [Header("スタミナ回復用（得点時に呼ぶ）")]
+    [SerializeField] private SpikeDrone allySpiker;
+    [SerializeField] private SpikeDrone enemySpiker;
+
     private Coroutine resultCoroutine;
 
     void Awake()
@@ -101,6 +105,10 @@ public class ScoreManager : MonoBehaviour
 
         if (MatchManager.Instance != null)
             MatchManager.Instance.serveRight = scoringTeam;
+
+        // 得点チームのスパイカーのスタミナを回復
+        SpikeDrone scorer = scoringTeam == Team.Ally ? allySpiker : enemySpiker;
+        scorer?.Stamina?.AddScoreBonus();
 
         UpdateScoreUI();
         ShowResult(reason);

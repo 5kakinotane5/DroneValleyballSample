@@ -49,6 +49,13 @@ public class SpikeDrone : MonoBehaviour
 
     [SerializeField] private bool isAvoidingTrajectory = false;
 
+    // ── スタミナ ────────────────────────────────────────────────────
+    [Header("スタミナ")]
+    [SerializeField] private StaminaSystem staminaSystem;
+
+    /// <summary>外部からスタミナを参照する（SpikeController / ScoreManager 等）</summary>
+    public StaminaSystem Stamina => staminaSystem;
+
     // ── 公開 API 用追加フィールド ──────────────────────────────────────
     [Header("操作・速度設定（API 用）")]
     [SerializeField] private bool isPlayerControlled = true;
@@ -79,17 +86,20 @@ public class SpikeDrone : MonoBehaviour
     /// <summary>Hovering 状態（スパイク待機中）のときのみ true</summary>
     public bool isReady { get; private set; }
 
-    /// <summary>トス品質に応じた速度上限（コントローラーのチャージ上限に使用）</summary>
+    /// <summary>トス品質 × スタミナ倍率の速度上限（コントローラーのチャージ上限に使用）</summary>
     public float CurrentMaxVelocity
     {
         get
         {
+            float tossBase;
             switch (tossQuality)
             {
-                case TossQuality.High:   return vMaxDrone;
-                case TossQuality.Medium: return vMaxDrone * medVelocityRatio;
-                default:                 return vMaxDrone * weakVelocityRatio;
+                case TossQuality.High:   tossBase = vMaxDrone; break;
+                case TossQuality.Medium: tossBase = vMaxDrone * medVelocityRatio; break;
+                default:                 tossBase = vMaxDrone * weakVelocityRatio; break;
             }
+            float staminaMult = staminaSystem != null ? staminaSystem.SpeedMultiplier : 1f;
+            return tossBase * staminaMult;
         }
     }
 
@@ -135,6 +145,8 @@ public class SpikeDrone : MonoBehaviour
 
     void FixedUpdate()
     {
+        staminaSystem?.RecoverTick(currentState == State.Waiting);
+
         if (currentState == State.MovingToTrajectory || currentState == State.Striking)
             timeUntilImpact -= Time.fixedDeltaTime;
 
@@ -307,7 +319,11 @@ public class SpikeDrone : MonoBehaviour
         float targetX = (myTeam == Team.Ally)
             ? Mathf.Lerp(targetShallowX, targetDeepX, norm)
             : Mathf.Lerp(-targetShallowX, -targetDeepX, norm);
-        Vector3 pointB = new Vector3(targetX, 0f, pendingCourse * targetZHalf);
+        float blur = staminaSystem != null ? staminaSystem.GetBlur() : 0f;
+        Vector3 pointB = new Vector3(
+            targetX             + Random.Range(-blur, blur),
+            0f,
+            pendingCourse * targetZHalf + Random.Range(-blur, blur));
 
         pointA = new Vector3(
             targetRb.position.x + (targetRb.linearVelocity.x * t),
@@ -391,7 +407,8 @@ public class SpikeDrone : MonoBehaviour
         if (MatchManager.Instance != null)
             MatchManager.Instance.lastTeamToHit = myTeam;
 
-        // ★ requiredDroneVel * tossBoost → CalcBallVelocity に変更
+        staminaSystem?.ConsumeCharge(pendingVelocity);
+
         ballRb.linearVelocity = CalcBallVelocity(collision.transform.position);
         rb.linearVelocity     = Vector3.zero;
 
@@ -573,7 +590,11 @@ public class SpikeDrone : MonoBehaviour
         float targetX = (myTeam == Team.Ally)
             ? Mathf.Lerp(targetShallowX, targetDeepX, norm)
             : Mathf.Lerp(-targetShallowX, -targetDeepX, norm);
-        Vector3 landing = new Vector3(targetX, 0f, pendingCourse * targetZHalf);
+        float blur = staminaSystem != null ? staminaSystem.GetBlur() : 0f;
+        Vector3 landing = new Vector3(
+            targetX             + Random.Range(-blur, blur),
+            0f,
+            pendingCourse * targetZHalf + Random.Range(-blur, blur));
 
         float dx = landing.x - hitPos.x;
         float dz = landing.z - hitPos.z;

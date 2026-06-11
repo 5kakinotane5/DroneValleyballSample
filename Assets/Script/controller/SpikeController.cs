@@ -1,27 +1,26 @@
-// SpikeDrone 用プレイヤー入力コントローラ（操作値を画面右側に2倍サイズで表示）
+// SpikeDrone 用プレイヤー入力コントローラ（操作値を画面右側に表示）
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-/// <summary>
-/// SpikeDrone に対してプレイヤー入力を橋渡しするコントローラ。
-/// K キーを押さなくても drone は自動でスパイクする（最低速度で）。
-///
-/// 操作:
-///   A / D     : コース（左右の打ち分け）を -1〜1 の範囲で調整
-///   K 長押し  : 速度をチャージ（長押し = 深い球、短押し相当 = 浅い球）
-///               離すと 0 にリセット（drone 側で minVelocity に補完される）
-///               低トス時は CurrentMaxVelocity が自動で下がり弱い球のみ出せる
-/// </summary>
 public class SpikeController : MonoBehaviour
 {
     [SerializeField] private SpikeDrone spiker;
 
-    // 要調整。ゲームとして自然かどうかをプレイしてみて判断する。
-    private readonly float chargeRate = 20f; // velocity/秒
-    private readonly float courseRate = 1f;  // course/秒
+    [Header("スタミナUI用（Enemyスパイカーを設定）")]
+    [SerializeField] private SpikeDrone enemySpiker;
+
+    private readonly float chargeRate = 20f;
+    private readonly float courseRate = 1f;
 
     private float currentVelocity;
     private float currentCourse;
+
+    // スタミナ段階変化テキスト演出
+    private StaminaStage prevAllyStage   = StaminaStage.Full;
+    private StaminaStage prevEnemyStage  = StaminaStage.Full;
+    private float        allyTextTimer   = 0f;
+    private float        enemyTextTimer  = 0f;
+    private const float  stageTextDuration = 1.5f;
 
     void Update()
     {
@@ -29,13 +28,11 @@ public class SpikeController : MonoBehaviour
 
         var kb = Keyboard.current;
 
-        // A/D でコース調整（isReady に関わらず常に受け付ける）
         if (kb.aKey.isPressed)
             currentCourse = Mathf.Max(currentCourse - courseRate * Time.deltaTime, -1f);
         if (kb.dKey.isPressed)
             currentCourse = Mathf.Min(currentCourse + courseRate * Time.deltaTime,  1f);
 
-        // K 長押しで速度チャージ、離すと 0 にリセット
         if (kb.kKey.isPressed)
             currentVelocity = Mathf.Min(
                 currentVelocity + chargeRate * Time.deltaTime,
@@ -44,12 +41,108 @@ public class SpikeController : MonoBehaviour
         else
             currentVelocity = 0f;
 
-        // 毎フレーム drone に入力値を渡す（drone 側で自動スパイクに使用）
         spiker.inputCourse   = currentCourse;
         spiker.inputVelocity = currentVelocity;
+
+        // 段階変化を検知してテキスト演出タイマーをセット
+        if (spiker.Stamina != null)
+        {
+            if (spiker.Stamina.CurrentStage != prevAllyStage)
+            {
+                prevAllyStage = spiker.Stamina.CurrentStage;
+                allyTextTimer = stageTextDuration;
+            }
+            if (allyTextTimer > 0f) allyTextTimer -= Time.deltaTime;
+        }
+
+        if (enemySpiker != null && enemySpiker.Stamina != null)
+        {
+            if (enemySpiker.Stamina.CurrentStage != prevEnemyStage)
+            {
+                prevEnemyStage = enemySpiker.Stamina.CurrentStage;
+                enemyTextTimer = stageTextDuration;
+            }
+            if (enemyTextTimer > 0f) enemyTextTimer -= Time.deltaTime;
+        }
     }
 
     void OnGUI()
+    {
+        DrawStaminaUI();
+        DrawSpikeControlUI();
+    }
+
+    // ── スタミナゲージUI ─────────────────────────────────────────────
+
+    void DrawStaminaUI()
+    {
+        float cx     = Screen.width / 2f;
+        float barW   = 280f;
+        float barH   = 26f;
+        float panelY = 12f;
+
+        // Ally ゲージ（中央左）
+        if (spiker.Stamina != null)
+            DrawStaminaBar(cx - 400f, panelY, barW, barH,
+                "Ally", spiker.Stamina, allyTextTimer, leftAlign: true);
+
+        // Enemy ゲージ（中央右）
+        if (enemySpiker != null && enemySpiker.Stamina != null)
+            DrawStaminaBar(cx + 120f, panelY, barW, barH,
+                "Enemy", enemySpiker.Stamina, enemyTextTimer, leftAlign: false);
+    }
+
+    void DrawStaminaBar(float x, float y, float barW, float barH,
+                        string teamName, StaminaSystem sys,
+                        float textTimer, bool leftAlign)
+    {
+        float ratio     = Mathf.Clamp01(sys.stamina / sys.maxStamina);
+        Color fillColor = StageColor(sys.CurrentStage);
+
+        // 背景ボックス
+        var bgStyle = new GUIStyle(GUI.skin.box);
+        GUI.color   = new Color(0.1f, 0.1f, 0.1f, 0.7f);
+        GUI.Box(new Rect(x - 8, y - 6, barW + 120f, barH + 20f), "", bgStyle);
+        GUI.color   = Color.white;
+
+        // ゲージ背景（グレー）
+        GUI.color = new Color(0.3f, 0.3f, 0.3f, 1f);
+        GUI.DrawTexture(new Rect(x, y + 4, barW, barH), Texture2D.whiteTexture);
+
+        // ゲージ本体
+        GUI.color = fillColor;
+        GUI.DrawTexture(new Rect(x, y + 4, barW * ratio, barH), Texture2D.whiteTexture);
+        GUI.color = Color.white;
+
+        // チーム名ラベル
+        var nameStyle = new GUIStyle(GUI.skin.label)
+        {
+            fontSize   = 18,
+            fontStyle  = FontStyle.Bold,
+            alignment  = leftAlign ? TextAnchor.MiddleRight : TextAnchor.MiddleLeft
+        };
+        nameStyle.normal.textColor = Color.white;
+        float nameX = leftAlign ? x - 68f : x + barW + 8f;
+        GUI.Label(new Rect(nameX, y, 62f, barH + 8f), teamName, nameStyle);
+
+        // 段階テキスト（変化時に大きくなる）
+        int fontSize = textTimer > 0f
+            ? (int)Mathf.Lerp(18f, 30f, textTimer / stageTextDuration)
+            : 18;
+        var stageStyle = new GUIStyle(GUI.skin.label)
+        {
+            fontSize  = fontSize,
+            fontStyle = textTimer > 0f ? FontStyle.Bold : FontStyle.Normal,
+            alignment = leftAlign ? TextAnchor.MiddleLeft : TextAnchor.MiddleRight
+        };
+        stageStyle.normal.textColor = fillColor;
+        float stageX = leftAlign ? x + barW + 6f : x - 118f;
+        GUI.Label(new Rect(stageX, y, 112f, barH + 8f), sys.StageLabel, stageStyle);
+    }
+
+    // ── スパイク操作UI ─────────────────────────────────────────────
+
+    void DrawSpikeControlUI()
     {
         float lh = 48f;
         float w  = 560f;
@@ -97,5 +190,27 @@ public class SpikeController : MonoBehaviour
         // 操作ガイド
         GUI.Label(new Rect(x, y, w, lh),
             "A/D: コース　K長押し: 強い球チャージ", labelStyle);
+    }
+
+    // ── ヘルパー ────────────────────────────────────────────────────
+
+    static Color StageColor(StaminaStage stage)
+    {
+        switch (stage)
+        {
+            case StaminaStage.Full:
+                return new Color(0.3f, 0.6f, 1f);  // 青
+            case StaminaStage.Normal:
+                return new Color(0.2f, 0.9f, 0.3f); // 緑
+            case StaminaStage.Low:
+                return Color.yellow;
+            case StaminaStage.Exhausted:
+                // 赤点滅
+                return (Mathf.Sin(Time.realtimeSinceStartup * 6f) > 0f)
+                    ? Color.red
+                    : new Color(0.5f, 0f, 0f);
+            default:
+                return Color.white;
+        }
     }
 }
