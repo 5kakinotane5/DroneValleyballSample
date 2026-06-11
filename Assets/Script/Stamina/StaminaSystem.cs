@@ -10,8 +10,8 @@ public class StaminaSystem : MonoBehaviour
     public float maxStamina = 100f;
 
     [Header("回復量（/秒）")]
-    public float waitingRecoveryRate = 8f;
-    public float movingRecoveryRate  = 2f;
+    public float waitingRecoveryRate = 3f;
+    public float movingRecoveryRate  = 0.5f;
 
     [Header("消費設定")]
     [Tooltip("SpikeController の chargeRate と合わせること（デフォルト 20）")]

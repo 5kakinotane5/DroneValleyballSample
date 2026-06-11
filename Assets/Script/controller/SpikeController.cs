@@ -76,68 +76,89 @@ public class SpikeController : MonoBehaviour
 
     void DrawStaminaUI()
     {
-        float cx     = Screen.width / 2f;
-        float barW   = 280f;
+        // 画面上部に2本のゲージを左右対称に並べる
+        // レイアウト: [Ally名 | ████ゲージ████ | 段階]  [段階 | ████ゲージ████ | Enemy名]
+        float barW   = 260f;
         float barH   = 26f;
+        float labelW = 60f;
+        float stageW = 120f;
+        float gap    = 20f;  // 中央の隙間
+        float panelW = labelW + barW + stageW; // 1本分の幅 = 440
+
+        float cx     = Screen.width / 2f;
         float panelY = 12f;
 
-        // Ally ゲージ（中央左）
-        if (spiker.Stamina != null)
-            DrawStaminaBar(cx - 400f, panelY, barW, barH,
-                "Ally", spiker.Stamina, allyTextTimer, leftAlign: true);
+        float allyX  = cx - gap / 2f - panelW; // Ally パネル左端
+        float enemyX = cx + gap / 2f;           // Enemy パネル左端
 
-        // Enemy ゲージ（中央右）
-        if (enemySpiker != null && enemySpiker.Stamina != null)
-            DrawStaminaBar(cx + 120f, panelY, barW, barH,
-                "Enemy", enemySpiker.Stamina, enemyTextTimer, leftAlign: false);
+        // Ally
+        StaminaSystem allySys = spiker != null ? spiker.Stamina : null;
+        DrawStaminaBar(allyX, panelY, labelW, barW, barH, stageW,
+            "Ally", allySys, allyTextTimer, leftAlign: true);
+
+        // Enemy（未接続でも枠だけ表示して分かるようにする）
+        StaminaSystem enemySys = enemySpiker != null ? enemySpiker.Stamina : null;
+        DrawStaminaBar(enemyX, panelY, labelW, barW, barH, stageW,
+            "Enemy", enemySys, enemyTextTimer, leftAlign: false);
     }
 
-    void DrawStaminaBar(float x, float y, float barW, float barH,
-                        string teamName, StaminaSystem sys,
-                        float textTimer, bool leftAlign)
+    // leftAlign=true  → [ラベル | ゲージ | 段階テキスト]  Ally用
+    // leftAlign=false → [段階テキスト | ゲージ | ラベル]  Enemy用
+    void DrawStaminaBar(float panelX, float panelY,
+                        float labelW, float barW, float barH, float stageW,
+                        string teamName, StaminaSystem sys, float textTimer,
+                        bool leftAlign)
     {
-        float ratio     = Mathf.Clamp01(sys.stamina / sys.maxStamina);
-        Color fillColor = StageColor(sys.CurrentStage);
+        bool connected = sys != null;
+        float ratio    = connected ? Mathf.Clamp01(sys.stamina / sys.maxStamina) : 0f;
+        Color fillColor = connected ? StageColor(sys.CurrentStage) : new Color(0.4f, 0.4f, 0.4f);
+        string stageLabel = connected ? sys.StageLabel : "未接続";
 
-        // 背景ボックス
-        var bgStyle = new GUIStyle(GUI.skin.box);
-        GUI.color   = new Color(0.1f, 0.1f, 0.1f, 0.7f);
-        GUI.Box(new Rect(x - 8, y - 6, barW + 120f, barH + 20f), "", bgStyle);
-        GUI.color   = Color.white;
+        float totalW = labelW + barW + stageW;
+        float totalH = barH + 16f;
 
-        // ゲージ背景（グレー）
-        GUI.color = new Color(0.3f, 0.3f, 0.3f, 1f);
-        GUI.DrawTexture(new Rect(x, y + 4, barW, barH), Texture2D.whiteTexture);
+        // 外枠
+        GUI.color = new Color(0.1f, 0.1f, 0.1f, 0.8f);
+        GUI.Box(new Rect(panelX - 4, panelY - 4, totalW + 8, totalH + 8),
+                "", new GUIStyle(GUI.skin.box));
+        GUI.color = Color.white;
+
+        float barX = leftAlign ? panelX + labelW : panelX + stageW;
+
+        // ゲージ背景
+        GUI.color = new Color(0.25f, 0.25f, 0.25f);
+        GUI.DrawTexture(new Rect(barX, panelY + 5, barW, barH), Texture2D.whiteTexture);
 
         // ゲージ本体
         GUI.color = fillColor;
-        GUI.DrawTexture(new Rect(x, y + 4, barW * ratio, barH), Texture2D.whiteTexture);
+        if (ratio > 0f)
+            GUI.DrawTexture(new Rect(barX, panelY + 5, barW * ratio, barH), Texture2D.whiteTexture);
         GUI.color = Color.white;
 
-        // チーム名ラベル
+        // ラベル
         var nameStyle = new GUIStyle(GUI.skin.label)
         {
-            fontSize   = 18,
-            fontStyle  = FontStyle.Bold,
-            alignment  = leftAlign ? TextAnchor.MiddleRight : TextAnchor.MiddleLeft
+            fontSize  = 18,
+            fontStyle = FontStyle.Bold,
+            alignment = leftAlign ? TextAnchor.MiddleRight : TextAnchor.MiddleLeft
         };
-        nameStyle.normal.textColor = Color.white;
-        float nameX = leftAlign ? x - 68f : x + barW + 8f;
-        GUI.Label(new Rect(nameX, y, 62f, barH + 8f), teamName, nameStyle);
+        nameStyle.normal.textColor = connected ? Color.white : new Color(0.6f, 0.6f, 0.6f);
+        float nameX = leftAlign ? panelX : panelX + stageW + barW;
+        GUI.Label(new Rect(nameX, panelY, labelW, totalH), teamName, nameStyle);
 
-        // 段階テキスト（変化時に大きくなる）
-        int fontSize = textTimer > 0f
+        // 段階テキスト
+        int fontSize = connected && textTimer > 0f
             ? (int)Mathf.Lerp(18f, 30f, textTimer / stageTextDuration)
             : 18;
         var stageStyle = new GUIStyle(GUI.skin.label)
         {
             fontSize  = fontSize,
-            fontStyle = textTimer > 0f ? FontStyle.Bold : FontStyle.Normal,
+            fontStyle = connected && textTimer > 0f ? FontStyle.Bold : FontStyle.Normal,
             alignment = leftAlign ? TextAnchor.MiddleLeft : TextAnchor.MiddleRight
         };
-        stageStyle.normal.textColor = fillColor;
-        float stageX = leftAlign ? x + barW + 6f : x - 118f;
-        GUI.Label(new Rect(stageX, y, 112f, barH + 8f), sys.StageLabel, stageStyle);
+        stageStyle.normal.textColor = connected ? fillColor : new Color(0.5f, 0.5f, 0.5f);
+        float stageX = leftAlign ? panelX + labelW + barW : panelX;
+        GUI.Label(new Rect(stageX, panelY, stageW, totalH), stageLabel, stageStyle);
     }
 
     // ── スパイク操作UI ─────────────────────────────────────────────
