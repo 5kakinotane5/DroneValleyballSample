@@ -108,6 +108,7 @@ public class StaminaSystem : MonoBehaviour
     /// <summary>チャージスパイク実行時に呼ぶ（velocity = pendingVelocity）</summary>
     public void ConsumeCharge(float velocity)
     {
+        if (IsLockedExhausted) return;
         float chargeTime = velocity / chargeRate;
         stamina = Mathf.Max(0f, stamina - chargeTime * consumeRate * ConsumptionMultiplier);
         RefreshStage();
