@@ -15,7 +15,7 @@
 */
 using UnityEngine;
 
-public class ReceiverAllyEnemy : MonoBehaviour
+public class newReceiverAllyEnemy : MonoBehaviour
 {
     [SerializeField] private Team myTeam;
     public Rigidbody targetBall;
