@@ -23,15 +23,21 @@ public class StaminaSystem : MonoBehaviour
     public float scoreBonus = 20f;
 
     [Header("ブレ量（ワールド単位、段階別）")]
-    public float normalBlurRadius    = 2f;
-    public float lowBlurRadius       = 4f;
-    public float exhaustedBlurMax    = 8f;
+    public float normalBlurRadius     = 3f;
+    public float lowBlurRadius        = 6f;
+    public float exhaustedBlurMin     = 4f;
+    public float exhaustedBlurMax     = 12f;
+
+    [Header("消費倍率（段階別、低スタミナほど消費増加）")]
+    public float normalConsumeMult    = 1.5f;
+    public float lowConsumeMult       = 2.0f;
+    public float exhaustedConsumeMult = 3.0f;
 
     // ── 読み取り専用プロパティ ──────────────────────────────────────
 
     public StaminaStage CurrentStage { get; private set; } = StaminaStage.Full;
 
-    /// <summary>段階に応じたスパイク速度の倍率</summary>
+    /// <summary>段階に応じたスパイク速度の倍率（EXHAUSTEDのみ制限）</summary>
     public float SpeedMultiplier
     {
         get
@@ -39,9 +45,25 @@ public class StaminaSystem : MonoBehaviour
             switch (CurrentStage)
             {
                 case StaminaStage.Full:      return 1.00f;
-                case StaminaStage.Normal:    return 0.75f;
-                case StaminaStage.Low:       return 0.50f;
-                case StaminaStage.Exhausted: return 0.20f;
+                case StaminaStage.Normal:    return 1.00f;
+                case StaminaStage.Low:       return 1.00f;
+                case StaminaStage.Exhausted: return 0.40f;
+                default: return 1f;
+            }
+        }
+    }
+
+    /// <summary>段階に応じたスタミナ消費倍率（低スタミナほど消費増加）</summary>
+    public float ConsumptionMultiplier
+    {
+        get
+        {
+            switch (CurrentStage)
+            {
+                case StaminaStage.Full:      return 1.00f;
+                case StaminaStage.Normal:    return normalConsumeMult;
+                case StaminaStage.Low:       return lowConsumeMult;
+                case StaminaStage.Exhausted: return exhaustedConsumeMult;
                 default: return 1f;
             }
         }
@@ -58,7 +80,7 @@ public class StaminaSystem : MonoBehaviour
             case StaminaStage.Full:      return 0f;
             case StaminaStage.Normal:    return normalBlurRadius;
             case StaminaStage.Low:       return lowBlurRadius;
-            case StaminaStage.Exhausted: return Random.Range(0f, exhaustedBlurMax);
+            case StaminaStage.Exhausted: return Random.Range(exhaustedBlurMin, exhaustedBlurMax);
             default: return 0f;
         }
     }
@@ -85,7 +107,7 @@ public class StaminaSystem : MonoBehaviour
     public void ConsumeCharge(float velocity)
     {
         float chargeTime = velocity / chargeRate;
-        stamina = Mathf.Max(0f, stamina - chargeTime * consumeRate);
+        stamina = Mathf.Max(0f, stamina - chargeTime * consumeRate * ConsumptionMultiplier);
         RefreshStage();
     }
 
