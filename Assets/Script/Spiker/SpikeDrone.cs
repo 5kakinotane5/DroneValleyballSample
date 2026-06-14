@@ -309,7 +309,7 @@ public class SpikeDrone : MonoBehaviour
             if (CalculateTrajectory())
             {
                 currentState = State.MovingToTrajectory;
-                timingWindow?.StartWindow(tossQuality);
+                timingWindow?.StartWindow(tossQuality, timeUntilImpact);
             }
             else
             {

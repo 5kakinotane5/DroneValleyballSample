@@ -5,11 +5,6 @@ public enum TimingResult { None, Just, Good, Miss, Timeout }
 /// <summary>スパイクタイミングウィンドウを管理するコンポーネント（SpikeDrone にアタッチ）</summary>
 public class TimingWindowSystem : MonoBehaviour
 {
-    [Header("ウィンドウ持続時間（トス別）")]
-    public float highTossWindow = 1.0f;
-    public float medTossWindow  = 0.5f;
-    public float lowTossWindow  = 0.2f;
-
     [Header("ゾーン境界（ウィンドウ進行度 0→1）")]
     [Range(0f, 1f)] public float goodZoneStart = 0.55f;
     [Range(0f, 1f)] public float justZoneStart = 0.80f;
@@ -26,13 +21,13 @@ public class TimingWindowSystem : MonoBehaviour
 
     // ── 外部 API ─────────────────────────────────────────────────────
 
-    /// <summary>ボール検出時に呼ぶ。トス種別に応じたウィンドウを開始する。</summary>
-    public void StartWindow(TossQuality toss)
+    /// <summary>
+    /// ボール検出時に呼ぶ。duration にはドローンが弾に衝突するまでの時間（timeUntilImpact）を渡す。
+    /// </summary>
+    public void StartWindow(TossQuality toss, float duration)
     {
-        WindowToss   = toss;
-        windowDuration = toss == TossQuality.High   ? highTossWindow
-                       : toss == TossQuality.Medium ? medTossWindow
-                       : lowTossWindow;
+        WindowToss           = toss;
+        windowDuration       = duration;
         elapsed              = 0f;
         WindowProgress       = 0f;
         LastResult           = TimingResult.None;
