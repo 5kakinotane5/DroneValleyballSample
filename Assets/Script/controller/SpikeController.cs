@@ -63,9 +63,8 @@ public class SpikeController : MonoBehaviour
         else
             currentVelocity = 0f;
 
-        spiker.inputCourse    = currentCourse;
-        spiker.inputVelocity  = currentVelocity;
-        spiker.InputIsCharging = kIsPressed;
+        spiker.inputCourse   = currentCourse;
+        spiker.inputVelocity = currentVelocity;
 
         // ── タイミングウィンドウ処理 ───────────────────────────────────
         var timing = spiker.TimingWindow;
@@ -297,12 +296,14 @@ public class SpikeController : MonoBehaviour
         }
     }
 
-    /// <summary>ボールの周囲にタイミングウィンドウの収縮円を描画する</summary>
+    /// <summary>Ally スパイク中のみ、ボールの周囲にタイミングウィンドウの収縮円を描画する</summary>
     void DrawTimingCircles()
     {
         if (spiker == null || Camera.main == null) return;
 
-        // ボールのスクリーン座標を取得（OnGUI は Y 反転）
+        var timing = spiker.TimingWindow;
+        if (timing == null || !timing.IsWindowOpen) return;
+
         GameObject ball = GameObject.FindGameObjectWithTag(spiker.ballTag);
         if (ball == null) return;
         Vector3 sp = Camera.main.WorldToScreenPoint(ball.transform.position);
@@ -314,14 +315,11 @@ public class SpikeController : MonoBehaviour
         const float goodR  = 76f;
         const float startR = 140f;
 
-        // 基準円（ボールがある間は常に表示）
+        // 基準円
         DrawRingAt(cx, cy, goodR, new Color(1f, 0.9f, 0.1f, 0.45f));
         DrawRingAt(cx, cy, justR, new Color(0.2f, 1f, 0.3f, 0.6f));
 
-        // 収縮するリング（ウィンドウが開いているときのみ）
-        var timing = spiker.TimingWindow;
-        if (timing == null || !timing.IsWindowOpen) return;
-
+        // 収縮するリング
         float movingR = Mathf.Lerp(startR, justR, timing.WindowProgress);
         Color movingColor = timing.WindowProgress >= timing.justZoneStart
             ? new Color(0.2f, 1f, 0.3f, 0.9f)

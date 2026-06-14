@@ -59,13 +59,6 @@ public class SpikeDrone : MonoBehaviour
     /// <summary>外部からタイミングウィンドウを参照する（SpikeController）</summary>
     public TimingWindowSystem TimingWindow => timingWindow;
 
-    [Header("チャージ速度制限")]
-    [Range(0.1f, 1.0f)]
-    [Tooltip("K 長押しチャージ中のドローン速度倍率")]
-    public float chargeSpeedRatio = 0.5f;
-
-    /// <summary>SpikeController が毎フレーム設定する（K 押下中 = true）</summary>
-    public bool InputIsCharging { get; set; }
 
     // ── 公開 API 用追加フィールド ──────────────────────────────────────
     [Header("操作・速度設定（API 用）")]
@@ -559,11 +552,10 @@ public class SpikeDrone : MonoBehaviour
 
     void MoveToPoint(Vector3 target)
     {
-        float cap = InputIsCharging ? vMaxDrone * chargeSpeedRatio : vMax;
         Vector3 diff = target - transform.position;
         rb.linearVelocity = diff / 0.8f;
-        if (rb.linearVelocity.magnitude > cap)
-            rb.linearVelocity = rb.linearVelocity.normalized * cap;
+        if (rb.linearVelocity.magnitude > vMax)
+            rb.linearVelocity = rb.linearVelocity.normalized * vMax;
     }
 
     void Hover(Vector3 target)
@@ -575,8 +567,7 @@ public class SpikeDrone : MonoBehaviour
             transform.position = target;
             return;
         }
-        float hoverSpeed = vMaxDrone / 8f * (InputIsCharging ? chargeSpeedRatio : 1f);
-        rb.linearVelocity = diff.normalized * hoverSpeed;
+        rb.linearVelocity = diff.normalized * vMaxDrone / 8f;
     }
 
     // ── 追加メソッド ──────────────────────────────────────────────────
