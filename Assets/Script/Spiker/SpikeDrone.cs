@@ -52,9 +52,20 @@ public class SpikeDrone : MonoBehaviour
     // ── スタミナ ────────────────────────────────────────────────────
     [Header("スタミナ")]
     [SerializeField] private StaminaSystem staminaSystem;
+    [SerializeField] private TimingWindowSystem timingWindow;
 
     /// <summary>外部からスタミナを参照する（SpikeController / ScoreManager 等）</summary>
-    public StaminaSystem Stamina => staminaSystem;
+    public StaminaSystem      Stamina      => staminaSystem;
+    /// <summary>外部からタイミングウィンドウを参照する（SpikeController）</summary>
+    public TimingWindowSystem TimingWindow => timingWindow;
+
+    [Header("チャージ速度制限")]
+    [Range(0.1f, 1.0f)]
+    [Tooltip("K 長押しチャージ中のドローン速度倍率")]
+    public float chargeSpeedRatio = 0.5f;
+
+    /// <summary>SpikeController が毎フレーム設定する（K 押下中 = true）</summary>
+    public bool InputIsCharging { get; set; }
 
     // ── 公開 API 用追加フィールド ──────────────────────────────────────
     [Header("操作・速度設定（API 用）")]
@@ -298,6 +309,7 @@ public class SpikeDrone : MonoBehaviour
             if (CalculateTrajectory())
             {
                 currentState = State.MovingToTrajectory;
+                timingWindow?.StartWindow(tossQuality);
             }
             else
             {
@@ -407,9 +419,13 @@ public class SpikeDrone : MonoBehaviour
         if (MatchManager.Instance != null)
             MatchManager.Instance.lastTeamToHit = myTeam;
 
-        staminaSystem?.ConsumeCharge(pendingVelocity);
+        TimingResult timingResult = timingWindow != null ? timingWindow.LastResult : TimingResult.None;
+        float speedMult = staminaSystem != null
+            ? staminaSystem.ConsumeChargeWithTiming(pendingVelocity, timingResult, tossQuality)
+            : 1f;
+        timingWindow?.Reset();
 
-        ballRb.linearVelocity = CalcBallVelocity(collision.transform.position);
+        ballRb.linearVelocity = CalcBallVelocity(collision.transform.position) * speedMult;
         rb.linearVelocity     = Vector3.zero;
 
         lastSpikedBall = collision.gameObject;
@@ -543,10 +559,11 @@ public class SpikeDrone : MonoBehaviour
 
     void MoveToPoint(Vector3 target)
     {
+        float cap = InputIsCharging ? vMaxDrone * chargeSpeedRatio : vMax;
         Vector3 diff = target - transform.position;
         rb.linearVelocity = diff / 0.8f;
-        if (rb.linearVelocity.magnitude > vMax)
-            rb.linearVelocity = rb.linearVelocity.normalized * vMax;
+        if (rb.linearVelocity.magnitude > cap)
+            rb.linearVelocity = rb.linearVelocity.normalized * cap;
     }
 
     void Hover(Vector3 target)
@@ -558,7 +575,8 @@ public class SpikeDrone : MonoBehaviour
             transform.position = target;
             return;
         }
-        rb.linearVelocity = diff.normalized * vMaxDrone / 8f;
+        float hoverSpeed = vMaxDrone / 8f * (InputIsCharging ? chargeSpeedRatio : 1f);
+        rb.linearVelocity = diff.normalized * hoverSpeed;
     }
 
     // ── 追加メソッド ──────────────────────────────────────────────────

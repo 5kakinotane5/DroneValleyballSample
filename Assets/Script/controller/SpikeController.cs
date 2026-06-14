@@ -22,6 +22,24 @@ public class SpikeController : MonoBehaviour
     private float        enemyTextTimer  = 0f;
     private const float  stageTextDuration = 1.5f;
 
+    // タイミングUI
+    private Texture2D ringTex;
+    private bool      kWasPressedLastFrame = false;
+
+    // タイミング結果表示演出
+    private TimingResult lastTimingResult    = TimingResult.None;
+    private float        resultDisplayTimer  = 0f;
+    private const float  resultDisplayDuration = 1.2f;
+
+    // スタミナゲージ演出（JUST=光る, Timeout=震える）
+    private float allyGaugeFlash = 0f;
+    private float allyGaugeShake = 0f;
+
+    void Awake()
+    {
+        ringTex = MakeRingTexture(128, 0.78f);
+    }
+
     void Update()
     {
         if (Keyboard.current == null) return;
@@ -33,7 +51,11 @@ public class SpikeController : MonoBehaviour
         if (kb.dKey.isPressed)
             currentCourse = Mathf.Min(currentCourse + courseRate * Time.deltaTime,  1f);
 
-        if (kb.kKey.isPressed)
+        bool kIsPressed     = kb.kKey.isPressed;
+        bool kJustReleased  = !kIsPressed && kWasPressedLastFrame;
+        kWasPressedLastFrame = kIsPressed;
+
+        if (kIsPressed)
             currentVelocity = Mathf.Min(
                 currentVelocity + chargeRate * Time.deltaTime,
                 spiker.CurrentMaxVelocity
@@ -41,8 +63,32 @@ public class SpikeController : MonoBehaviour
         else
             currentVelocity = 0f;
 
-        spiker.inputCourse   = currentCourse;
-        spiker.inputVelocity = currentVelocity;
+        spiker.inputCourse    = currentCourse;
+        spiker.inputVelocity  = currentVelocity;
+        spiker.InputIsCharging = kIsPressed;
+
+        // ── タイミングウィンドウ処理 ───────────────────────────────────
+        var timing = spiker.TimingWindow;
+        if (timing != null && timing.IsWindowOpen)
+        {
+            if (kIsPressed) timing.NotifyKPressed();
+
+            TimingResult tickResult = timing.Tick(Time.deltaTime);
+            if (tickResult != TimingResult.None)
+            {
+                OnTimingResult(tickResult);
+            }
+            else if (kJustReleased)
+            {
+                TimingResult releaseResult = timing.RegisterRelease();
+                if (releaseResult != TimingResult.None)
+                    OnTimingResult(releaseResult);
+            }
+        }
+
+        if (resultDisplayTimer > 0f) resultDisplayTimer -= Time.deltaTime;
+        if (allyGaugeFlash   > 0f) allyGaugeFlash     -= Time.deltaTime;
+        if (allyGaugeShake   > 0f) allyGaugeShake     -= Time.deltaTime;
 
         // 段階変化を検知してテキスト演出タイマーをセット
         if (spiker.Stamina != null)
@@ -70,6 +116,8 @@ public class SpikeController : MonoBehaviour
     {
         DrawStaminaUI();
         DrawSpikeControlUI();
+        DrawTimingCircles();
+        DrawTimingResult();
     }
 
     // ── スタミナゲージUI ─────────────────────────────────────────────
@@ -94,7 +142,8 @@ public class SpikeController : MonoBehaviour
         // Ally
         StaminaSystem allySys = spiker != null ? spiker.Stamina : null;
         DrawStaminaBar(allyX, panelY, labelW, barW, barH, stageW,
-            "Ally", allySys, allyTextTimer, leftAlign: true);
+            "Ally", allySys, allyTextTimer, leftAlign: true,
+            gaugeFlash: allyGaugeFlash, gaugeShake: allyGaugeShake);
 
         // Enemy（未接続でも枠だけ表示して分かるようにする）
         StaminaSystem enemySys = enemySpiker != null ? enemySpiker.Stamina : null;
@@ -107,12 +156,29 @@ public class SpikeController : MonoBehaviour
     void DrawStaminaBar(float panelX, float panelY,
                         float labelW, float barW, float barH, float stageW,
                         string teamName, StaminaSystem sys, float textTimer,
-                        bool leftAlign)
+                        bool leftAlign,
+                        float gaugeFlash = 0f, float gaugeShake = 0f)
     {
         bool connected = sys != null;
         float ratio    = connected ? Mathf.Clamp01(sys.stamina / sys.maxStamina) : 0f;
         Color fillColor = connected ? StageColor(sys.CurrentStage) : new Color(0.4f, 0.4f, 0.4f);
         string stageLabel = connected ? sys.StageLabel : "未接続";
+
+        // ゲージ演出: 光る（JUST）
+        if (gaugeFlash > 0f)
+        {
+            float t = gaugeFlash / resultDisplayDuration;
+            fillColor = Color.Lerp(fillColor, Color.white, t * 0.6f);
+        }
+
+        // ゲージ演出: 震える（Timeout）
+        float shakeOffsetX = 0f;
+        if (gaugeShake > 0f)
+        {
+            float t = gaugeShake / resultDisplayDuration;
+            shakeOffsetX = Mathf.Sin(Time.realtimeSinceStartup * 40f) * 6f * t;
+        }
+        panelX += shakeOffsetX;
 
         float totalW = labelW + barW + stageW;
         float totalH = barH + 16f;
@@ -211,6 +277,137 @@ public class SpikeController : MonoBehaviour
         // 操作ガイド
         GUI.Label(new Rect(x, y, w, lh),
             "A/D: コース　K長押し: 強い球チャージ", labelStyle);
+    }
+
+    // ── タイミング演出 ───────────────────────────────────────────────
+
+    void OnTimingResult(TimingResult result)
+    {
+        lastTimingResult   = result;
+        resultDisplayTimer = resultDisplayDuration;
+
+        switch (result)
+        {
+            case TimingResult.Just:
+                allyGaugeFlash = resultDisplayDuration;
+                break;
+            case TimingResult.Timeout:
+                allyGaugeShake = resultDisplayDuration;
+                break;
+        }
+    }
+
+    /// <summary>ボールの周囲にタイミングウィンドウの収縮円を描画する</summary>
+    void DrawTimingCircles()
+    {
+        var timing = spiker?.TimingWindow;
+        if (timing == null || !timing.IsWindowOpen) return;
+
+        // ボールのスクリーン座標を取得（OnGUI は Y 反転）
+        GameObject ball = GameObject.FindGameObjectWithTag(spiker.ballTag);
+        if (ball == null || Camera.main == null) return;
+        Vector3 sp = Camera.main.WorldToScreenPoint(ball.transform.position);
+        if (sp.z < 0f) return;
+        float cx = sp.x;
+        float cy = Screen.height - sp.y;
+
+        const float justR  = 38f;
+        const float goodR  = 76f;
+        const float startR = 140f;
+
+        // 収縮するリングのサイズ（progress 0→1 で startR→justR）
+        float movingR = Mathf.Lerp(startR, justR, timing.WindowProgress);
+
+        // リング色（ゾーンに応じて変化）
+        Color movingColor = timing.WindowProgress >= timing.justZoneStart
+            ? new Color(0.2f, 1f, 0.3f, 0.9f)   // 緑：JUSTゾーン
+            : timing.WindowProgress >= timing.goodZoneStart
+                ? new Color(1f, 0.9f, 0.1f, 0.9f) // 黄：GOODゾーン
+                : new Color(1f, 0.3f, 0.2f, 0.85f); // 赤：待機中
+
+        // 静的な基準円（GOOD 黄、JUST 緑）
+        DrawRingAt(cx, cy, goodR, new Color(1f, 0.9f, 0.1f, 0.45f));
+        DrawRingAt(cx, cy, justR, new Color(0.2f, 1f, 0.3f, 0.6f));
+
+        // 収縮するリング
+        DrawRingAt(cx, cy, movingR, movingColor);
+    }
+
+    void DrawRingAt(float cx, float cy, float radius, Color color)
+    {
+        if (ringTex == null) return;
+        float size = radius * 2f;
+        GUI.color = color;
+        GUI.DrawTexture(new Rect(cx - radius, cy - radius, size, size), ringTex);
+        GUI.color = Color.white;
+    }
+
+    /// <summary>タイミング結果テキストを画面中央付近に表示</summary>
+    void DrawTimingResult()
+    {
+        if (resultDisplayTimer <= 0f) return;
+
+        float alpha = Mathf.Clamp01(resultDisplayTimer / resultDisplayDuration);
+        string text;
+        Color  color;
+        int    fontSize;
+
+        switch (lastTimingResult)
+        {
+            case TimingResult.Just:
+                text = "JUST!!";
+                color = new Color(0.2f, 1f, 0.3f, alpha);
+                fontSize = 52;
+                break;
+            case TimingResult.Good:
+                text = "GOOD";
+                color = new Color(1f, 0.9f, 0.1f, alpha);
+                fontSize = 38;
+                break;
+            case TimingResult.Timeout:
+                text = "TIMEOUT...";
+                color = new Color(1f, 0.3f, 0.2f, alpha);
+                fontSize = 38;
+                break;
+            case TimingResult.Miss:
+                text = "MISS";
+                color = new Color(0.7f, 0.7f, 0.7f, alpha);
+                fontSize = 32;
+                break;
+            default:
+                return;
+        }
+
+        var style = new GUIStyle(GUI.skin.label)
+        {
+            fontSize  = fontSize,
+            fontStyle = FontStyle.Bold,
+            alignment = TextAnchor.MiddleCenter
+        };
+        style.normal.textColor = color;
+        float w = 300f, h = 80f;
+        GUI.Label(new Rect(Screen.width / 2f - w / 2f, Screen.height / 2f - 80f, w, h), text, style);
+    }
+
+    /// <summary>リング状テクスチャを生成する（Awake で一度だけ呼ぶ）</summary>
+    static Texture2D MakeRingTexture(int size, float innerRatio)
+    {
+        var tex    = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        var pixels = new Color[size * size];
+        float cx     = size / 2f;
+        float cy     = size / 2f;
+        float outerR = size / 2f;
+        float innerR = outerR * innerRatio;
+
+        for (int y = 0; y < size; y++)
+        for (int x = 0; x < size; x++)
+        {
+            float d = Mathf.Sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy));
+            pixels[y * size + x] = (d <= outerR && d >= innerR) ? Color.white : Color.clear;
+        }
+        tex.SetPixels(pixels);
+        tex.Apply();
+        return tex;
     }
 
     // ── ヘルパー ────────────────────────────────────────────────────

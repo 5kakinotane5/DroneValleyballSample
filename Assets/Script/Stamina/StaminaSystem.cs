@@ -22,6 +22,19 @@ public class StaminaSystem : MonoBehaviour
     [Header("得点時回復量")]
     public float scoreBonus = 20f;
 
+    [Header("タイミング消費設定")]
+    [Tooltip("JUST 時の消費倍率")]
+    public float justConsumeMultiplier = 0.5f;
+    [Tooltip("低トス JUST 時の追加回復量")]
+    public float lowTossJustRecovery   = 20f;
+    [Tooltip("タイムアウト時の追加固定消費")]
+    public float timeoutExtraCost      = 15f;
+
+    [Header("JUST タイミング速度ボーナス（トス別）")]
+    public float highTossJustSpeedBonus = 1.3f;
+    public float medTossJustSpeedBonus  = 1.5f;
+    public float lowTossJustSpeedBonus  = 2.0f;
+
     [Header("ブレ量（ワールド単位、段階別）")]
     public float normalBlurRadius     = 3f;
     public float lowBlurRadius        = 6f;
@@ -121,6 +134,46 @@ public class StaminaSystem : MonoBehaviour
         if (IsLockedExhausted) rate *= 2f;
         stamina = Mathf.Min(maxStamina, stamina + rate * Time.fixedDeltaTime);
         RefreshStage();
+    }
+
+    /// <summary>
+    /// タイミング結果を考慮してスタミナを消費し、速度ボーナス倍率を返す。
+    /// Just → 消費半減 + 低トス時回復 + 速度ボーナス
+    /// Good / Miss → 通常消費・ボーナスなし
+    /// Timeout → 通常消費 + 固定追加消費
+    /// </summary>
+    public float ConsumeChargeWithTiming(float velocity, TimingResult result, TossQuality toss)
+    {
+        switch (result)
+        {
+            case TimingResult.Just:
+                if (!IsLockedExhausted)
+                {
+                    float chargeTime = velocity / chargeRate;
+                    stamina = Mathf.Max(0f,
+                        stamina - chargeTime * consumeRate * ConsumptionMultiplier * justConsumeMultiplier);
+                    if (toss == TossQuality.Low)
+                        stamina = Mathf.Min(maxStamina, stamina + lowTossJustRecovery);
+                    RefreshStage();
+                }
+                return toss == TossQuality.High   ? highTossJustSpeedBonus
+                     : toss == TossQuality.Medium ? medTossJustSpeedBonus
+                     : lowTossJustSpeedBonus;
+
+            case TimingResult.Timeout:
+                if (!IsLockedExhausted)
+                {
+                    float chargeTime = velocity / chargeRate;
+                    stamina = Mathf.Max(0f,
+                        stamina - chargeTime * consumeRate * ConsumptionMultiplier - timeoutExtraCost);
+                    RefreshStage();
+                }
+                return 1f;
+
+            default: // Good, Miss, None
+                ConsumeCharge(velocity);
+                return 1f;
+        }
     }
 
     /// <summary>得点したチームのスパイカーに呼ぶ</summary>
