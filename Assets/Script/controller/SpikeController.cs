@@ -300,12 +300,11 @@ public class SpikeController : MonoBehaviour
     /// <summary>ボールの周囲にタイミングウィンドウの収縮円を描画する</summary>
     void DrawTimingCircles()
     {
-        var timing = spiker?.TimingWindow;
-        if (timing == null || !timing.IsWindowOpen) return;
+        if (spiker == null || Camera.main == null) return;
 
         // ボールのスクリーン座標を取得（OnGUI は Y 反転）
         GameObject ball = GameObject.FindGameObjectWithTag(spiker.ballTag);
-        if (ball == null || Camera.main == null) return;
+        if (ball == null) return;
         Vector3 sp = Camera.main.WorldToScreenPoint(ball.transform.position);
         if (sp.z < 0f) return;
         float cx = sp.x;
@@ -315,21 +314,21 @@ public class SpikeController : MonoBehaviour
         const float goodR  = 76f;
         const float startR = 140f;
 
-        // 収縮するリングのサイズ（progress 0→1 で startR→justR）
-        float movingR = Mathf.Lerp(startR, justR, timing.WindowProgress);
-
-        // リング色（ゾーンに応じて変化）
-        Color movingColor = timing.WindowProgress >= timing.justZoneStart
-            ? new Color(0.2f, 1f, 0.3f, 0.9f)   // 緑：JUSTゾーン
-            : timing.WindowProgress >= timing.goodZoneStart
-                ? new Color(1f, 0.9f, 0.1f, 0.9f) // 黄：GOODゾーン
-                : new Color(1f, 0.3f, 0.2f, 0.85f); // 赤：待機中
-
-        // 静的な基準円（GOOD 黄、JUST 緑）
+        // 基準円（ボールがある間は常に表示）
         DrawRingAt(cx, cy, goodR, new Color(1f, 0.9f, 0.1f, 0.45f));
         DrawRingAt(cx, cy, justR, new Color(0.2f, 1f, 0.3f, 0.6f));
 
-        // 収縮するリング
+        // 収縮するリング（ウィンドウが開いているときのみ）
+        var timing = spiker.TimingWindow;
+        if (timing == null || !timing.IsWindowOpen) return;
+
+        float movingR = Mathf.Lerp(startR, justR, timing.WindowProgress);
+        Color movingColor = timing.WindowProgress >= timing.justZoneStart
+            ? new Color(0.2f, 1f, 0.3f, 0.9f)
+            : timing.WindowProgress >= timing.goodZoneStart
+                ? new Color(1f, 0.9f, 0.1f, 0.9f)
+                : new Color(1f, 0.3f, 0.2f, 0.85f);
+
         DrawRingAt(cx, cy, movingR, movingColor);
     }
 
