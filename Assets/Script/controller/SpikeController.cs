@@ -1,27 +1,44 @@
-// SpikeDrone 用プレイヤー入力コントローラ（操作値を画面右側に2倍サイズで表示）
+// SpikeDrone 用プレイヤー入力コントローラ（操作値を画面右側に表示）
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-/// <summary>
-/// SpikeDrone に対してプレイヤー入力を橋渡しするコントローラ。
-/// K キーを押さなくても drone は自動でスパイクする（最低速度で）。
-///
-/// 操作:
-///   A / D     : コース（左右の打ち分け）を -1〜1 の範囲で調整
-///   K 長押し  : 速度をチャージ（長押し = 深い球、短押し相当 = 浅い球）
-///               離すと 0 にリセット（drone 側で minVelocity に補完される）
-///               低トス時は CurrentMaxVelocity が自動で下がり弱い球のみ出せる
-/// </summary>
 public class SpikeController : MonoBehaviour
 {
     [SerializeField] private SpikeDrone spiker;
 
-    // 要調整。ゲームとして自然かどうかをプレイしてみて判断する。
-    private readonly float chargeRate = 20f; // velocity/秒
-    private readonly float courseRate = 1f;  // course/秒
+    [Header("スタミナUI用（EnemySpikeDroneを設定）")]
+    [SerializeField] private EnemySpikeDrone enemySpiker;
+
+    private readonly float chargeRate = 20f;
+    private readonly float courseRate = 1f;
 
     private float currentVelocity;
     private float currentCourse;
+
+    // スタミナ段階変化テキスト演出
+    private StaminaStage prevAllyStage   = StaminaStage.Full;
+    private StaminaStage prevEnemyStage  = StaminaStage.Full;
+    private float        allyTextTimer   = 0f;
+    private float        enemyTextTimer  = 0f;
+    private const float  stageTextDuration = 1.5f;
+
+    // タイミングUI
+    private Texture2D ringTex;
+    private bool      kWasPressedLastFrame = false;
+
+    // タイミング結果表示演出
+    private TimingResult lastTimingResult    = TimingResult.None;
+    private float        resultDisplayTimer  = 0f;
+    private const float  resultDisplayDuration = 1.2f;
+
+    // スタミナゲージ演出（JUST=光る, Timeout=震える）
+    private float allyGaugeFlash = 0f;
+    private float allyGaugeShake = 0f;
+
+    void Awake()
+    {
+        ringTex = MakeRingTexture(128, 0.78f);
+    }
 
     void Update()
     {
@@ -29,14 +46,16 @@ public class SpikeController : MonoBehaviour
 
         var kb = Keyboard.current;
 
-        // A/D でコース調整（isReady に関わらず常に受け付ける）
         if (kb.aKey.isPressed)
             currentCourse = Mathf.Max(currentCourse - courseRate * Time.deltaTime, -1f);
         if (kb.dKey.isPressed)
             currentCourse = Mathf.Min(currentCourse + courseRate * Time.deltaTime,  1f);
 
-        // K 長押しで速度チャージ、離すと 0 にリセット
-        if (kb.kKey.isPressed)
+        bool kIsPressed     = kb.kKey.isPressed;
+        bool kJustReleased  = !kIsPressed && kWasPressedLastFrame;
+        kWasPressedLastFrame = kIsPressed;
+
+        if (kIsPressed)
             currentVelocity = Mathf.Min(
                 currentVelocity + chargeRate * Time.deltaTime,
                 spiker.CurrentMaxVelocity
@@ -44,12 +63,172 @@ public class SpikeController : MonoBehaviour
         else
             currentVelocity = 0f;
 
-        // 毎フレーム drone に入力値を渡す（drone 側で自動スパイクに使用）
         spiker.inputCourse   = currentCourse;
         spiker.inputVelocity = currentVelocity;
+
+        // ── タイミングウィンドウ処理 ───────────────────────────────────
+        var timing = spiker.TimingWindow;
+        if (timing != null && timing.IsWindowOpen)
+        {
+            if (kIsPressed) timing.NotifyKPressed();
+
+            TimingResult tickResult = timing.Tick(Time.deltaTime);
+            if (tickResult != TimingResult.None)
+            {
+                OnTimingResult(tickResult);
+            }
+            else if (kJustReleased)
+            {
+                TimingResult releaseResult = timing.RegisterRelease();
+                if (releaseResult != TimingResult.None)
+                    OnTimingResult(releaseResult);
+            }
+        }
+
+        if (resultDisplayTimer > 0f) resultDisplayTimer -= Time.deltaTime;
+        if (allyGaugeFlash   > 0f) allyGaugeFlash     -= Time.deltaTime;
+        if (allyGaugeShake   > 0f) allyGaugeShake     -= Time.deltaTime;
+
+        // 段階変化を検知してテキスト演出タイマーをセット
+        if (spiker.Stamina != null)
+        {
+            if (spiker.Stamina.CurrentStage != prevAllyStage)
+            {
+                prevAllyStage = spiker.Stamina.CurrentStage;
+                allyTextTimer = stageTextDuration;
+            }
+            if (allyTextTimer > 0f) allyTextTimer -= Time.deltaTime;
+        }
+
+        if (enemySpiker != null && enemySpiker.Stamina != null)
+        {
+            if (enemySpiker.Stamina.CurrentStage != prevEnemyStage)
+            {
+                prevEnemyStage = enemySpiker.Stamina.CurrentStage;
+                enemyTextTimer = stageTextDuration;
+            }
+            if (enemyTextTimer > 0f) enemyTextTimer -= Time.deltaTime;
+        }
     }
 
     void OnGUI()
+    {
+        DrawStaminaUI();
+        DrawSpikeControlUI();
+        DrawTimingCircles();
+        DrawTimingResult();
+    }
+
+    // ── スタミナゲージUI ─────────────────────────────────────────────
+
+    void DrawStaminaUI()
+    {
+        // 画面上部に2本のゲージを左右対称に並べる
+        // レイアウト: [Ally名 | ████ゲージ████ | 段階]  [段階 | ████ゲージ████ | Enemy名]
+        float barW   = 260f;
+        float barH   = 26f;
+        float labelW = 60f;
+        float stageW = 120f;
+        float gap    = 20f;  // 中央の隙間
+        float panelW = labelW + barW + stageW; // 1本分の幅 = 440
+
+        float cx     = Screen.width / 2f;
+        float panelY = 12f;
+
+        float allyX  = cx - gap / 2f - panelW; // Ally パネル左端
+        float enemyX = cx + gap / 2f;           // Enemy パネル左端
+
+        // Ally
+        StaminaSystem allySys = spiker != null ? spiker.Stamina : null;
+        DrawStaminaBar(allyX, panelY, labelW, barW, barH, stageW,
+            "Ally", allySys, allyTextTimer, leftAlign: true,
+            gaugeFlash: allyGaugeFlash, gaugeShake: allyGaugeShake);
+
+        // Enemy（未接続でも枠だけ表示して分かるようにする）
+        StaminaSystem enemySys = enemySpiker != null ? enemySpiker.Stamina : null;
+        DrawStaminaBar(enemyX, panelY, labelW, barW, barH, stageW,
+            "Enemy", enemySys, enemyTextTimer, leftAlign: false);
+    }
+
+    // leftAlign=true  → [ラベル | ゲージ | 段階テキスト]  Ally用
+    // leftAlign=false → [段階テキスト | ゲージ | ラベル]  Enemy用
+    void DrawStaminaBar(float panelX, float panelY,
+                        float labelW, float barW, float barH, float stageW,
+                        string teamName, StaminaSystem sys, float textTimer,
+                        bool leftAlign,
+                        float gaugeFlash = 0f, float gaugeShake = 0f)
+    {
+        bool connected = sys != null;
+        float ratio    = connected ? Mathf.Clamp01(sys.stamina / sys.maxStamina) : 0f;
+        Color fillColor = connected ? StageColor(sys.CurrentStage) : new Color(0.4f, 0.4f, 0.4f);
+        string stageLabel = connected ? sys.StageLabel : "未接続";
+
+        // ゲージ演出: 光る（JUST）
+        if (gaugeFlash > 0f)
+        {
+            float t = gaugeFlash / resultDisplayDuration;
+            fillColor = Color.Lerp(fillColor, Color.white, t * 0.6f);
+        }
+
+        // ゲージ演出: 震える（Timeout）
+        float shakeOffsetX = 0f;
+        if (gaugeShake > 0f)
+        {
+            float t = gaugeShake / resultDisplayDuration;
+            shakeOffsetX = Mathf.Sin(Time.realtimeSinceStartup * 40f) * 6f * t;
+        }
+        panelX += shakeOffsetX;
+
+        float totalW = labelW + barW + stageW;
+        float totalH = barH + 16f;
+
+        // 外枠
+        GUI.color = new Color(0.1f, 0.1f, 0.1f, 0.8f);
+        GUI.Box(new Rect(panelX - 4, panelY - 4, totalW + 8, totalH + 8),
+                "", new GUIStyle(GUI.skin.box));
+        GUI.color = Color.white;
+
+        float barX = leftAlign ? panelX + labelW : panelX + stageW;
+
+        // ゲージ背景
+        GUI.color = new Color(0.25f, 0.25f, 0.25f);
+        GUI.DrawTexture(new Rect(barX, panelY + 5, barW, barH), Texture2D.whiteTexture);
+
+        // ゲージ本体
+        GUI.color = fillColor;
+        if (ratio > 0f)
+            GUI.DrawTexture(new Rect(barX, panelY + 5, barW * ratio, barH), Texture2D.whiteTexture);
+        GUI.color = Color.white;
+
+        // ラベル
+        var nameStyle = new GUIStyle(GUI.skin.label)
+        {
+            fontSize  = 18,
+            fontStyle = FontStyle.Bold,
+            alignment = leftAlign ? TextAnchor.MiddleRight : TextAnchor.MiddleLeft
+        };
+        nameStyle.normal.textColor = connected ? Color.white : new Color(0.6f, 0.6f, 0.6f);
+        float nameX = leftAlign ? panelX : panelX + stageW + barW;
+        GUI.Label(new Rect(nameX, panelY, labelW, totalH), teamName, nameStyle);
+
+        // 段階テキスト
+        int fontSize = connected && textTimer > 0f
+            ? (int)Mathf.Lerp(18f, 30f, textTimer / stageTextDuration)
+            : 18;
+        var stageStyle = new GUIStyle(GUI.skin.label)
+        {
+            fontSize  = fontSize,
+            fontStyle = connected && textTimer > 0f ? FontStyle.Bold : FontStyle.Normal,
+            alignment = leftAlign ? TextAnchor.MiddleLeft : TextAnchor.MiddleRight
+        };
+        stageStyle.normal.textColor = connected ? fillColor : new Color(0.5f, 0.5f, 0.5f);
+        float stageX = leftAlign ? panelX + labelW + barW : panelX;
+        GUI.Label(new Rect(stageX, panelY, stageW, totalH), stageLabel, stageStyle);
+    }
+
+    // ── スパイク操作UI ─────────────────────────────────────────────
+
+    void DrawSpikeControlUI()
     {
         float lh = 48f;
         float w  = 560f;
@@ -97,5 +276,156 @@ public class SpikeController : MonoBehaviour
         // 操作ガイド
         GUI.Label(new Rect(x, y, w, lh),
             "A/D: コース　K長押し: 強い球チャージ", labelStyle);
+    }
+
+    // ── タイミング演出 ───────────────────────────────────────────────
+
+    void OnTimingResult(TimingResult result)
+    {
+        lastTimingResult   = result;
+        resultDisplayTimer = resultDisplayDuration;
+
+        switch (result)
+        {
+            case TimingResult.Just:
+                allyGaugeFlash = resultDisplayDuration;
+                break;
+            case TimingResult.Timeout:
+                allyGaugeShake = resultDisplayDuration;
+                break;
+        }
+    }
+
+    /// <summary>Ally スパイク中のみ、ボールの周囲にタイミングウィンドウの収縮円を描画する</summary>
+    void DrawTimingCircles()
+    {
+        if (spiker == null || Camera.main == null) return;
+
+        var timing = spiker.TimingWindow;
+        if (timing == null || !timing.IsWindowOpen) return;
+
+        GameObject ball = GameObject.FindGameObjectWithTag(spiker.ballTag);
+        if (ball == null) return;
+        Vector3 sp = Camera.main.WorldToScreenPoint(ball.transform.position);
+        if (sp.z < 0f) return;
+        float cx = sp.x;
+        float cy = Screen.height - sp.y;
+
+        const float justR  = 38f;
+        const float goodR  = 76f;
+        const float startR = 140f;
+
+        // 基準円
+        DrawRingAt(cx, cy, goodR, new Color(1f, 0.9f, 0.1f, 0.45f));
+        DrawRingAt(cx, cy, justR, new Color(0.2f, 1f, 0.3f, 0.6f));
+
+        // 収縮するリング
+        float movingR = Mathf.Lerp(startR, justR, timing.WindowProgress);
+        Color movingColor = timing.WindowProgress >= timing.justZoneStart
+            ? new Color(0.2f, 1f, 0.3f, 0.9f)
+            : timing.WindowProgress >= timing.goodZoneStart
+                ? new Color(1f, 0.9f, 0.1f, 0.9f)
+                : new Color(1f, 0.3f, 0.2f, 0.85f);
+
+        DrawRingAt(cx, cy, movingR, movingColor);
+    }
+
+    void DrawRingAt(float cx, float cy, float radius, Color color)
+    {
+        if (ringTex == null) return;
+        float size = radius * 2f;
+        GUI.color = color;
+        GUI.DrawTexture(new Rect(cx - radius, cy - radius, size, size), ringTex);
+        GUI.color = Color.white;
+    }
+
+    /// <summary>タイミング結果テキストを画面中央付近に表示</summary>
+    void DrawTimingResult()
+    {
+        if (resultDisplayTimer <= 0f) return;
+
+        float alpha = Mathf.Clamp01(resultDisplayTimer / resultDisplayDuration);
+        string text;
+        Color  color;
+        int    fontSize;
+
+        switch (lastTimingResult)
+        {
+            case TimingResult.Just:
+                text = "JUST!!";
+                color = new Color(0.2f, 1f, 0.3f, alpha);
+                fontSize = 52;
+                break;
+            case TimingResult.Good:
+                text = "GOOD";
+                color = new Color(1f, 0.9f, 0.1f, alpha);
+                fontSize = 38;
+                break;
+            case TimingResult.Timeout:
+                text = "TIMEOUT...";
+                color = new Color(1f, 0.3f, 0.2f, alpha);
+                fontSize = 38;
+                break;
+            case TimingResult.Miss:
+                text = "MISS";
+                color = new Color(0.7f, 0.7f, 0.7f, alpha);
+                fontSize = 32;
+                break;
+            default:
+                return;
+        }
+
+        var style = new GUIStyle(GUI.skin.label)
+        {
+            fontSize  = fontSize,
+            fontStyle = FontStyle.Bold,
+            alignment = TextAnchor.MiddleCenter
+        };
+        style.normal.textColor = color;
+        float w = 300f, h = 80f;
+        GUI.Label(new Rect(Screen.width / 2f - w / 2f, Screen.height / 2f - 80f, w, h), text, style);
+    }
+
+    /// <summary>リング状テクスチャを生成する（Awake で一度だけ呼ぶ）</summary>
+    static Texture2D MakeRingTexture(int size, float innerRatio)
+    {
+        var tex    = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        var pixels = new Color[size * size];
+        float cx     = size / 2f;
+        float cy     = size / 2f;
+        float outerR = size / 2f;
+        float innerR = outerR * innerRatio;
+
+        for (int y = 0; y < size; y++)
+        for (int x = 0; x < size; x++)
+        {
+            float d = Mathf.Sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy));
+            pixels[y * size + x] = (d <= outerR && d >= innerR) ? Color.white : Color.clear;
+        }
+        tex.SetPixels(pixels);
+        tex.Apply();
+        return tex;
+    }
+
+    // ── ヘルパー ────────────────────────────────────────────────────
+
+    static Color StageColor(StaminaStage stage)
+    {
+        switch (stage)
+        {
+            case StaminaStage.Full:
+                return new Color(0.3f, 0.6f, 1f);  // 青
+            case StaminaStage.Normal:
+                return new Color(0.2f, 0.9f, 0.3f); // 緑
+            case StaminaStage.Low:
+                return Color.yellow;
+            case StaminaStage.Exhausted:
+                // 赤点滅
+                return (Mathf.Sin(Time.realtimeSinceStartup * 6f) > 0f)
+                    ? Color.red
+                    : new Color(0.5f, 0f, 0f);
+            default:
+                return Color.white;
+        }
     }
 }

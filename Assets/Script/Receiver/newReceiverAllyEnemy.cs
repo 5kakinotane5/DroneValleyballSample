@@ -29,6 +29,9 @@ public class newReceiverAllyEnemy : MonoBehaviour
 
     public Vector3 initialPos = new Vector3(10f, 1f, 0f);
 
+    [Header("スタミナ連携（チームのスパイカーの StaminaSystem を直接設定）")]
+    [SerializeField] private StaminaSystem linkedStamina;
+
     [Header("トス品質の設定（余裕時間ベース）")]
     [Tooltip("余裕時間がこれ以上 → 高トス")]
     public float highMarginThreshold = 1.0f;
@@ -212,10 +215,17 @@ public class newReceiverAllyEnemy : MonoBehaviour
         }
         labelTimer = labelDuration;
 
+        // スタミナに応じてトス目標地点をブラす（Y方向はブレなし）
+        float blur = linkedStamina != null ? linkedStamina.GetBlur() : 0f;
+        Vector3 tossTarget = new Vector3(
+            initialPos.x + Random.Range(-blur, blur),
+            initialPos.y,
+            initialPos.z + Random.Range(-blur, blur));
+
         float gravity = Physics.gravity.y;
-        float vx = (initialPos.x - startPos.x) / tossFlightTime;
-        float vz = (initialPos.z - startPos.z) / tossFlightTime;
-        float vy = (initialPos.y - startPos.y - 0.5f * gravity * tossFlightTime * tossFlightTime) / tossFlightTime;
+        float vx = (tossTarget.x - startPos.x) / tossFlightTime;
+        float vz = (tossTarget.z - startPos.z) / tossFlightTime;
+        float vy = (tossTarget.y - startPos.y - 0.5f * gravity * tossFlightTime * tossFlightTime) / tossFlightTime;
 
         ballRb.linearVelocity = new Vector3(vx, vy, vz);
         targetBall   = null;
