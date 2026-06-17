@@ -9,6 +9,9 @@ public class SpikeController : MonoBehaviour
     [Header("スタミナUI用（EnemySpikeDroneを設定）")]
     [SerializeField] private EnemySpikeDrone enemySpiker;
 
+    // trueのときに、デバッグ用UIを表示する
+    [SerializeField] private bool showDebugUI = false;
+
     private readonly float chargeRate = 20f;
     private readonly float courseRate = 1f;
 
@@ -16,20 +19,20 @@ public class SpikeController : MonoBehaviour
     private float currentCourse;
 
     // スタミナ段階変化テキスト演出
-    private StaminaStage prevAllyStage   = StaminaStage.Full;
-    private StaminaStage prevEnemyStage  = StaminaStage.Full;
-    private float        allyTextTimer   = 0f;
-    private float        enemyTextTimer  = 0f;
-    private const float  stageTextDuration = 1.5f;
+    private StaminaStage prevAllyStage = StaminaStage.Full;
+    private StaminaStage prevEnemyStage = StaminaStage.Full;
+    private float allyTextTimer = 0f;
+    private float enemyTextTimer = 0f;
+    private const float stageTextDuration = 1.5f;
 
     // タイミングUI
     private Texture2D ringTex;
-    private bool      kWasPressedLastFrame = false;
+    private bool kWasPressedLastFrame = false;
 
     // タイミング結果表示演出
-    private TimingResult lastTimingResult    = TimingResult.None;
-    private float        resultDisplayTimer  = 0f;
-    private const float  resultDisplayDuration = 1.2f;
+    private TimingResult lastTimingResult = TimingResult.None;
+    private float resultDisplayTimer = 0f;
+    private const float resultDisplayDuration = 1.2f;
 
     // スタミナゲージ演出（JUST=光る, Timeout=震える）
     private float allyGaugeFlash = 0f;
@@ -49,10 +52,10 @@ public class SpikeController : MonoBehaviour
         if (kb.aKey.isPressed)
             currentCourse = Mathf.Max(currentCourse - courseRate * Time.deltaTime, -1f);
         if (kb.dKey.isPressed)
-            currentCourse = Mathf.Min(currentCourse + courseRate * Time.deltaTime,  1f);
+            currentCourse = Mathf.Min(currentCourse + courseRate * Time.deltaTime, 1f);
 
-        bool kIsPressed     = kb.kKey.isPressed;
-        bool kJustReleased  = !kIsPressed && kWasPressedLastFrame;
+        bool kIsPressed = kb.kKey.isPressed;
+        bool kJustReleased = !kIsPressed && kWasPressedLastFrame;
         kWasPressedLastFrame = kIsPressed;
 
         if (kIsPressed)
@@ -63,7 +66,7 @@ public class SpikeController : MonoBehaviour
         else
             currentVelocity = 0f;
 
-        spiker.inputCourse   = currentCourse;
+        spiker.inputCourse = currentCourse;
         spiker.inputVelocity = currentVelocity;
 
         // ── タイミングウィンドウ処理 ───────────────────────────────────
@@ -86,8 +89,8 @@ public class SpikeController : MonoBehaviour
         }
 
         if (resultDisplayTimer > 0f) resultDisplayTimer -= Time.deltaTime;
-        if (allyGaugeFlash   > 0f) allyGaugeFlash     -= Time.deltaTime;
-        if (allyGaugeShake   > 0f) allyGaugeShake     -= Time.deltaTime;
+        if (allyGaugeFlash > 0f) allyGaugeFlash -= Time.deltaTime;
+        if (allyGaugeShake > 0f) allyGaugeShake -= Time.deltaTime;
 
         // 段階変化を検知してテキスト演出タイマーをセット
         if (spiker.Stamina != null)
@@ -113,8 +116,12 @@ public class SpikeController : MonoBehaviour
 
     void OnGUI()
     {
+
         DrawStaminaUI();
-        DrawSpikeControlUI();
+        if (showDebugUI)
+        {
+            DrawSpikeControlUI();
+        }
         DrawTimingCircles();
         DrawTimingResult();
     }
@@ -125,17 +132,17 @@ public class SpikeController : MonoBehaviour
     {
         // 画面上部に2本のゲージを左右対称に並べる
         // レイアウト: [Ally名 | ████ゲージ████ | 段階]  [段階 | ████ゲージ████ | Enemy名]
-        float barW   = 260f;
-        float barH   = 26f;
+        float barW = 260f;
+        float barH = 26f;
         float labelW = 60f;
         float stageW = 120f;
-        float gap    = 20f;  // 中央の隙間
+        float gap = 20f;  // 中央の隙間
         float panelW = labelW + barW + stageW; // 1本分の幅 = 440
 
-        float cx     = Screen.width / 2f;
+        float cx = Screen.width / 2f;
         float panelY = 12f;
 
-        float allyX  = cx - gap / 2f - panelW; // Ally パネル左端
+        float allyX = cx - gap / 2f - panelW; // Ally パネル左端
         float enemyX = cx + gap / 2f;           // Enemy パネル左端
 
         // Ally
@@ -159,7 +166,7 @@ public class SpikeController : MonoBehaviour
                         float gaugeFlash = 0f, float gaugeShake = 0f)
     {
         bool connected = sys != null;
-        float ratio    = connected ? Mathf.Clamp01(sys.stamina / sys.maxStamina) : 0f;
+        float ratio = connected ? Mathf.Clamp01(sys.stamina / sys.maxStamina) : 0f;
         Color fillColor = connected ? StageColor(sys.CurrentStage) : new Color(0.4f, 0.4f, 0.4f);
         string stageLabel = connected ? sys.StageLabel : "未接続";
 
@@ -203,7 +210,7 @@ public class SpikeController : MonoBehaviour
         // ラベル
         var nameStyle = new GUIStyle(GUI.skin.label)
         {
-            fontSize  = 18,
+            fontSize = 18,
             fontStyle = FontStyle.Bold,
             alignment = leftAlign ? TextAnchor.MiddleRight : TextAnchor.MiddleLeft
         };
@@ -217,7 +224,7 @@ public class SpikeController : MonoBehaviour
             : 18;
         var stageStyle = new GUIStyle(GUI.skin.label)
         {
-            fontSize  = fontSize,
+            fontSize = fontSize,
             fontStyle = connected && textTimer > 0f ? FontStyle.Bold : FontStyle.Normal,
             alignment = leftAlign ? TextAnchor.MiddleLeft : TextAnchor.MiddleRight
         };
@@ -231,12 +238,12 @@ public class SpikeController : MonoBehaviour
     void DrawSpikeControlUI()
     {
         float lh = 48f;
-        float w  = 560f;
-        float x  = Screen.width - w - 30f;
-        float y  = 20f;
+        float w = 560f;
+        float x = Screen.width - w - 30f;
+        float y = 20f;
 
         var labelStyle = new GUIStyle(GUI.skin.label) { fontSize = 24 };
-        var boxStyle   = new GUIStyle(GUI.skin.box)   { fontSize = 24 };
+        var boxStyle = new GUIStyle(GUI.skin.box) { fontSize = 24 };
 
         GUI.Box(new Rect(x - 10, y - 10, w + 20, lh * 5 + 30), "", boxStyle);
 
@@ -249,23 +256,23 @@ public class SpikeController : MonoBehaviour
         string tossStr;
         switch (spiker.CurrentTossQuality)
         {
-            case TossQuality.High:   tossStr = "高トス（強打OK）";     break;
+            case TossQuality.High: tossStr = "高トス（強打OK）"; break;
             case TossQuality.Medium: tossStr = "中トス（中程度まで）"; break;
-            default:                 tossStr = "低トス（弱い球のみ）"; break;
+            default: tossStr = "低トス（弱い球のみ）"; break;
         }
         GUI.Label(new Rect(x, y, w, lh), $"トス:  {tossStr}", labelStyle);
         y += lh;
 
         // コース
         string courseDir = currentCourse < -0.1f ? "◀ 左"
-                         : currentCourse >  0.1f ? "右 ▶"
+                         : currentCourse > 0.1f ? "右 ▶"
                          : "中央";
         GUI.Label(new Rect(x, y, w, lh),
             $"コース:  {currentCourse:F2}  {courseDir}", labelStyle);
         y += lh;
 
         // 速度チャージ
-        float maxV  = spiker.CurrentMaxVelocity;
+        float maxV = spiker.CurrentMaxVelocity;
         float ratio = maxV > 0f ? currentVelocity / maxV : 0f;
         string velStr = currentVelocity > 0f
             ? $"{currentVelocity:F1} / {maxV:F1}  ({ratio * 100f:F0}%)"
@@ -282,7 +289,7 @@ public class SpikeController : MonoBehaviour
 
     void OnTimingResult(TimingResult result)
     {
-        lastTimingResult   = result;
+        lastTimingResult = result;
         resultDisplayTimer = resultDisplayDuration;
 
         switch (result)
@@ -311,8 +318,8 @@ public class SpikeController : MonoBehaviour
         float cx = sp.x;
         float cy = Screen.height - sp.y;
 
-        const float justR  = 38f;
-        const float goodR  = 76f;
+        const float justR = 38f;
+        const float goodR = 76f;
         const float startR = 140f;
 
         // 基準円
@@ -346,8 +353,8 @@ public class SpikeController : MonoBehaviour
 
         float alpha = Mathf.Clamp01(resultDisplayTimer / resultDisplayDuration);
         string text;
-        Color  color;
-        int    fontSize;
+        Color color;
+        int fontSize;
 
         switch (lastTimingResult)
         {
@@ -377,7 +384,7 @@ public class SpikeController : MonoBehaviour
 
         var style = new GUIStyle(GUI.skin.label)
         {
-            fontSize  = fontSize,
+            fontSize = fontSize,
             fontStyle = FontStyle.Bold,
             alignment = TextAnchor.MiddleCenter
         };
@@ -389,19 +396,19 @@ public class SpikeController : MonoBehaviour
     /// <summary>リング状テクスチャを生成する（Awake で一度だけ呼ぶ）</summary>
     static Texture2D MakeRingTexture(int size, float innerRatio)
     {
-        var tex    = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        var tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
         var pixels = new Color[size * size];
-        float cx     = size / 2f;
-        float cy     = size / 2f;
+        float cx = size / 2f;
+        float cy = size / 2f;
         float outerR = size / 2f;
         float innerR = outerR * innerRatio;
 
         for (int y = 0; y < size; y++)
-        for (int x = 0; x < size; x++)
-        {
-            float d = Mathf.Sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy));
-            pixels[y * size + x] = (d <= outerR && d >= innerR) ? Color.white : Color.clear;
-        }
+            for (int x = 0; x < size; x++)
+            {
+                float d = Mathf.Sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy));
+                pixels[y * size + x] = (d <= outerR && d >= innerR) ? Color.white : Color.clear;
+            }
         tex.SetPixels(pixels);
         tex.Apply();
         return tex;
