@@ -125,6 +125,7 @@ public class SpikeController : MonoBehaviour
         DrawTimingCircles();
         DrawTimingResult();
         DrawChargeGauge();
+        DrawCurrentCourse();
     }
 
     // ── スタミナゲージUI ─────────────────────────────────────────────
@@ -426,6 +427,34 @@ public class SpikeController : MonoBehaviour
         GUI.color = new Color(0.2f, 1f, 0.3f);
         if (chargeRatio > 0f)
             GUI.DrawTexture(new Rect(gaugeCenterX - gaugeWidth / 2f, gaugeCenterY + 50f, gaugeWidth * chargeRatio, gaugeHeight), Texture2D.whiteTexture);
+        GUI.color = Color.white;
+    }
+
+    // ドローンがスパイクを打つコースをプレイヤーにも分かるように表示する。
+    // 打つコースがあまりにも明確すぎると、ゲーム性が損なわれるため、大まかな方向を示す。
+    // その実現として、画面にレティクルを表示して、レティクルの位置がコースの方向を示すようにする。
+    void DrawCurrentCourse()
+    {
+        if (spiker == null) throw new System.Exception("spiker is null");
+        if (Camera.main == null) throw new System.Exception("Camera.main is null");
+
+        // ドローンの位置をスクリーン座標に変換
+        Vector3 sp = Camera.main.WorldToScreenPoint(spiker.transform.position);
+        if (sp.z < 0f) return;
+
+        // レティクルの中心座標とサイズ
+        float centerX = sp.x;
+        float centerY = Screen.height - sp.y;
+        float size = 7f;
+
+        // コースの方向に応じてレティクルの位置を決めるため
+        float offsetX = currentCourse * 80f;
+        float offsetY = -70f;
+
+        // レティクルの描画
+        // レティクルは赤色の円で表示
+        GUI.color = Color.red;
+        GUI.DrawTexture(new Rect(centerX + offsetX - size / 2f, centerY + offsetY - size / 2f, size, size), Texture2D.whiteTexture);
         GUI.color = Color.white;
     }
 
