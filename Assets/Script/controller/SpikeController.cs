@@ -124,6 +124,7 @@ public class SpikeController : MonoBehaviour
         }
         DrawTimingCircles();
         DrawTimingResult();
+        DrawChargeGauge();
     }
 
     // ── スタミナゲージUI ─────────────────────────────────────────────
@@ -391,6 +392,41 @@ public class SpikeController : MonoBehaviour
         style.normal.textColor = color;
         float w = 300f, h = 80f;
         GUI.Label(new Rect(Screen.width / 2f - w / 2f, Screen.height / 2f - 80f, w, h), text, style);
+    }
+
+    // スパイクはKキーを押した時間が長ければ長いほど早くなる仕様である。
+    // どれだけパワーをチャージできているかを可視化するため。
+    // ゲージはプレイヤーが操作するスパイクドローンの下に表示する。
+    void DrawChargeGauge()
+    {
+        if (spiker == null) throw new System.Exception("spiker is null");
+        if (Camera.main == null) throw new System.Exception("Camera.main is null");
+        if (gameObject == null) throw new System.Exception("gameObject is null");
+
+        // GUIの描画のため、オブジェクトの座標をカメラからみたスクリーン座標に変換する。
+        Vector3 sp = Camera.main.WorldToScreenPoint(gameObject.transform.position);
+        if (sp.z < 0f) return;
+
+        // ゲージの中心座標とサイズ
+        float gaugeCenterX = sp.x;
+        float gaugeCenterY = Screen.height - sp.y;
+        float gaugeWidth = 120f;
+        float gaugeHeight = 12f;
+
+        // チャージ率を計算（0.0～1.0）
+        float chargeRatio = spiker.CurrentMaxVelocity > 0f
+            ? Mathf.Clamp01(currentVelocity / spiker.CurrentMaxVelocity)
+            : 0f;
+
+        // ゲージの枠
+        GUI.color = new Color(0.25f, 0.25f, 0.25f);
+        GUI.DrawTexture(new Rect(gaugeCenterX - gaugeWidth / 2f, gaugeCenterY + 50f, gaugeWidth, gaugeHeight), Texture2D.whiteTexture);
+
+        // ゲージ本体
+        GUI.color = new Color(0.2f, 1f, 0.3f);
+        if (chargeRatio > 0f)
+            GUI.DrawTexture(new Rect(gaugeCenterX - gaugeWidth / 2f, gaugeCenterY + 50f, gaugeWidth * chargeRatio, gaugeHeight), Texture2D.whiteTexture);
+        GUI.color = Color.white;
     }
 
     /// <summary>リング状テクスチャを生成する（Awake で一度だけ呼ぶ）</summary>
