@@ -58,6 +58,8 @@ public class SpikeController : MonoBehaviour
         bool kJustReleased = !kIsPressed && kWasPressedLastFrame;
         kWasPressedLastFrame = kIsPressed;
 
+        // 離した瞬間に渡す充電値（else で 0 化される前の値を退避）
+        float chargeBeforeUpdate = currentVelocity;
         if (kIsPressed)
             currentVelocity = Mathf.Min(
                 currentVelocity + chargeRate * Time.deltaTime,
@@ -85,6 +87,9 @@ public class SpikeController : MonoBehaviour
                 TimingResult releaseResult = timing.RegisterRelease();
                 if (releaseResult != TimingResult.None)
                     OnTimingResult(releaseResult);
+
+                // 離した瞬間にスパイク突進を要求（コース＝現在値、速度＝0化前の充電値）
+                spiker.RequestStrike(currentCourse, chargeBeforeUpdate);
             }
         }
 
