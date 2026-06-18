@@ -138,6 +138,9 @@ public class SpikeDrone : MonoBehaviour
     enum State { Waiting, Hovering, MovingToTrajectory, Striking, Returning }
     [SerializeField] private State currentState = State.Waiting;
 
+    [Header("デバッグUI")]
+    [SerializeField] private bool showStateDebugUI = false;
+
     // ── Unity（SpikerAllyEnemyV2 と同一） ────────────────────────────
 
     void Start()
@@ -630,5 +633,41 @@ public class SpikeDrone : MonoBehaviour
         }
 
         return new Vector3(vx, vy, vz);
+    }
+
+    // ── デバッグUIのため（状態表示） ─────────────────────────────────────
+    void OnGUI()
+    {
+        if (showStateDebugUI)
+            ShowState();
+    }
+
+    // プレイヤー側のスパイクドローンには状態があり、バグの修正や調査のために状態を知る必要があるため。
+    void ShowState()
+    {
+        float w = 320f, lh = 32f, x = 30f, y = 120f;
+        State[] states = { State.Waiting, State.Hovering, State.MovingToTrajectory, State.Striking, State.Returning };
+
+        GUI.Box(new Rect(x - 10, y - 10, w + 20, lh * (states.Length + 2) + 30), "", new GUIStyle(GUI.skin.box));
+
+        var titleStyle = new GUIStyle(GUI.skin.label) { fontSize = 20, fontStyle = FontStyle.Bold };
+        GUI.Label(new Rect(x, y, w, lh), $"SpikeDrone [{myTeam}]  isReady={isReady}", titleStyle);
+        y += lh + 4;
+
+        foreach (var s in states)
+        {
+            bool active = (s == currentState);
+            var style = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = active ? 22 : 18,
+                fontStyle = active ? FontStyle.Bold : FontStyle.Normal
+            };
+            style.normal.textColor = active ? Color.green : new Color(0.6f, 0.6f, 0.6f);
+            GUI.Label(new Rect(x, y, w, lh), $"{(active ? "▶ " : "   ")}{s}", style);
+            y += lh;
+        }
+
+        var subStyle = new GUIStyle(GUI.skin.label) { fontSize = 16 };
+        GUI.Label(new Rect(x, y, w, lh), $"timeUntilImpact={timeUntilImpact:F2}", subStyle);
     }
 }
