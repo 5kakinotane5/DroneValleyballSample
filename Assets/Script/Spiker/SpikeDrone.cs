@@ -476,6 +476,7 @@ public class SpikeDrone : MonoBehaviour
         if (MatchManager.Instance != null)
             MatchManager.Instance.lastTeamToHit = myTeam;
 
+        if (staminaSystem != null) staminaSystem.RecoveryBlocked = false;
         TimingResult timingResult = timingWindow != null ? timingWindow.LastResult : TimingResult.None;
         float speedMult = staminaSystem != null
             ? staminaSystem.ConsumeChargeWithTiming(pendingVelocity, timingResult, tossQuality)

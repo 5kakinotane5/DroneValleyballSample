@@ -38,6 +38,19 @@ public class SpikeController : MonoBehaviour
     private float allyGaugeFlash = 0f;
     private float allyGaugeShake = 0f;
 
+    // スタミナ増減フローティングテキスト
+    private class StaminaDeltaEntry { public float value; public float timer; public bool isAlly; }
+    private readonly System.Collections.Generic.List<StaminaDeltaEntry> staminaDeltaEntries = new();
+    private const float deltaTextDuration = 1.5f;
+
+    void Start()
+    {
+        if (spiker?.Stamina != null)
+            spiker.Stamina.OnStaminaChanged += d => staminaDeltaEntries.Add(new StaminaDeltaEntry { value = d, timer = deltaTextDuration, isAlly = true });
+        if (enemySpiker?.Stamina != null)
+            enemySpiker.Stamina.OnStaminaChanged += d => staminaDeltaEntries.Add(new StaminaDeltaEntry { value = d, timer = deltaTextDuration, isAlly = false });
+    }
+
     void Awake()
     {
         ringTex = MakeRingTexture(128, 0.78f);
@@ -117,12 +130,18 @@ public class SpikeController : MonoBehaviour
             }
             if (enemyTextTimer > 0f) enemyTextTimer -= Time.deltaTime;
         }
+
+        for (int i = staminaDeltaEntries.Count - 1; i >= 0; i--)
+        {
+            staminaDeltaEntries[i].timer -= Time.deltaTime;
+            if (staminaDeltaEntries[i].timer <= 0f) staminaDeltaEntries.RemoveAt(i);
+        }
     }
 
     void OnGUI()
     {
-
         DrawStaminaUI();
+        DrawStaminaDeltas();
         if (showDebugUI)
         {
             DrawSpikeControlUI();
@@ -131,6 +150,51 @@ public class SpikeController : MonoBehaviour
         DrawTimingResult();
         DrawChargeGauge();
         DrawCurrentCourse();
+    }
+
+    // ── スタミナ増減フローティングテキスト ──────────────────────────────
+
+    void DrawStaminaDeltas()
+    {
+        if (staminaDeltaEntries.Count == 0) return;
+
+        // ゲージと同じレイアウト定数
+        float barW   = 260f;
+        float labelW = 60f;
+        float stageW = 120f;
+        float gap    = 20f;
+        float panelW = labelW + barW + stageW;
+        float cx     = Screen.width / 2f;
+        // ゲージ下端（panelY=12, barH=26, padding=5+8=13 → 約54px）の少し下に開始点
+        float startY = 58f;
+
+        float allyBarCenterX  = (cx - gap / 2f - panelW) + labelW + barW / 2f;
+        float enemyBarCenterX = (cx + gap / 2f) + stageW + barW / 2f;
+
+        var style = new GUIStyle(GUI.skin.label)
+        {
+            fontStyle = FontStyle.Bold,
+            alignment = TextAnchor.UpperCenter
+        };
+
+        foreach (var entry in staminaDeltaEntries)
+        {
+            float progress = 1f - (entry.timer / deltaTextDuration); // 0→1
+            float alpha    = progress < 0.7f ? 1f : Mathf.Lerp(1f, 0f, (progress - 0.7f) / 0.3f);
+            float yOffset  = 35f * progress; // 下方向にドリフト
+
+            bool positive = entry.value > 0f;
+            string text   = positive ? $"+{entry.value:F0}" : $"{entry.value:F0}";
+            Color color   = positive
+                ? new Color(0.2f, 1f, 0.3f, alpha)
+                : new Color(1f, 0.35f, 0.2f, alpha);
+
+            style.fontSize = 20;
+            style.normal.textColor = color;
+
+            float x = entry.isAlly ? allyBarCenterX : enemyBarCenterX;
+            GUI.Label(new Rect(x - 50f, startY + yOffset, 100f, 36f), text, style);
+        }
     }
 
     // ── スタミナゲージUI ─────────────────────────────────────────────

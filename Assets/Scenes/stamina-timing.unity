@@ -773,10 +773,10 @@ MonoBehaviour:
   highTossJustSpeedBonus: 1.3
   medTossJustSpeedBonus: 1.5
   lowTossJustSpeedBonus: 2
-  normalBlurRadius: 2
-  lowBlurRadius: 4
-  exhaustedBlurMin: 4
-  exhaustedBlurMax: 8
+  normalBlurRadius: 1
+  lowBlurRadius: 2
+  exhaustedBlurMin: 3
+  exhaustedBlurMax: 5
   normalConsumeMult: 1.5
   lowConsumeMult: 2
   exhaustedConsumeMult: 3
@@ -1526,6 +1526,7 @@ MonoBehaviour:
   inputCourse: 0
   inputVelocity: 0
   currentState: 0
+  showStateDebugUI: 0
 --- !u!114 &1392019842
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1540,7 +1541,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StaminaSystem
   stamina: 100
   maxStamina: 100
-  waitingRecoveryRate: 3
+  waitingRecoveryRate: 2
   movingRecoveryRate: 0.5
   chargeRate: 20
   consumeRate: 15
@@ -1551,13 +1552,13 @@ MonoBehaviour:
   highTossJustSpeedBonus: 1.3
   medTossJustSpeedBonus: 1.5
   lowTossJustSpeedBonus: 2
-  normalBlurRadius: 2
-  lowBlurRadius: 4
-  exhaustedBlurMin: 4
-  exhaustedBlurMax: 8
-  normalConsumeMult: 1.5
-  lowConsumeMult: 2
-  exhaustedConsumeMult: 3
+  normalBlurRadius: 1
+  lowBlurRadius: 2
+  exhaustedBlurMin: 3
+  exhaustedBlurMax: 5
+  normalConsumeMult: 1.2
+  lowConsumeMult: 1.2
+  exhaustedConsumeMult: 1.3
 --- !u!114 &1392019843
 MonoBehaviour:
   m_ObjectHideFlags: 0

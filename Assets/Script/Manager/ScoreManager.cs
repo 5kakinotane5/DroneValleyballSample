@@ -112,6 +112,12 @@ public class ScoreManager : MonoBehaviour
         else
             enemySpiker?.Stamina?.AddScoreBonus();
 
+        // out/in 判定後〜次スパイクまでは両チームの回復を停止
+        if (allySpiker != null && allySpiker.Stamina != null)
+            allySpiker.Stamina.RecoveryBlocked = true;
+        if (enemySpiker != null && enemySpiker.Stamina != null)
+            enemySpiker.Stamina.RecoveryBlocked = true;
+
         UpdateScoreUI();
         ShowResult(reason);
         Debug.Log($"[Score] {scoringTeam} scored ({reason}) | Ally {allyScore} - {enemyScore} Enemy");
