@@ -157,7 +157,10 @@ public class SpikeDrone : MonoBehaviour
 
     void FixedUpdate()
     {
-        staminaSystem?.RecoverTick(currentState == State.Waiting);
+        bool isBetweenPoints = MatchManager.Instance != null &&
+            MatchManager.Instance.currentPhase == MatchManager.GamePhase.Waiting;
+        if (!isBetweenPoints)
+            staminaSystem?.RecoverTick(currentState == State.Waiting);
 
         if (currentState == State.MovingToTrajectory || currentState == State.Striking)
             timeUntilImpact -= Time.fixedDeltaTime;
@@ -673,9 +676,15 @@ public class SpikeDrone : MonoBehaviour
 
         float dx = landing.x - hitPos.x;
         float dz = landing.z - hitPos.z;
-        // ボーナスを水平速度に織り込む（着地点は landing のまま、弾道が低く速くなる）
-        float speed = Mathf.Max(pendingVelocity * speedMult, 0.1f);
-        float T = Mathf.Sqrt(dx * dx + dz * dz) / speed;
+        float horizontalDist = Mathf.Sqrt(dx * dx + dz * dz);
+
+        // vy ≤ 0 を保証する最低水平速度（T_max = sqrt(2h/|g|)以下に T を収める）
+        float heightDiff   = Mathf.Max(hitPos.y - landing.y, 0.1f);
+        float minFlatSpeed = horizontalDist * Mathf.Sqrt(Mathf.Abs(g) / (2f * heightDiff));
+        // speedMult（タイミングボーナス）を適用しつつ山なり防止クランプ
+        float speed = Mathf.Max(pendingVelocity * speedMult, minFlatSpeed, 0.1f);
+
+        float T = horizontalDist / speed;
         float vx = dx / T;
         float vz = dz / T;
         float vy = (landing.y - hitPos.y - 0.5f * g * T * T) / T;

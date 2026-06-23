@@ -47,6 +47,15 @@ public class EnemySpikeDrone : MonoBehaviour
     public float targetDeepX    = -20f;
     public float targetZHalf    =  9f;
 
+    [Header("AI 配球設定")]
+    [Tooltip("ブレをクランプするコート境界からの安全マージン（m）")]
+    [SerializeField] private float courtMargin = 1.2f;
+    [Tooltip("Ally SpikeDrone の参照（未設定時は Start() で自動検索）")]
+    [SerializeField] private SpikeDrone allyDrone;
+    [Tooltip("高トスで短距離フェイントを選ぶ確率（0=常に深い、1=常に短い）")]
+    [Range(0f, 1f)]
+    [SerializeField] private float highTossShortRate = 0.25f;
+
     [Header("スタミナ")]
     [SerializeField] private StaminaSystem staminaSystem;
     public StaminaSystem Stamina => staminaSystem;
@@ -85,6 +94,7 @@ public class EnemySpikeDrone : MonoBehaviour
     private float       pendingCourse;
     private float       pendingVelocity;
     private bool        isAvoidingTrajectory;
+    private float       lastCourse = 1f;
     private readonly float g = Physics.gravity.y;
 
     enum State { Waiting, Hovering, MovingToTrajectory, Striking, Returning }
@@ -97,11 +107,17 @@ public class EnemySpikeDrone : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         rb.useGravity = false;
         transform.position = initialPos;
+
+        if (allyDrone == null)
+            allyDrone = FindObjectOfType<SpikeDrone>();
     }
 
     void FixedUpdate()
     {
-        staminaSystem?.RecoverTick(currentState == State.Waiting);
+        bool isBetweenPoints = MatchManager.Instance != null &&
+            MatchManager.Instance.currentPhase == MatchManager.GamePhase.Waiting;
+        if (!isBetweenPoints)
+            staminaSystem?.RecoverTick(currentState == State.Waiting);
 
         if (currentState == State.MovingToTrajectory || currentState == State.Striking)
             timeUntilImpact -= Time.fixedDeltaTime;
@@ -197,18 +213,7 @@ public class EnemySpikeDrone : MonoBehaviour
             ballRb.position.y < spikeHeight &&
             MatchManager.Instance.currentPhase == MatchManager.GamePhase.Spiking)
         {
-            // AI: コースランダム、速度はスタミナ込みの CurrentMaxVelocity から選択
-            float maxV    = CurrentMaxVelocity;
-            pendingCourse = Random.value > 0.5f ? 1f : -1f;
-            switch (tossQuality)
-            {
-                case TossQuality.High:
-                    pendingVelocity = Random.value > 0.5f ? maxV : maxV * 0.6f;
-                    break;
-                default:
-                    pendingVelocity = maxV;
-                    break;
-            }
+            ChooseStrategy();
 
             targetRb   = ballRb;
             targetBall = ball;
@@ -219,6 +224,55 @@ public class EnemySpikeDrone : MonoBehaviour
                 targetRb   = null;
                 targetBall = null;
             }
+        }
+    }
+
+    /// <summary>
+    /// Ally ドローンの現在位置を読み、コース（Z）と速度（深度）を戦術的に決定する。
+    ///
+    /// コース: Ally が Z 正側 → 負側へ、Ally が Z 負側 → 正側へ（いない方を狙う）。
+    ///         Ally が中央付近のときは前回と逆のコーナーへ交互に配球。
+    /// 深度 : Ally が浅い位置（ネット寄り） → 深い球。
+    ///         Ally が深い位置              → 浅い球（フェイント）。
+    /// </summary>
+    void ChooseStrategy()
+    {
+        float maxV = CurrentMaxVelocity;
+
+        float allyZ = allyDrone != null ? allyDrone.transform.position.z : 0f;
+        float allyX = allyDrone != null ? allyDrone.transform.position.x : Mathf.Abs(targetDeepX) * 0.5f;
+
+        // ── コース選択（Z 軸） ──────────────────────────────────────
+        const float centerThreshold = 2f;
+        if (Mathf.Abs(allyZ) < centerThreshold)
+            pendingCourse = lastCourse >= 0f ? -1f : 1f;   // 中央→交互コーナー
+        else
+            pendingCourse = allyZ > 0f ? -1f : 1f;         // Ally の逆サイド
+        lastCourse = pendingCourse;
+
+        // ── 速度選択（X 深度） ──────────────────────────────────────
+        // Ally コート内の前後位置を 0（ネット際）〜1（最深部）で正規化
+        float courtDepth = Mathf.Abs(targetDeepX);
+        float allyNormX  = Mathf.Clamp01(allyX / courtDepth);
+        // Ally の逆の深度を狙う
+        float depthNorm  = 1f - allyNormX;
+
+        switch (tossQuality)
+        {
+            case TossQuality.High:
+                // 高トス: 基本は Ally 逆深度への強打、一定確率で短距離フェイント
+                pendingVelocity = Random.value < highTossShortRate
+                    ? maxV * medVelocityRatio
+                    : Mathf.Lerp(maxV * medVelocityRatio, maxV, depthNorm);
+                break;
+            case TossQuality.Medium:
+                // 中トス: 深度戦術（速度範囲は weakVelocityRatio〜medVelocityRatio）
+                pendingVelocity = Mathf.Lerp(maxV * weakVelocityRatio, maxV, depthNorm);
+                break;
+            default:
+                // 低トス: 既に weakVelocityRatio で上限が低いのでフル速度
+                pendingVelocity = maxV;
+                break;
         }
     }
 
@@ -251,10 +305,10 @@ public class EnemySpikeDrone : MonoBehaviour
             : Mathf.Lerp(-targetShallowX, -targetDeepX, norm);
         float blur = staminaSystem != null ? staminaSystem.GetBlur() : 0f;
 
-        Vector3 pointB = new Vector3(
-            targetX                      + Random.Range(-blur, blur),
+        Vector3 pointB = ClampLandingToCourt(new Vector3(
+            targetX                     + Random.Range(-blur, blur),
             0f,
-            pendingCourse * targetZHalf  + Random.Range(-blur, blur));
+            pendingCourse * targetZHalf + Random.Range(-blur, blur)));
 
         pointA = new Vector3(
             targetRb.position.x + targetRb.linearVelocity.x * t,
@@ -340,15 +394,23 @@ public class EnemySpikeDrone : MonoBehaviour
             : Mathf.Lerp(-targetShallowX, -targetDeepX, norm);
         float blur    = staminaSystem != null ? staminaSystem.GetBlur() : 0f;
 
-        Vector3 landing = new Vector3(
+        Vector3 landing = ClampLandingToCourt(new Vector3(
             targetX                     + Random.Range(-blur, blur),
             0f,
-            pendingCourse * targetZHalf + Random.Range(-blur, blur));
+            pendingCourse * targetZHalf + Random.Range(-blur, blur)));
 
         Vector3 hitPos = collision.transform.position;
         float dx = landing.x - hitPos.x;
         float dz = landing.z - hitPos.z;
-        float T  = Mathf.Sqrt(dx * dx + dz * dz) / Mathf.Max(pendingVelocity, 0.1f);
+        float horizontalDist = Mathf.Sqrt(dx * dx + dz * dz);
+
+        // vy ≤ 0 を保証する最低水平速度: T_max = sqrt(2h/|g|) → minSpeed = dist/T_max
+        // スタミナ枯渇など pendingVelocity が小さすぎると T 過大になり vy > 0（山なり）になる
+        float heightDiff   = Mathf.Max(hitPos.y - landing.y, 0.1f);
+        float minFlatSpeed = horizontalDist * Mathf.Sqrt(Mathf.Abs(g) / (2f * heightDiff));
+        float speed = Mathf.Max(pendingVelocity, minFlatSpeed, 0.1f);
+
+        float T  = horizontalDist / speed;
         float vx = dx / T;
         float vz = dz / T;
         float vy = (landing.y - hitPos.y - 0.5f * g * T * T) / T;
@@ -368,6 +430,32 @@ public class EnemySpikeDrone : MonoBehaviour
         rb.linearVelocity     = Vector3.zero;
         lastSpikedBall        = collision.gameObject;
         currentState          = State.Returning;
+    }
+
+    /// <summary>
+    /// 着弾点を相手コート内にクランプしてアウトを防ぐ。
+    /// ブレで境界を超えた場合は courtMargin だけ内側の位置に止める。
+    /// </summary>
+    Vector3 ClampLandingToCourt(Vector3 landing)
+    {
+        float zRange = targetZHalf - courtMargin;
+
+        if (myTeam == Team.Enemy)
+        {
+            // Enemy → Ally コート（X 正値側）
+            float xMin = netX + courtMargin;
+            float xMax = Mathf.Abs(targetDeepX) - courtMargin;
+            landing.x = Mathf.Clamp(landing.x, xMin, xMax);
+        }
+        else
+        {
+            // Ally → Enemy コート（X 負値側）
+            float xMin = -(Mathf.Abs(targetDeepX) - courtMargin);
+            float xMax = -(netX + courtMargin);
+            landing.x = Mathf.Clamp(landing.x, xMin, xMax);
+        }
+        landing.z = Mathf.Clamp(landing.z, -zRange, zRange);
+        return landing;
     }
 
     // ── ユーティリティ（SpikeDrone と同一） ───────────────────────

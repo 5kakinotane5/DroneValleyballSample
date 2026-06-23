@@ -19,7 +19,6 @@
 */
 using UnityEngine;
 using System.Collections;
-using UnityEngine.InputSystem;
 
 public class ServeDrone : MonoBehaviour
 {
@@ -51,6 +50,9 @@ public class ServeDrone : MonoBehaviour
     public float moveToServeTime = 1.5f;
     public float moveToSpikeTime = 2.0f;
 
+    [Header("自動サーブ遅延（秒）")]
+    public float autoServeDelay = 2.0f;
+
     [Header("飛行時間の探索範囲（短いほど速い弾道）")]
     public float minFlightTime  = 1.0f;
     public float maxFlightTime  = 6.0f;
@@ -59,6 +61,7 @@ public class ServeDrone : MonoBehaviour
     private Vector3 spikePosition;
     private bool isServing = false;
     private Rigidbody rb;
+    private float serveTimer = 0f;
 
     void Start()
     {
@@ -78,14 +81,23 @@ public class ServeDrone : MonoBehaviour
 
     void Update()
     {
-        if (Keyboard.current == null) return;
-
         bool isMyServe = MatchManager.Instance != null &&
             MatchManager.Instance.serveRight   == serveTeam &&
             MatchManager.Instance.currentPhase == MatchManager.GamePhase.Waiting;
 
-        if (Keyboard.current.spaceKey.wasPressedThisFrame && !isServing && isMyServe)
-            StartCoroutine(ServeSequence());
+        if (isMyServe && !isServing)
+        {
+            serveTimer += Time.deltaTime;
+            if (serveTimer >= autoServeDelay)
+            {
+                serveTimer = 0f;
+                StartCoroutine(ServeSequence());
+            }
+        }
+        else
+        {
+            serveTimer = 0f;
+        }
     }
 
     IEnumerator ServeSequence()
