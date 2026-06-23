@@ -17,6 +17,7 @@
   RandomBallLauncher（VolleyballManager 系の旧ランチャー）とも目的が類似している。
 */
 using UnityEngine;
+using UnityEngine.InputSystem;
 public class AllyEnemyballlauncher : MonoBehaviour
 {
     [Header("発射するボールのプレハブ")]
@@ -28,29 +29,16 @@ public class AllyEnemyballlauncher : MonoBehaviour
     [Header("サーブするチーム")]
     public Team serveTeam = Team.Ally;
 
-    [Header("自動サーブ遅延（秒）")]
-    public float autoServeDelay = 2.0f;
-
-    private float serveTimer = 0f;
-
     void Update()
     {
         bool isMyServe = MatchManager.Instance != null &&
             MatchManager.Instance.serveRight == serveTeam &&
             MatchManager.Instance.currentPhase == MatchManager.GamePhase.Waiting;
 
-        if (isMyServe)
+        // エンターキーで発射！
+        if (Keyboard.current != null && Keyboard.current.enterKey.wasPressedThisFrame && isMyServe)
         {
-            serveTimer += Time.deltaTime;
-            if (serveTimer >= autoServeDelay)
-            {
-                serveTimer = 0f;
-                ShootBall();
-            }
-        }
-        else
-        {
-            serveTimer = 0f;
+            ShootBall();
         }
     }
 
