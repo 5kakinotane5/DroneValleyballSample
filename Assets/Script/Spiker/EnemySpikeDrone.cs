@@ -384,6 +384,7 @@ public class EnemySpikeDrone : MonoBehaviour
         if (MatchManager.Instance != null)
             MatchManager.Instance.lastTeamToHit = myTeam;
 
+        if (staminaSystem != null) staminaSystem.RecoveryBlocked = false;
         staminaSystem?.ConsumeCharge(pendingVelocity);
 
         // 打球速度を計算してボールに与える

@@ -106,6 +106,7 @@ public class ScoreManager : MonoBehaviour
         if (MatchManager.Instance != null)
             MatchManager.Instance.serveRight = scoringTeam;
 
+
         UpdateScoreUI();
         ShowResult(reason);
         Debug.Log($"[Score] {scoringTeam} scored ({reason}) | Ally {allyScore} - {enemyScore} Enemy");

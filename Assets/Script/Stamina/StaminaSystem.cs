@@ -10,7 +10,7 @@ public class StaminaSystem : MonoBehaviour
     public float maxStamina = 100f;
 
     [Header("回復量（/秒）")]
-    public float waitingRecoveryRate = 3f;
+    public float waitingRecoveryRate = 2f;
     public float movingRecoveryRate  = 0.5f;
 
     [Header("消費設定")]
@@ -36,21 +36,27 @@ public class StaminaSystem : MonoBehaviour
     public float lowTossJustSpeedBonus  = 2.0f;
 
     [Header("ブレ量（ワールド単位、段階別）")]
-    public float normalBlurRadius     = 3f;
-    public float lowBlurRadius        = 6f;
-    public float exhaustedBlurMin     = 4f;
-    public float exhaustedBlurMax     = 12f;
+    public float normalBlurRadius     = 1f;
+    public float lowBlurRadius        = 2f;
+    public float exhaustedBlurMin     = 3f;
+    public float exhaustedBlurMax     = 5f;
 
     [Header("消費倍率（段階別、低スタミナほど消費増加）")]
-    public float normalConsumeMult    = 1.5f;
-    public float lowConsumeMult       = 2.0f;
-    public float exhaustedConsumeMult = 3.0f;
+    public float normalConsumeMult    = 1.2f;
+    public float lowConsumeMult       = 1.2f;
+    public float exhaustedConsumeMult = 1.3f;
 
     // ── 読み取り専用プロパティ ──────────────────────────────────────
 
     public StaminaStage CurrentStage     { get; private set; } = StaminaStage.Full;
     /// <summary>Exhausted 突入後、MAX 回復するまで true。この間は強制 Exhausted 固定。</summary>
     public bool         IsLockedExhausted { get; private set; } = false;
+
+    /// <summary>スタミナが増減したときに発火。引数は変化量（正=回復、負=消費）</summary>
+    public event System.Action<float> OnStaminaChanged;
+
+    /// <summary>true の間は RecoverTick による回復を停止する（out/in 判定〜次スパイクまで）</summary>
+    public bool RecoveryBlocked { get; set; } = false;
 
     /// <summary>段階に応じたスパイク速度の倍率（EXHAUSTEDのみ制限）</summary>
     public float SpeedMultiplier
@@ -122,14 +128,26 @@ public class StaminaSystem : MonoBehaviour
     public void ConsumeCharge(float velocity)
     {
         if (IsLockedExhausted) return;
+        float before = stamina;
         float chargeTime = velocity / chargeRate;
         stamina = Mathf.Max(0f, stamina - chargeTime * consumeRate * ConsumptionMultiplier);
         RefreshStage();
+        NotifyDelta(before);
+    }
+
+    /// <summary>レシーブ難易度（ボール速度・移動距離）に応じたスタミナ消費。IsLockedExhausted に関わらず適用。</summary>
+    public void ConsumeReceive(float amount)
+    {
+        float before = stamina;
+        stamina = Mathf.Max(0f, stamina - amount);
+        RefreshStage();
+        NotifyDelta(before);
     }
 
     /// <summary>SpikeDrone の FixedUpdate から毎フレーム呼ぶ</summary>
     public void RecoverTick(bool isWaiting)
     {
+        if (RecoveryBlocked) return;
         float rate = isWaiting ? waitingRecoveryRate : movingRecoveryRate;
         if (IsLockedExhausted) rate *= 2f;
         stamina = Mathf.Min(maxStamina, stamina + rate * Time.fixedDeltaTime);
@@ -147,6 +165,8 @@ public class StaminaSystem : MonoBehaviour
         switch (result)
         {
             case TimingResult.Just:
+            {
+                float before = stamina;
                 if (!IsLockedExhausted)
                 {
                     float chargeTime = velocity / chargeRate;
@@ -154,11 +174,15 @@ public class StaminaSystem : MonoBehaviour
                         stamina - chargeTime * consumeRate * ConsumptionMultiplier);
                     RefreshStage();
                 }
+                NotifyDelta(before);
                 return toss == TossQuality.High   ? highTossJustSpeedBonus
                      : toss == TossQuality.Medium ? medTossJustSpeedBonus
                      : lowTossJustSpeedBonus;
+            }
 
             case TimingResult.Timeout:
+            {
+                float before = stamina;
                 if (!IsLockedExhausted)
                 {
                     float chargeTime = velocity / chargeRate;
@@ -166,7 +190,9 @@ public class StaminaSystem : MonoBehaviour
                         stamina - chargeTime * consumeRate * ConsumptionMultiplier - timeoutExtraCost);
                     RefreshStage();
                 }
+                NotifyDelta(before);
                 return 1f;
+            }
 
             default: // Good, Miss, None
                 ConsumeCharge(velocity);
@@ -177,11 +203,19 @@ public class StaminaSystem : MonoBehaviour
     /// <summary>得点したチームのスパイカーに呼ぶ</summary>
     public void AddScoreBonus()
     {
+        float before = stamina;
         stamina = Mathf.Min(maxStamina, stamina + scoreBonus);
         RefreshStage();
+        NotifyDelta(before);
     }
 
     // ── 内部 ──────────────────────────────────────────────────────
+
+    void NotifyDelta(float before)
+    {
+        float delta = stamina - before;
+        if (Mathf.Abs(delta) > 0.01f) OnStaminaChanged?.Invoke(delta);
+    }
 
     void RefreshStage()
     {

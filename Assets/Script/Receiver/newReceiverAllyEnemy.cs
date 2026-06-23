@@ -32,6 +32,12 @@ public class newReceiverAllyEnemy : MonoBehaviour
     [Header("スタミナ連携（チームのスパイカーの StaminaSystem を直接設定）")]
     [SerializeField] private StaminaSystem linkedStamina;
 
+    [Header("レシーブ難易度によるスタミナ消費")]
+    [Tooltip("ボール速度1単位あたりのスタミナ消費量")]
+    public float receiveSpeedCostRate    = 0.3f;
+    [Tooltip("初期位置からの移動距離1単位あたりのスタミナ消費量")]
+    public float receiveMoveDistCostRate = 0.5f;
+
     [Header("トス品質の設定（余裕時間ベース）")]
     [Tooltip("余裕時間がこれ以上 → 高トス")]
     public float highMarginThreshold = 1.0f;
@@ -190,6 +196,16 @@ public class newReceiverAllyEnemy : MonoBehaviour
 
         if (MatchManager.Instance != null)
             MatchManager.Instance.lastTeamToHit = myTeam;
+
+        // レシーブ難易度に応じてスタミナを消費
+        if (linkedStamina != null)
+        {
+            float ballSpeed   = collision.relativeVelocity.magnitude;
+            float moveDistXZ  = Vector3.Distance(
+                new Vector3(transform.position.x, initialPos.y, transform.position.z), initialPos);
+            float cost = ballSpeed * receiveSpeedCostRate + moveDistXZ * receiveMoveDistCostRate;
+            linkedStamina.ConsumeReceive(cost);
+        }
 
         Vector3 startPos = collision.transform.position;
         float tossFlightTime;

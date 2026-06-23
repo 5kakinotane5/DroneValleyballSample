@@ -135,8 +135,16 @@ public class SpikeDrone : MonoBehaviour
     private float pendingVelocity;
     private TossQuality tossQuality = TossQuality.Low;
 
+    // 手動スパイク（Kを離した瞬間に突進）用
+    private bool strikeRequested;
+    private float requestedCourse;
+    private float requestedVelocity;
+
     enum State { Waiting, Hovering, MovingToTrajectory, Striking, Returning }
     [SerializeField] private State currentState = State.Waiting;
+
+    [Header("デバッグUI")]
+    [SerializeField] private bool showStateDebugUI = false;
 
     // ── Unity（SpikerAllyEnemyV2 と同一） ────────────────────────────
 
@@ -190,17 +198,56 @@ public class SpikeDrone : MonoBehaviour
                     currentState = State.Returning;
                     break;
                 }
-                isAvoidingTrajectory = TryGetTrajectoryAvoidVector(out Vector3 moveAvoid);
-                MoveToPoint(standbyPoint);
-                if (isAvoidingTrajectory)
+
+                if (isPlayerControlled)
                 {
-                    rb.linearVelocity += moveAvoid;
-                    if (rb.linearVelocity.magnitude > vMax)
-                        rb.linearVelocity = rb.linearVelocity.normalized * vMax;
+                    // ボールの少し後ろ（自陣側オフセット）に張り付いて、Kを離すまで待つ。
+                    // ボールに寄りたいので軌道回避は使わない（他球回避の ApplyDodgeVelocity のみ）。
+                    float sx = (myTeam == Team.Ally) ? 1f : -1f;
+                    Vector3 shadow = PredictBallPosition(targetRb, runupTime) + new Vector3(sx * 1.5f, 0f, 0f);
+                    MoveToPoint(shadow);
+                    ApplyDodgeVelocity();
+
+                    if (strikeRequested || timeUntilImpact <= 0f)   // 離した or 保険の自動突進
+                    {
+                        // 速度・コース確定：離す→requested(0化前の値)、保険→live入力
+                        if (strikeRequested)
+                        {
+                            pendingCourse = requestedCourse;
+                            pendingVelocity = requestedVelocity;
+                        }
+                        else
+                        {
+                            pendingCourse = inputCourse;
+                            pendingVelocity = inputVelocity;
+                        }
+                        pendingVelocity = Mathf.Min(Mathf.Max(pendingVelocity, minVelocity), CurrentMaxVelocity);
+                        strikeRequested = false;
+
+                        // 迎撃を引き直す：runupTime 秒後のボール位置へ、その時間で着く速度
+                        Vector3 hit = PredictBallPosition(targetRb, runupTime);
+                        requiredDroneVel = (hit - transform.position) / runupTime;
+                        if (requiredDroneVel.magnitude > vMax)
+                            requiredDroneVel = requiredDroneVel.normalized * vMax;
+                        timeUntilImpact = runupTime;
+                        currentState = State.Striking;
+                    }
                 }
-                ApplyDodgeVelocity();
-                if (timeUntilImpact <= runupTime)
-                    currentState = State.Striking;
+                else
+                {
+                    // Enemy: 従来どおり standbyPoint へ移動し、衝突直前に自動で突進
+                    isAvoidingTrajectory = TryGetTrajectoryAvoidVector(out Vector3 moveAvoid);
+                    MoveToPoint(standbyPoint);
+                    if (isAvoidingTrajectory)
+                    {
+                        rb.linearVelocity += moveAvoid;
+                        if (rb.linearVelocity.magnitude > vMax)
+                            rb.linearVelocity = rb.linearVelocity.normalized * vMax;
+                    }
+                    ApplyDodgeVelocity();
+                    if (timeUntilImpact <= runupTime)
+                        currentState = State.Striking;
+                }
                 break;
 
             case State.Striking:
@@ -244,6 +291,18 @@ public class SpikeDrone : MonoBehaviour
         inputVelocity = velocity;
     }
 
+    /// <summary>
+    /// プレイヤーが K を離した瞬間に呼ぶ。MovingToTrajectory 中なら次の物理フレームで
+    /// Striking へ移って突進する。course/velocity は「離した瞬間の値」を渡すこと
+    /// （velocity は 0 化される前の充電値）。
+    /// </summary>
+    public void RequestStrike(float course, float velocity)
+    {
+        strikeRequested = true;
+        requestedCourse = course;
+        requestedVelocity = velocity;
+    }
+
     public void ResetToInitialState()
     {
         currentState = State.Waiting;
@@ -275,14 +334,21 @@ public class SpikeDrone : MonoBehaviour
             ballRb.position.y < spikeHeight &&
             MatchManager.Instance.currentPhase == MatchManager.GamePhase.Spiking)
         {
-            // Ally: コントローラーの入力値を使用（入力なしは minVelocity）
+            targetRb = ballRb;
+            targetBall = ball;
+
+            // Ally(プレイヤー): 速度・コースはここで確定しない。
+            // ボールの後ろで待機し、K を離した瞬間に確定して突進する（MovingToTrajectory 参照）。
             if (isPlayerControlled)
             {
-                pendingCourse = inputCourse;
-                pendingVelocity = Mathf.Max(inputVelocity, minVelocity);
-                pendingVelocity = Mathf.Min(pendingVelocity, CurrentMaxVelocity);
+                float t = CalculateFalling(spikeHeight);   // 窓の長さ＆保険自動突進の時計
+                if (t < 0f) { targetRb = null; targetBall = null; return; }
+                timeUntilImpact = t;
+                strikeRequested = false;                   // Hovering 中の取りこぼしフラグを無効化
+                currentState = State.MovingToTrajectory;
+                timingWindow?.StartWindow(tossQuality, timeUntilImpact);
             }
-            // Enemy: ランダム（トス制限あり）
+            // Enemy: ランダム（トス制限あり）。従来どおり即座に軌道確定して自動で突進する
             else
             {
                 pendingCourse = Random.value > 0.5f ? 1f : -1f;
@@ -298,19 +364,17 @@ public class SpikeDrone : MonoBehaviour
                         pendingVelocity = vMaxDrone * weakVelocityRatio;
                         break;
                 }
-            }
 
-            targetRb = ballRb;
-            targetBall = ball;
-            if (CalculateTrajectory())
-            {
-                currentState = State.MovingToTrajectory;
-                timingWindow?.StartWindow(tossQuality, timeUntilImpact);
-            }
-            else
-            {
-                targetRb = null;
-                targetBall = null;
+                if (CalculateTrajectory())
+                {
+                    currentState = State.MovingToTrajectory;
+                    timingWindow?.StartWindow(tossQuality, timeUntilImpact);
+                }
+                else
+                {
+                    targetRb = null;
+                    targetBall = null;
+                }
             }
         }
     }
@@ -415,13 +479,14 @@ public class SpikeDrone : MonoBehaviour
         if (MatchManager.Instance != null)
             MatchManager.Instance.lastTeamToHit = myTeam;
 
+        if (staminaSystem != null) staminaSystem.RecoveryBlocked = false;
         TimingResult timingResult = timingWindow != null ? timingWindow.LastResult : TimingResult.None;
         float speedMult = staminaSystem != null
             ? staminaSystem.ConsumeChargeWithTiming(pendingVelocity, timingResult, tossQuality)
             : 1f;
         timingWindow?.Reset();
 
-        ballRb.linearVelocity = CalcBallVelocity(collision.transform.position) * speedMult;
+        ballRb.linearVelocity = CalcBallVelocity(collision.transform.position, speedMult);
         rb.linearVelocity = Vector3.zero;
 
         lastSpikedBall = collision.gameObject;
@@ -595,8 +660,9 @@ public class SpikeDrone : MonoBehaviour
             tossQuality = TossQuality.Low;
     }
 
-    /// API の pendingCourse/pendingVelocity から実際の打球速度ベクトルを計算する
-    Vector3 CalcBallVelocity(Vector3 hitPos)
+    /// API の pendingCourse/pendingVelocity から実際の打球速度ベクトルを計算する。
+    /// speedMult（タイミングボーナス）は飛行時間に織り込み、着地点を保ったまま弾道を鋭くする。
+    Vector3 CalcBallVelocity(Vector3 hitPos, float speedMult)
     {
         float norm = Mathf.Clamp01(pendingVelocity / vMaxDrone);
         float targetX = (myTeam == Team.Ally)
@@ -615,7 +681,8 @@ public class SpikeDrone : MonoBehaviour
         // vy ≤ 0 を保証する最低水平速度（T_max = sqrt(2h/|g|)以下に T を収める）
         float heightDiff   = Mathf.Max(hitPos.y - landing.y, 0.1f);
         float minFlatSpeed = horizontalDist * Mathf.Sqrt(Mathf.Abs(g) / (2f * heightDiff));
-        float speed = Mathf.Max(pendingVelocity, minFlatSpeed, 0.1f);
+        // speedMult（タイミングボーナス）を適用しつつ山なり防止クランプ
+        float speed = Mathf.Max(pendingVelocity * speedMult, minFlatSpeed, 0.1f);
 
         float T = horizontalDist / speed;
         float vx = dx / T;
@@ -640,5 +707,41 @@ public class SpikeDrone : MonoBehaviour
         }
 
         return new Vector3(vx, vy, vz);
+    }
+
+    // ── デバッグUIのため（状態表示） ─────────────────────────────────────
+    void OnGUI()
+    {
+        if (showStateDebugUI)
+            ShowState();
+    }
+
+    // プレイヤー側のスパイクドローンには状態があり、バグの修正や調査のために状態を知る必要があるため。
+    void ShowState()
+    {
+        float w = 320f, lh = 32f, x = 30f, y = 120f;
+        State[] states = { State.Waiting, State.Hovering, State.MovingToTrajectory, State.Striking, State.Returning };
+
+        GUI.Box(new Rect(x - 10, y - 10, w + 20, lh * (states.Length + 2) + 30), "", new GUIStyle(GUI.skin.box));
+
+        var titleStyle = new GUIStyle(GUI.skin.label) { fontSize = 20, fontStyle = FontStyle.Bold };
+        GUI.Label(new Rect(x, y, w, lh), $"SpikeDrone [{myTeam}]  isReady={isReady}", titleStyle);
+        y += lh + 4;
+
+        foreach (var s in states)
+        {
+            bool active = (s == currentState);
+            var style = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = active ? 22 : 18,
+                fontStyle = active ? FontStyle.Bold : FontStyle.Normal
+            };
+            style.normal.textColor = active ? Color.green : new Color(0.6f, 0.6f, 0.6f);
+            GUI.Label(new Rect(x, y, w, lh), $"{(active ? "▶ " : "   ")}{s}", style);
+            y += lh;
+        }
+
+        var subStyle = new GUIStyle(GUI.skin.label) { fontSize = 16 };
+        GUI.Label(new Rect(x, y, w, lh), $"timeUntilImpact={timeUntilImpact:F2}", subStyle);
     }
 }
