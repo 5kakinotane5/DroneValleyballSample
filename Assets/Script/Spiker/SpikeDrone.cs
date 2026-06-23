@@ -607,7 +607,14 @@ public class SpikeDrone : MonoBehaviour
 
         float dx = landing.x - hitPos.x;
         float dz = landing.z - hitPos.z;
-        float T = Mathf.Sqrt(dx * dx + dz * dz) / Mathf.Max(pendingVelocity, 0.1f);
+        float horizontalDist = Mathf.Sqrt(dx * dx + dz * dz);
+
+        // vy ≤ 0 を保証する最低水平速度（T_max = sqrt(2h/|g|)以下に T を収める）
+        float heightDiff   = Mathf.Max(hitPos.y - landing.y, 0.1f);
+        float minFlatSpeed = horizontalDist * Mathf.Sqrt(Mathf.Abs(g) / (2f * heightDiff));
+        float speed = Mathf.Max(pendingVelocity, minFlatSpeed, 0.1f);
+
+        float T = horizontalDist / speed;
         float vx = dx / T;
         float vz = dz / T;
         float vy = (landing.y - hitPos.y - 0.5f * g * T * T) / T;
