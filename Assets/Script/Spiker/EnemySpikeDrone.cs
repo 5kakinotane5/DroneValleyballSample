@@ -114,7 +114,10 @@ public class EnemySpikeDrone : MonoBehaviour
 
     void FixedUpdate()
     {
-        staminaSystem?.RecoverTick(currentState == State.Waiting);
+        bool isBetweenPoints = MatchManager.Instance != null &&
+            MatchManager.Instance.currentPhase == MatchManager.GamePhase.Waiting;
+        if (!isBetweenPoints)
+            staminaSystem?.RecoverTick(currentState == State.Waiting);
 
         if (currentState == State.MovingToTrajectory || currentState == State.Striking)
             timeUntilImpact -= Time.fixedDeltaTime;

@@ -151,9 +151,7 @@ public class StaminaSystem : MonoBehaviour
                 {
                     float chargeTime = velocity / chargeRate;
                     stamina = Mathf.Max(0f,
-                        stamina - chargeTime * consumeRate * ConsumptionMultiplier * justConsumeMultiplier);
-                    if (toss == TossQuality.Low)
-                        stamina = Mathf.Min(maxStamina, stamina + lowTossJustRecovery);
+                        stamina - chargeTime * consumeRate * ConsumptionMultiplier);
                     RefreshStage();
                 }
                 return toss == TossQuality.High   ? highTossJustSpeedBonus
