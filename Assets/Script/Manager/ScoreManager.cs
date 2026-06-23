@@ -106,12 +106,6 @@ public class ScoreManager : MonoBehaviour
         if (MatchManager.Instance != null)
             MatchManager.Instance.serveRight = scoringTeam;
 
-        // 得点チームのスパイカーのスタミナを回復
-        if (scoringTeam == Team.Ally)
-            allySpiker?.Stamina?.AddScoreBonus();
-        else
-            enemySpiker?.Stamina?.AddScoreBonus();
-
         UpdateScoreUI();
         ShowResult(reason);
         Debug.Log($"[Score] {scoringTeam} scored ({reason}) | Ally {allyScore} - {enemyScore} Enemy");

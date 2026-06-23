@@ -1,19 +1,6 @@
-// 落下予測とアウト判定付きAIレシーバー（Ally/Enemy対応）
-/*
-【ReceiverAllyEnemy】
-概要:
-  現行システムの主力レシーバー。MatchManager のフェーズ・チームを監視し、
-  Receiving フェーズかつ自チームの所持ターンになるとボールの落下地点を予測して移動・レシーブする。
-  アウト判定機能（IsBallGoingOut）を持ち、コート外へ飛ぶボールはレシーブしない。
-  Ally/Enemy 両チームに対応（myTeam で切り替え）。
-
-動作フロー: Waiting → Hovering → MovingToTrajectory → (衝突) → Returning
-
-他スクリプトとの関係:
-  ・MatchManager          ← フェーズ/チームを参照、Returning 時に currentPhase を Spiking へ変更
-  ・BallResetOnCollision  ← ラリー終了時に ResetToInitialState() を呼ばれる
-*/
+// 落下予測・アウト判定・先読み配置付きAIレシーバー（Ally/Enemy対応）
 using UnityEngine;
+using System.Collections.Generic;
 
 public class ReceiverAllyEnemy : MonoBehaviour
 {
@@ -31,6 +18,16 @@ public class ReceiverAllyEnemy : MonoBehaviour
     public float courtZMin = -10f;
     public float courtZMax = 10f;
 
+    [Header("先読み待機位置")]
+    [Tooltip("過去着地点を何球分記憶するか")]
+    [SerializeField] private int anticipateHistorySize = 5;
+    [Tooltip("0=常にinitialPos、1=完全に予測位置へ移動")]
+    [Range(0f, 1f)]
+    [SerializeField] private float anticipateWeight = 0.6f;
+
+    private readonly Queue<Vector3> landingHistory = new Queue<Vector3>();
+    private Vector3 hoverTarget;
+
     enum State { Waiting, Hovering, MovingToTrajectory, Receiving, Returning }
     [SerializeField] private State currentState = State.Waiting;
 
@@ -46,6 +43,7 @@ public class ReceiverAllyEnemy : MonoBehaviour
             courtXMin = 0f;
             courtXMax = 21f;
         }
+        hoverTarget = initialPos;
     }
 
     void FixedUpdate()
@@ -58,16 +56,16 @@ public class ReceiverAllyEnemy : MonoBehaviour
                 {
                     currentState = State.Hovering;
                 }
-                Hover(initialPos);
+                // ポイント間は先読み位置で待機
+                Hover(hoverTarget);
                 break;
 
             case State.Hovering:
                 FindAndCalculateBall();
-                Hover(initialPos);
+                Hover(hoverTarget);
                 break;
 
             case State.MovingToTrajectory:
-                // ボールが消えた、またはアウトコースと再判定された場合はHoveringに戻る
                 if (targetBall == null || IsBallGoingOut(targetBall))
                 {
                     targetBall = null;
@@ -98,14 +96,12 @@ public class ReceiverAllyEnemy : MonoBehaviour
         Rigidbody ballRb = ball.GetComponent<Rigidbody>();
         if (ballRb == null) return;
 
-        // 球がコート外に落ちると予測される場合はレシーブしない
         if (IsBallGoingOut(ballRb)) return;
 
         targetBall = ballRb;
         currentState = State.MovingToTrajectory;
     }
 
-    // Y=0（地面）への着地予測がコート境界外かどうかを判定
     bool IsBallGoingOut(Rigidbody ballRb)
     {
         Vector3 landing = PredictLandingPoint(ballRb.position, ballRb.linearVelocity, 0f);
@@ -115,28 +111,65 @@ public class ReceiverAllyEnemy : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        // MovingToTrajectory または Hovering 状態のときだけレシーブする
-        // Returning 中に球が再接触しても無視（2重レシーブ防止）
         if (currentState != State.MovingToTrajectory && currentState != State.Hovering) return;
 
         if (collision.gameObject.CompareTag("injectionball"))
         {
             Rigidbody ballRb = collision.gameObject.GetComponent<Rigidbody>();
-            if (ballRb != null)
-            {
-                if (MatchManager.Instance != null)
-                    MatchManager.Instance.lastTeamToHit = myTeam;
+            if (ballRb == null) return;
 
-                Vector3 startPos = collision.transform.position;
-                float vx = (initialPos.x - startPos.x) / returnFlightTime;
-                float vz = (initialPos.z - startPos.z) / returnFlightTime;
-                float gravity = Physics.gravity.y;
-                float vy = (initialPos.y - startPos.y - 0.5f * gravity * returnFlightTime * returnFlightTime) / returnFlightTime;
-                ballRb.linearVelocity = new Vector3(vx, vy, vz);
-                targetBall = null;
-                currentState = State.Returning;
-            }
+            if (MatchManager.Instance != null)
+                MatchManager.Instance.lastTeamToHit = myTeam;
+
+            // レシーブ前の着地予測点を記録して次の待機位置を更新
+            Vector3 incomingLanding = PredictLandingPoint(ballRb.position, ballRb.linearVelocity, 0f);
+            RecordLanding(incomingLanding);
+            UpdateHoverTarget();
+
+            Vector3 startPos = collision.transform.position;
+            float vx = (initialPos.x - startPos.x) / returnFlightTime;
+            float vz = (initialPos.z - startPos.z) / returnFlightTime;
+            float gravity = Physics.gravity.y;
+            float vy = (initialPos.y - startPos.y - 0.5f * gravity * returnFlightTime * returnFlightTime) / returnFlightTime;
+            ballRb.linearVelocity = new Vector3(vx, vy, vz);
+            targetBall = null;
+            currentState = State.Returning;
         }
+    }
+
+    void RecordLanding(Vector3 landing)
+    {
+        // コート内への球のみ記録
+        if (landing.x < courtXMin || landing.x > courtXMax ||
+            landing.z < courtZMin || landing.z > courtZMax) return;
+
+        landingHistory.Enqueue(new Vector3(landing.x, initialPos.y, landing.z));
+        if (landingHistory.Count > anticipateHistorySize)
+            landingHistory.Dequeue();
+    }
+
+    void UpdateHoverTarget()
+    {
+        if (landingHistory.Count == 0) { hoverTarget = initialPos; return; }
+
+        // 直近ほど重みを大きくした加重平均
+        Vector3 weightedSum = Vector3.zero;
+        float totalWeight = 0f;
+        int i = 0;
+        foreach (var p in landingHistory)
+        {
+            float w = i + 1f; // 古い順に 1, 2, 3, ... と重みを増やす
+            weightedSum += p * w;
+            totalWeight += w;
+            i++;
+        }
+        Vector3 predicted = weightedSum / totalWeight;
+
+        // initialPos と予測位置をブレンドしてコート内にクランプ
+        Vector3 blended = Vector3.Lerp(initialPos, predicted, anticipateWeight);
+        blended.x = Mathf.Clamp(blended.x, courtXMin + 0.5f, courtXMax - 0.5f);
+        blended.z = Mathf.Clamp(blended.z, courtZMin + 0.5f, courtZMax - 0.5f);
+        hoverTarget = blended;
     }
 
     void Hover(Vector3 target)
@@ -171,5 +204,6 @@ public class ReceiverAllyEnemy : MonoBehaviour
         targetBall = null;
         transform.position = initialPos;
         GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
+        // 履歴はリセットしない（ラリーをまたいで学習し続ける）
     }
 }
