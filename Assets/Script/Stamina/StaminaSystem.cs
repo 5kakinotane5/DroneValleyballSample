@@ -138,6 +138,7 @@ public class StaminaSystem : MonoBehaviour
     /// <summary>レシーブ難易度（ボール速度・移動距離）に応じたスタミナ消費。IsLockedExhausted に関わらず適用。</summary>
     public void ConsumeReceive(float amount)
     {
+        if (IsLockedExhausted) return;
         float before = stamina;
         stamina = Mathf.Max(0f, stamina - amount);
         RefreshStage();
