@@ -190,7 +190,6 @@ public class newReceiverAllyEnemy : MonoBehaviour
 
         Rigidbody ballRb = collision.gameObject.GetComponent<Rigidbody>();
         if (ballRb == null) return;
-        // BallInfo.Register(ballRb); // 確実な実体を登録
 
         if (MatchManager.Instance != null)
             MatchManager.Instance.lastTeamToHit = myTeam;

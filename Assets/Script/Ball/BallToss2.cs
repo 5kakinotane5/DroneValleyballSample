@@ -48,7 +48,6 @@ public class BallToss2 : MonoBehaviour
 
       if (ballRb != null)
       {
-        // BallInfo.Register(ballRb); // 確実な実体を登録
 
         //一度完全停止
         BallInfo.SetVelocity(Vector3.zero);

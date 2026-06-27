@@ -165,7 +165,6 @@ public class SpikerAllyEnemyV2 : MonoBehaviour
 
         Rigidbody ballRb = collision.gameObject.GetComponent<Rigidbody>();
         if (ballRb == null) return;
-        // BallInfo.Register(ballRb); // 確実な実体を登録
 
         if (MatchManager.Instance != null)
             MatchManager.Instance.lastTeamToHit = myTeam;
@@ -298,7 +297,6 @@ public class SpikerAllyEnemyV2 : MonoBehaviour
 
         Rigidbody ballRb = ball.GetComponent<Rigidbody>();
         if (ballRb == null) return;
-        // BallInfo.Register(ballRb); // 追跡対象としてメインボールを登録
 
         if (!IsBallOnMySide(BallInfo.GetPosition())) return;
 
