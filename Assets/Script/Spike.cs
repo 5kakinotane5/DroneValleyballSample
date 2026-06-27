@@ -299,10 +299,10 @@ public class Spike : MonoBehaviour
         if (ballRb == null) return;
         BallInfo.Register(ballRb); // 追跡対象としてメインボールを登録
 
-        if (!IsBallOnMySide(BallInfo.Position)) return;
+        if (!IsBallOnMySide(BallInfo.GetPosition())) return;
 
-        if (BallInfo.Velocity.y > 0 &&
-            BallInfo.Position.y < spikeHeight &&
+        if (BallInfo.GetVelocity().y > 0 &&
+            BallInfo.GetPosition().y < spikeHeight &&
             MatchManager.Instance.currentPhase == MatchManager.GamePhase.Spiking)
         {
             targetRb = ballRb;
@@ -339,8 +339,8 @@ public class Spike : MonoBehaviour
         else
             pointB = new Vector3(Random.Range(21f, 10.5f), 0f, Random.Range(-10f, 10f));
 
-        Vector3 ballPos = BallInfo.Position;
-        Vector3 ballVel = BallInfo.Velocity;
+        Vector3 ballPos = BallInfo.GetPosition();
+        Vector3 ballVel = BallInfo.GetVelocity();
         pointA = new Vector3(
             ballPos.x + (ballVel.x * t),
             spikeHeight,
@@ -421,8 +421,8 @@ public class Spike : MonoBehaviour
 
     float CalculateFalling(float h)
     {
-        float y0 = BallInfo.Position.y;
-        float vy0 = BallInfo.Velocity.y;
+        float y0 = BallInfo.GetPosition().y;
+        float vy0 = BallInfo.GetVelocity().y;
 
         float a = 0.5f * g;
         float b = vy0;

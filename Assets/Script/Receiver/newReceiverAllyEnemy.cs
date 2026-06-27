@@ -145,7 +145,7 @@ public class newReceiverAllyEnemy : MonoBehaviour
                     currentState = State.Hovering;
                     break;
                 }
-                Vector3 landingPos = PredictLandingPoint(BallInfo.Position, BallInfo.Velocity, transform.position.y);
+                Vector3 landingPos = PredictLandingPoint(BallInfo.GetPosition(), BallInfo.GetVelocity(), transform.position.y);
                 Vector3 targetPos = new Vector3(landingPos.x, transform.position.y, landingPos.z);
                 Hover(targetPos);
                 break;
@@ -177,7 +177,7 @@ public class newReceiverAllyEnemy : MonoBehaviour
 
     bool IsBallGoingOut()
     {
-        Vector3 landing = PredictLandingPoint(BallInfo.Position, BallInfo.Velocity, 0f);
+        Vector3 landing = PredictLandingPoint(BallInfo.GetPosition(), BallInfo.GetVelocity(), 0f);
         return landing.x < courtXMin || landing.x > courtXMax ||
                landing.z < courtZMin || landing.z > courtZMax;
     }

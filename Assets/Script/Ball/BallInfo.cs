@@ -59,21 +59,23 @@ public static class BallInfo
             velocity = Vector3.zero;
             return false;
         }
-        position = rb.position;
-        velocity = rb.linearVelocity;
+        position = GetPosition();
+        velocity = GetVelocity();
         return true;
     }
 
     // ボールの現在位置（無ければ Vector3.zero）。
-    public static Vector3 Position
+    public static Vector3 GetPosition()
     {
-        get { Rigidbody rb = ResolveRigidbody(); return rb != null ? rb.position : Vector3.zero; }
+        Rigidbody rb = ResolveRigidbody();
+        return rb != null ? rb.position : Vector3.zero;
     }
 
     // ボールの現在速度（無ければ Vector3.zero）。
-    public static Vector3 Velocity
+    public static Vector3 GetVelocity()
     {
-        get { Rigidbody rb = ResolveRigidbody(); return rb != null ? rb.linearVelocity : Vector3.zero; }
+        Rigidbody rb = ResolveRigidbody();
+        return rb != null ? rb.linearVelocity : Vector3.zero;
     }
 
     // 予測計算で使う重力加速度（y成分）。

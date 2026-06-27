@@ -329,10 +329,10 @@ public class SpikeDrone : MonoBehaviour
         if (ballRb == null) return;
         BallInfo.Register(ballRb); // 追跡対象としてメインボールを登録
 
-        if (!IsBallOnMySide(BallInfo.Position)) return;
+        if (!IsBallOnMySide(BallInfo.GetPosition())) return;
 
-        if (BallInfo.Velocity.y > 0 &&
-            BallInfo.Position.y < spikeHeight &&
+        if (BallInfo.GetVelocity().y > 0 &&
+            BallInfo.GetPosition().y < spikeHeight &&
             MatchManager.Instance.currentPhase == MatchManager.GamePhase.Spiking)
         {
             targetRb = ballRb;
@@ -398,8 +398,8 @@ public class SpikeDrone : MonoBehaviour
             0f,
             pendingCourse * targetZHalf + Random.Range(-blur, blur));
 
-        Vector3 ballPos = BallInfo.Position;
-        Vector3 ballVel = BallInfo.Velocity;
+        Vector3 ballPos = BallInfo.GetPosition();
+        Vector3 ballVel = BallInfo.GetVelocity();
         pointA = new Vector3(
             ballPos.x + (ballVel.x * t),
             spikeHeight,
@@ -606,8 +606,8 @@ public class SpikeDrone : MonoBehaviour
 
     float CalculateFalling(float h)
     {
-        float y0 = BallInfo.Position.y;
-        float vy0 = BallInfo.Velocity.y;
+        float y0 = BallInfo.GetPosition().y;
+        float vy0 = BallInfo.GetVelocity().y;
 
         float a = 0.5f * g;
         float b = vy0;
@@ -680,7 +680,7 @@ public class SpikeDrone : MonoBehaviour
         float horizontalDist = Mathf.Sqrt(dx * dx + dz * dz);
 
         // vy ≤ 0 を保証する最低水平速度（T_max = sqrt(2h/|g|)以下に T を収める）
-        float heightDiff   = Mathf.Max(hitPos.y - landing.y, 0.1f);
+        float heightDiff = Mathf.Max(hitPos.y - landing.y, 0.1f);
         float minFlatSpeed = horizontalDist * Mathf.Sqrt(Mathf.Abs(g) / (2f * heightDiff));
         // speedMult（タイミングボーナス）を適用しつつ山なり防止クランプ
         float speed = Mathf.Max(pendingVelocity * speedMult, minFlatSpeed, 0.1f);
