@@ -22,37 +22,22 @@ using UnityEngine;
 
 public static class BallInfo
 {
-    // ボールのタグ。実行時の実体名は injectionball(Clone)。
-    private const string BallTag = "injectionball";
-
     // constを付けない理由は、得点したときに古いボールが消えて新しいボールが生成されるため。
     private static Rigidbody ball;
 
-    // ボールが生成されたときに実行すると推測。
+    // サーブのときに生成されるボールを登録する。
     public static void Register(Rigidbody ball)
     {
         BallInfo.ball = ball;
     }
 
-    private static Rigidbody ResolveRigidbody()
-    {
-        // Unity のオーバーロード == により、破棄済みオブジェクトは null 判定になる。
-        if (ball == null)
-        {
-            GameObject ball = GameObject.FindGameObjectWithTag(BallTag);
-            BallInfo.ball = ball?.GetComponent<Rigidbody>();
-        }
-        return ball;
-    }
-
     // ボールが存在するか。
-    public static bool Exists => ResolveRigidbody() != null;
+    public static bool Exists => ball != null;
 
     // 位置・速度をまとめて取得する。取得できなければ false（out は zero）。
     public static bool TryGetState(out Vector3 position, out Vector3 velocity)
     {
-        Rigidbody rb = ResolveRigidbody();
-        if (rb == null)
+        if (ball == null)
         {
             position = Vector3.zero;
             velocity = Vector3.zero;
@@ -66,15 +51,13 @@ public static class BallInfo
     // ボールの現在位置（無ければ Vector3.zero）。
     public static Vector3 GetPosition()
     {
-        Rigidbody rb = ResolveRigidbody();
-        return rb != null ? rb.position : Vector3.zero;
+        return ball != null ? ball.position : Vector3.zero;
     }
 
     // ボールの現在速度（無ければ Vector3.zero）。
     public static Vector3 GetVelocity()
     {
-        Rigidbody rb = ResolveRigidbody();
-        return rb != null ? rb.linearVelocity : Vector3.zero;
+        return ball != null ? ball.linearVelocity : Vector3.zero;
     }
 
     // 予測計算で使う重力加速度（y成分）。
@@ -83,7 +66,6 @@ public static class BallInfo
     // ボールの速度を設定する（実 Rigidbody への書き込み）。
     public static void SetVelocity(Vector3 velocity)
     {
-        Rigidbody rb = ResolveRigidbody();
-        if (rb != null) rb.linearVelocity = velocity;
+        if (ball != null) ball.linearVelocity = velocity;
     }
 }
