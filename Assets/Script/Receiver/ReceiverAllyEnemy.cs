@@ -5,7 +5,8 @@ using System.Collections.Generic;
 public class ReceiverAllyEnemy : MonoBehaviour
 {
     [SerializeField] private Team myTeam;
-    public Rigidbody targetBall;
+    // ボールを追跡中かどうか（ボールの実体・速度は BallInfo 経由で取得する）。
+    private bool tracking = false;
     public float moveSpeed = 10f;
 
     public Vector3 initialPos = new Vector3(10f, 1f, 0f);
@@ -66,13 +67,13 @@ public class ReceiverAllyEnemy : MonoBehaviour
                 break;
 
             case State.MovingToTrajectory:
-                if (targetBall == null || IsBallGoingOut(targetBall))
+                if (!tracking || !BallInfo.Exists || IsBallGoingOut())
                 {
-                    targetBall = null;
+                    tracking = false;
                     currentState = State.Hovering;
                     break;
                 }
-                Vector3 landingPos = PredictLandingPoint(targetBall.position, targetBall.linearVelocity, transform.position.y);
+                Vector3 landingPos = PredictLandingPoint(BallInfo.Position, BallInfo.Velocity, transform.position.y);
                 Vector3 targetPos = new Vector3(landingPos.x, transform.position.y, landingPos.z);
                 Hover(targetPos);
                 break;
@@ -90,21 +91,17 @@ public class ReceiverAllyEnemy : MonoBehaviour
 
     void FindAndCalculateBall()
     {
-        GameObject ball = GameObject.Find("injectionball(Clone)");
-        if (ball == null) return;
+        if (!BallInfo.Exists) return;
 
-        Rigidbody ballRb = ball.GetComponent<Rigidbody>();
-        if (ballRb == null) return;
+        if (IsBallGoingOut()) return;
 
-        if (IsBallGoingOut(ballRb)) return;
-
-        targetBall = ballRb;
+        tracking = true;
         currentState = State.MovingToTrajectory;
     }
 
-    bool IsBallGoingOut(Rigidbody ballRb)
+    bool IsBallGoingOut()
     {
-        Vector3 landing = PredictLandingPoint(ballRb.position, ballRb.linearVelocity, 0f);
+        Vector3 landing = PredictLandingPoint(BallInfo.Position, BallInfo.Velocity, 0f);
         return landing.x < courtXMin || landing.x > courtXMax ||
                landing.z < courtZMin || landing.z > courtZMax;
     }
@@ -117,22 +114,23 @@ public class ReceiverAllyEnemy : MonoBehaviour
         {
             Rigidbody ballRb = collision.gameObject.GetComponent<Rigidbody>();
             if (ballRb == null) return;
+            BallInfo.Register(ballRb); // 確実な実体を登録
 
             if (MatchManager.Instance != null)
                 MatchManager.Instance.lastTeamToHit = myTeam;
 
             // レシーブ前の着地予測点を記録して次の待機位置を更新
-            Vector3 incomingLanding = PredictLandingPoint(ballRb.position, ballRb.linearVelocity, 0f);
+            Vector3 incomingLanding = PredictLandingPoint(BallInfo.Position, BallInfo.Velocity, 0f);
             RecordLanding(incomingLanding);
             UpdateHoverTarget();
 
             Vector3 startPos = collision.transform.position;
             float vx = (initialPos.x - startPos.x) / returnFlightTime;
             float vz = (initialPos.z - startPos.z) / returnFlightTime;
-            float gravity = Physics.gravity.y;
+            float gravity = BallInfo.Gravity;
             float vy = (initialPos.y - startPos.y - 0.5f * gravity * returnFlightTime * returnFlightTime) / returnFlightTime;
-            ballRb.linearVelocity = new Vector3(vx, vy, vz);
-            targetBall = null;
+            BallInfo.SetVelocity(new Vector3(vx, vy, vz));
+            tracking = false;
             currentState = State.Returning;
         }
     }
@@ -188,7 +186,7 @@ public class ReceiverAllyEnemy : MonoBehaviour
 
     Vector3 PredictLandingPoint(Vector3 startPos, Vector3 velocity, float targetY)
     {
-        float gravity = Physics.gravity.y;
+        float gravity = BallInfo.Gravity;
         float a = 0.5f * gravity;
         float b = velocity.y;
         float c = startPos.y - targetY;
@@ -201,7 +199,7 @@ public class ReceiverAllyEnemy : MonoBehaviour
     public void ResetToInitialState()
     {
         currentState = State.Waiting;
-        targetBall = null;
+        tracking = false;
         transform.position = initialPos;
         GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
         // 履歴はリセットしない（ラリーをまたいで学習し続ける）

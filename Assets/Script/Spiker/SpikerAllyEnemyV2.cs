@@ -65,7 +65,7 @@ public class SpikerAllyEnemyV2 : MonoBehaviour
     private Vector3 standbyPoint;
     private float timeUntilImpact;
     private GameObject lastSpikedBall;
-    private float g = Physics.gravity.y;
+    private float g = BallInfo.Gravity;
 
     enum State { Waiting, Hovering, MovingToTrajectory, Striking, Returning }
     [SerializeField] private State currentState = State.Waiting;
@@ -165,11 +165,12 @@ public class SpikerAllyEnemyV2 : MonoBehaviour
 
         Rigidbody ballRb = collision.gameObject.GetComponent<Rigidbody>();
         if (ballRb == null) return;
+        BallInfo.Register(ballRb); // 確実な実体を登録
 
         if (MatchManager.Instance != null)
             MatchManager.Instance.lastTeamToHit = myTeam;
 
-        ballRb.linearVelocity = requiredDroneVel * tossBoost;
+        BallInfo.SetVelocity(requiredDroneVel * tossBoost);
         rb.linearVelocity = Vector3.zero;
 
         lastSpikedBall = collision.gameObject;
@@ -297,11 +298,12 @@ public class SpikerAllyEnemyV2 : MonoBehaviour
 
         Rigidbody ballRb = ball.GetComponent<Rigidbody>();
         if (ballRb == null) return;
+        BallInfo.Register(ballRb); // 追跡対象としてメインボールを登録
 
-        if (!IsBallOnMySide(ball.transform.position)) return;
+        if (!IsBallOnMySide(BallInfo.Position)) return;
 
-        if (ballRb.linearVelocity.y > 0 &&
-            ballRb.position.y < spikeHeight &&
+        if (BallInfo.Velocity.y > 0 &&
+            BallInfo.Position.y < spikeHeight &&
             MatchManager.Instance.currentPhase == MatchManager.GamePhase.Spiking)
         {
             targetRb = ballRb;
@@ -338,10 +340,12 @@ public class SpikerAllyEnemyV2 : MonoBehaviour
         else
             pointB = new Vector3(Random.Range(21f, 10.5f), 0f, Random.Range(-10f, 10f));
 
+        Vector3 ballPos = BallInfo.Position;
+        Vector3 ballVel = BallInfo.Velocity;
         pointA = new Vector3(
-            targetRb.position.x + (targetRb.linearVelocity.x * t),
+            ballPos.x + (ballVel.x * t),
             spikeHeight,
-            targetRb.position.z + (targetRb.linearVelocity.z * t)
+            ballPos.z + (ballVel.z * t)
         );
 
         float BAx = pointB.x - pointA.x;
@@ -418,8 +422,8 @@ public class SpikerAllyEnemyV2 : MonoBehaviour
 
     float CalculateFalling(float h)
     {
-        float y0 = targetRb.position.y;
-        float vy0 = targetRb.linearVelocity.y;
+        float y0 = BallInfo.Position.y;
+        float vy0 = BallInfo.Velocity.y;
 
         float a = 0.5f * g;
         float b = vy0;

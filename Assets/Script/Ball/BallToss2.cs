@@ -48,8 +48,10 @@ public class BallToss2 : MonoBehaviour
 
             if (ballRb != null)
             {
+                BallInfo.Register(ballRb); // 確実な実体を登録
+
                 //一度完全停止
-                ballRb.linearVelocity=Vector3.zero;
+                BallInfo.SetVelocity(Vector3.zero);
                 ballRb.angularVelocity=Vector3.zero;
 
                 // 1. ドローンの現在の速度ベクトル（XYZの合力）を取得
@@ -65,7 +67,7 @@ public class BallToss2 : MonoBehaviour
 
                 // 4. ボールの速度を完全に上書き
                 droneRb.linearVelocity=Vector3.zero;
-                ballRb.linearVelocity = boostedVelocity;
+                BallInfo.SetVelocity(boostedVelocity);
 
                 //Debug.Log($"トス成功! 合力速度: {boostedVelocity} (倍率: {tossBoost})");
             }

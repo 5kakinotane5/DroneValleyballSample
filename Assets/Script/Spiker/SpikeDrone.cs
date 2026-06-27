@@ -128,7 +128,7 @@ public class SpikeDrone : MonoBehaviour
     private Vector3 standbyPoint;
     private float timeUntilImpact;
     private GameObject lastSpikedBall;
-    private float g = Physics.gravity.y;
+    private float g = BallInfo.Gravity;
 
     // API 用追加
     private float pendingCourse;
@@ -327,11 +327,12 @@ public class SpikeDrone : MonoBehaviour
 
         Rigidbody ballRb = ball.GetComponent<Rigidbody>();
         if (ballRb == null) return;
+        BallInfo.Register(ballRb); // 追跡対象としてメインボールを登録
 
-        if (!IsBallOnMySide(ball.transform.position)) return;
+        if (!IsBallOnMySide(BallInfo.Position)) return;
 
-        if (ballRb.linearVelocity.y > 0 &&
-            ballRb.position.y < spikeHeight &&
+        if (BallInfo.Velocity.y > 0 &&
+            BallInfo.Position.y < spikeHeight &&
             MatchManager.Instance.currentPhase == MatchManager.GamePhase.Spiking)
         {
             targetRb = ballRb;
@@ -397,10 +398,12 @@ public class SpikeDrone : MonoBehaviour
             0f,
             pendingCourse * targetZHalf + Random.Range(-blur, blur));
 
+        Vector3 ballPos = BallInfo.Position;
+        Vector3 ballVel = BallInfo.Velocity;
         pointA = new Vector3(
-            targetRb.position.x + (targetRb.linearVelocity.x * t),
+            ballPos.x + (ballVel.x * t),
             spikeHeight,
-            targetRb.position.z + (targetRb.linearVelocity.z * t)
+            ballPos.z + (ballVel.z * t)
         );
 
         float BAx = pointB.x - pointA.x;
@@ -475,6 +478,7 @@ public class SpikeDrone : MonoBehaviour
 
         Rigidbody ballRb = collision.gameObject.GetComponent<Rigidbody>();
         if (ballRb == null) return;
+        BallInfo.Register(ballRb); // 確実な実体を登録
 
         if (MatchManager.Instance != null)
             MatchManager.Instance.lastTeamToHit = myTeam;
@@ -486,7 +490,7 @@ public class SpikeDrone : MonoBehaviour
             : 1f;
         timingWindow?.Reset();
 
-        ballRb.linearVelocity = CalcBallVelocity(collision.transform.position, speedMult);
+        BallInfo.SetVelocity(CalcBallVelocity(collision.transform.position, speedMult));
         rb.linearVelocity = Vector3.zero;
 
         lastSpikedBall = collision.gameObject;
@@ -602,8 +606,8 @@ public class SpikeDrone : MonoBehaviour
 
     float CalculateFalling(float h)
     {
-        float y0 = targetRb.position.y;
-        float vy0 = targetRb.linearVelocity.y;
+        float y0 = BallInfo.Position.y;
+        float vy0 = BallInfo.Velocity.y;
 
         float a = 0.5f * g;
         float b = vy0;
@@ -642,15 +646,12 @@ public class SpikeDrone : MonoBehaviour
 
     void DetectTossType()
     {
-        GameObject ball = GameObject.FindGameObjectWithTag(ballTag);
-        if (ball == null) return;
-        Rigidbody ballRb = ball.GetComponent<Rigidbody>();
-        if (ballRb == null) return;
+        if (!BallInfo.TryGetState(out Vector3 ballPos, out Vector3 ballVel)) return;
 
-        float vy = ballRb.linearVelocity.y;
+        float vy = ballVel.y;
         float apex = (vy > 0f)
-            ? ballRb.position.y + (vy * vy) / (2f * Mathf.Abs(g))
-            : ballRb.position.y;
+            ? ballPos.y + (vy * vy) / (2f * Mathf.Abs(g))
+            : ballPos.y;
 
         if (apex > highTossApexThreshold)
             tossQuality = TossQuality.High;
