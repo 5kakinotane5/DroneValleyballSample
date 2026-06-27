@@ -23,7 +23,7 @@ using UnityEngine;
 public static class BallInfo
 {
     // ボールのタグ。実行時の実体名は injectionball(Clone)。
-    public const string BallTag = "injectionball";
+    private const string BallTag = "injectionball";
 
     // 現在追跡しているボールの Rigidbody（破棄/未生成時は null）。
     private static Rigidbody cachedRb;
