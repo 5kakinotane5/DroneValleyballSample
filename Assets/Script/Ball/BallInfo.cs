@@ -31,8 +31,10 @@ public static class BallInfo
         BallInfo.ball = ball;
     }
 
-    // ボールが存在するか。
-    public static bool Exists => ball != null;
+    public static bool Exists()
+    {
+        return ball != null;
+    }
 
     // 位置・速度をまとめて取得する。取得できなければ false（out は zero）。
     public static bool TryGetState(out Vector3 position, out Vector3 velocity)

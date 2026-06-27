@@ -139,7 +139,7 @@ public class newReceiverAllyEnemy : MonoBehaviour
                 break;
 
             case State.MovingToTrajectory:
-                if (!tracking || !BallInfo.Exists || IsBallGoingOut())
+                if (!tracking || !BallInfo.Exists() || IsBallGoingOut())
                 {
                     tracking = false;
                     currentState = State.Hovering;

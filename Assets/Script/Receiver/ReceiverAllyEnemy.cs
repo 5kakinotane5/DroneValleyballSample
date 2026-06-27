@@ -67,7 +67,7 @@ public class ReceiverAllyEnemy : MonoBehaviour
                 break;
 
             case State.MovingToTrajectory:
-                if (!tracking || !BallInfo.Exists || IsBallGoingOut())
+                if (!tracking || !BallInfo.Exists() || IsBallGoingOut())
                 {
                     tracking = false;
                     currentState = State.Hovering;
@@ -91,7 +91,7 @@ public class ReceiverAllyEnemy : MonoBehaviour
 
     void FindAndCalculateBall()
     {
-        if (!BallInfo.Exists) return;
+        if (!BallInfo.Exists()) return;
 
         if (IsBallGoingOut()) return;
 
