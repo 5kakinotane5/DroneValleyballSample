@@ -25,25 +25,24 @@ public static class BallInfo
     // ボールのタグ。実行時の実体名は injectionball(Clone)。
     private const string BallTag = "injectionball";
 
-    // 現在追跡しているボールの Rigidbody（破棄/未生成時は null）。
-    private static Rigidbody cachedRb;
+    // constを付けない理由は、得点したときに古いボールが消えて新しいボールが生成されるため。
+    private static Rigidbody ball;
 
-    // ボールを明示的に登録する（サーブ生成直後や衝突時など、確実な実体を握っているとき）。
-    public static void Register(Rigidbody ballRb)
+    // ボールが生成されたときに実行すると推測。
+    public static void Register(Rigidbody ball)
     {
-        cachedRb = ballRb;
+        BallInfo.ball = ball;
     }
 
-    // 現在のボール Rigidbody を返す。キャッシュが無効ならタグで再検索する。なければ null。
     private static Rigidbody ResolveRigidbody()
     {
         // Unity のオーバーロード == により、破棄済みオブジェクトは null 判定になる。
-        if (cachedRb == null)
+        if (ball == null)
         {
             GameObject ball = GameObject.FindGameObjectWithTag(BallTag);
-            cachedRb = ball?.GetComponent<Rigidbody>();
+            BallInfo.ball = ball?.GetComponent<Rigidbody>();
         }
-        return cachedRb;
+        return ball;
     }
 
     // ボールが存在するか。
