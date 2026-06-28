@@ -644,7 +644,10 @@ public class SpikeDrone : MonoBehaviour
 
     void DetectTossType()
     {
-        if (!BallInfo.TryGetState(out Vector3 ballPos, out Vector3 ballVel)) return;
+        if (!BallInfo.Exists()) return;
+
+        Vector3 ballPos = BallInfo.GetPosition();
+        Vector3 ballVel = BallInfo.GetVelocity();
 
         float vy = ballVel.y;
         float apex = (vy > 0f)

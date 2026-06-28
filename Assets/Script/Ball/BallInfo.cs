@@ -36,20 +36,6 @@ public static class BallInfo
         return ball != null;
     }
 
-    // 位置・速度をまとめて取得する。取得できなければ false（out は zero）。
-    public static bool TryGetState(out Vector3 position, out Vector3 velocity)
-    {
-        if (ball == null)
-        {
-            position = Vector3.zero;
-            velocity = Vector3.zero;
-            return false;
-        }
-        position = GetPosition();
-        velocity = GetVelocity();
-        return true;
-    }
-
     // ボールの現在位置（無ければ Vector3.zero）。
     public static Vector3 GetPosition()
     {
