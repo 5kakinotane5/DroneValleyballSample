@@ -36,14 +36,14 @@ public static class BallInfo
         return ball != null;
     }
 
-    // ボールの現在位置
+    // ボールの現在位置を返す
     public static Vector3 GetPosition()
     {
         if (ball == null) throw new System.Exception("BallInfo: ball is null. Make sure to register the ball before calling GetPosition.");
         return ball.position;
     }
 
-    // ボールの現在速度
+    // ボールの現在速度を返す
     public static Vector3 GetVelocity()
     {
         if (ball == null) throw new System.Exception("BallInfo: ball is null. Make sure to register the ball before calling GetVelocity.");
@@ -53,9 +53,10 @@ public static class BallInfo
     // 予測計算で使う重力加速度（y成分）。
     public static float Gravity => Physics.gravity.y;
 
-    // ボールの速度を設定する（実 Rigidbody への書き込み）。
+    // ボールの速度を設定する
     public static void SetVelocity(Vector3 velocity)
     {
-        if (ball != null) ball.linearVelocity = velocity;
+        if (ball == null) throw new System.Exception("BallInfo: ball is null. Make sure to register the ball before calling SetVelocity.");
+        ball.linearVelocity = velocity;
     }
 }
