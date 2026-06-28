@@ -36,16 +36,18 @@ public static class BallInfo
         return ball != null;
     }
 
-    // ボールの現在位置（無ければ Vector3.zero）。
+    // ボールの現在位置
     public static Vector3 GetPosition()
     {
-        return ball != null ? ball.position : Vector3.zero;
+        if (ball == null) throw new System.Exception("BallInfo: ball is null. Make sure to register the ball before calling GetPosition.");
+        return ball.position;
     }
 
-    // ボールの現在速度（無ければ Vector3.zero）。
+    // ボールの現在速度
     public static Vector3 GetVelocity()
     {
-        return ball != null ? ball.linearVelocity : Vector3.zero;
+        if (ball == null) throw new System.Exception("BallInfo: ball is null. Make sure to register the ball before calling GetVelocity.");
+        return ball.linearVelocity;
     }
 
     // 予測計算で使う重力加速度（y成分）。
