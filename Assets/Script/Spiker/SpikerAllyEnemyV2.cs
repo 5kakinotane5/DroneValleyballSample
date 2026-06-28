@@ -65,7 +65,7 @@ public class SpikerAllyEnemyV2 : MonoBehaviour
     private Vector3 standbyPoint;
     private float timeUntilImpact;
     private GameObject lastSpikedBall;
-    private float g = BallInfo.Gravity;
+    private float g = Physics.gravity.y;
 
     enum State { Waiting, Hovering, MovingToTrajectory, Striking, Returning }
     [SerializeField] private State currentState = State.Waiting;

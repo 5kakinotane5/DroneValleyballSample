@@ -95,7 +95,7 @@ public class EnemySpikeDrone : MonoBehaviour
     private float pendingVelocity;
     private bool isAvoidingTrajectory;
     private float lastCourse = 1f;
-    private readonly float g = BallInfo.Gravity;
+    private readonly float g = Physics.gravity.y;
 
     enum State { Waiting, Hovering, MovingToTrajectory, Striking, Returning }
     [SerializeField] private State currentState = State.Waiting;

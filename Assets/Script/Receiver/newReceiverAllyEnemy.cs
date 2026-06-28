@@ -238,7 +238,7 @@ public class newReceiverAllyEnemy : MonoBehaviour
             initialPos.y,
             initialPos.z + Random.Range(-blur, blur));
 
-        float gravity = BallInfo.Gravity;
+        float gravity = Physics.gravity.y;
         float vx = (tossTarget.x - startPos.x) / tossFlightTime;
         float vz = (tossTarget.z - startPos.z) / tossFlightTime;
         float vy = (tossTarget.y - startPos.y - 0.5f * gravity * tossFlightTime * tossFlightTime) / tossFlightTime;
@@ -265,7 +265,7 @@ public class newReceiverAllyEnemy : MonoBehaviour
     // ボールが targetY の高さに到達するまでの時間（放物線の解の最大値）
     float PredictTimeToHeight(Vector3 startPos, Vector3 velocity, float targetY)
     {
-        float gravity = BallInfo.Gravity;
+        float gravity = Physics.gravity.y;
         float a = 0.5f * gravity;
         float b = velocity.y;
         float c = startPos.y - targetY;
@@ -278,7 +278,7 @@ public class newReceiverAllyEnemy : MonoBehaviour
 
     Vector3 PredictLandingPoint(Vector3 startPos, Vector3 velocity, float targetY)
     {
-        float gravity = BallInfo.Gravity;
+        float gravity = Physics.gravity.y;
         float a = 0.5f * gravity;
         float b = velocity.y;
         float c = startPos.y - targetY;

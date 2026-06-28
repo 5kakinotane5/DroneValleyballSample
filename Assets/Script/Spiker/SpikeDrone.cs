@@ -128,7 +128,7 @@ public class SpikeDrone : MonoBehaviour
     private Vector3 standbyPoint;
     private float timeUntilImpact;
     private GameObject lastSpikedBall;
-    private float g = BallInfo.Gravity;
+    private float g = Physics.gravity.y;
 
     // API 用追加
     private float pendingCourse;

@@ -169,7 +169,7 @@ public class ServeDrone : MonoBehaviour
     // ネットをクリアできる最小飛行時間で速度ベクトルを求める
     Vector3 CalculateServeVelocity(Vector3 start, Vector3 target)
     {
-        float g = BallInfo.Gravity;
+        float g = Physics.gravity.y;
 
         // ネットが start-target 間にあるか確認
         float dx = target.x - start.x;

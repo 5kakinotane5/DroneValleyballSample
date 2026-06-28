@@ -126,7 +126,7 @@ public class ReceiverAllyEnemy : MonoBehaviour
             Vector3 startPos = collision.transform.position;
             float vx = (initialPos.x - startPos.x) / returnFlightTime;
             float vz = (initialPos.z - startPos.z) / returnFlightTime;
-            float gravity = BallInfo.Gravity;
+            float gravity = Physics.gravity.y;
             float vy = (initialPos.y - startPos.y - 0.5f * gravity * returnFlightTime * returnFlightTime) / returnFlightTime;
             BallInfo.SetVelocity(new Vector3(vx, vy, vz));
             tracking = false;
@@ -185,7 +185,7 @@ public class ReceiverAllyEnemy : MonoBehaviour
 
     Vector3 PredictLandingPoint(Vector3 startPos, Vector3 velocity, float targetY)
     {
-        float gravity = BallInfo.Gravity;
+        float gravity = Physics.gravity.y;
         float a = 0.5f * gravity;
         float b = velocity.y;
         float c = startPos.y - targetY;

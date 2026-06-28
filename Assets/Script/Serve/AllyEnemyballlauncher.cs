@@ -66,7 +66,7 @@ public class AllyEnemyballlauncher : MonoBehaviour
         Vector3 startPoint = transform.position;
         float vx = (targetPoint.x - startPoint.x) / flightTime;
         float vz = (targetPoint.z - startPoint.z) / flightTime;
-        float gravity = BallInfo.Gravity;
+        float gravity = Physics.gravity.y;
         float vy = (targetPoint.y - startPoint.y - 0.5f * gravity * flightTime * flightTime) / flightTime;
 
         // 4. 速度をセット

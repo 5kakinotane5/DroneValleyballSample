@@ -50,9 +50,6 @@ public static class BallInfo
         return ball.linearVelocity;
     }
 
-    // 予測計算で使う重力加速度（y成分）。
-    public static float Gravity => Physics.gravity.y;
-
     // ボールの速度を設定する
     public static void SetVelocity(Vector3 velocity)
     {
