@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public class ReceiverAllyEnemy : MonoBehaviour
 {
     [SerializeField] private Team myTeam;
-    // ボールを追跡中かどうか（ボールの実体・速度は BallInfo 経由で取得する）。
+    // ボールを追跡中かどうか（ボールの実体・速度は Ball 経由で取得する）。
     private bool tracking = false;
     public float moveSpeed = 10f;
 
@@ -67,13 +67,13 @@ public class ReceiverAllyEnemy : MonoBehaviour
                 break;
 
             case State.MovingToTrajectory:
-                if (!tracking || !BallInfo.Exists() || IsBallGoingOut())
+                if (!tracking || !Ball.Exists() || IsBallGoingOut())
                 {
                     tracking = false;
                     currentState = State.Hovering;
                     break;
                 }
-                Vector3 landingPos = PredictLandingPoint(BallInfo.GetPosition(), BallInfo.GetVelocity(), transform.position.y);
+                Vector3 landingPos = PredictLandingPoint(Ball.GetPosition(), Ball.GetVelocity(), transform.position.y);
                 Vector3 targetPos = new Vector3(landingPos.x, transform.position.y, landingPos.z);
                 Hover(targetPos);
                 break;
@@ -91,7 +91,7 @@ public class ReceiverAllyEnemy : MonoBehaviour
 
     void FindAndCalculateBall()
     {
-        if (!BallInfo.Exists()) return;
+        if (!Ball.Exists()) return;
 
         if (IsBallGoingOut()) return;
 
@@ -101,7 +101,7 @@ public class ReceiverAllyEnemy : MonoBehaviour
 
     bool IsBallGoingOut()
     {
-        Vector3 landing = PredictLandingPoint(BallInfo.GetPosition(), BallInfo.GetVelocity(), 0f);
+        Vector3 landing = PredictLandingPoint(Ball.GetPosition(), Ball.GetVelocity(), 0f);
         return landing.x < courtXMin || landing.x > courtXMax ||
                landing.z < courtZMin || landing.z > courtZMax;
     }
@@ -119,7 +119,7 @@ public class ReceiverAllyEnemy : MonoBehaviour
                 MatchManager.Instance.lastTeamToHit = myTeam;
 
             // レシーブ前の着地予測点を記録して次の待機位置を更新
-            Vector3 incomingLanding = PredictLandingPoint(BallInfo.GetPosition(), BallInfo.GetVelocity(), 0f);
+            Vector3 incomingLanding = PredictLandingPoint(Ball.GetPosition(), Ball.GetVelocity(), 0f);
             RecordLanding(incomingLanding);
             UpdateHoverTarget();
 
@@ -128,7 +128,7 @@ public class ReceiverAllyEnemy : MonoBehaviour
             float vz = (initialPos.z - startPos.z) / returnFlightTime;
             float gravity = Physics.gravity.y;
             float vy = (initialPos.y - startPos.y - 0.5f * gravity * returnFlightTime * returnFlightTime) / returnFlightTime;
-            BallInfo.SetVelocity(new Vector3(vx, vy, vz));
+            Ball.SetVelocity(new Vector3(vx, vy, vz));
             tracking = false;
             currentState = State.Returning;
         }

@@ -168,7 +168,7 @@ public class Spike : MonoBehaviour
         if (MatchManager.Instance != null)
             MatchManager.Instance.lastTeamToHit = myTeam;
 
-        BallInfo.SetVelocity(requiredDroneVel * tossBoost);
+        Ball.SetVelocity(requiredDroneVel * tossBoost);
         rb.linearVelocity = Vector3.zero;
 
         lastSpikedBall = collision.gameObject;
@@ -297,10 +297,10 @@ public class Spike : MonoBehaviour
         Rigidbody ballRb = ball.GetComponent<Rigidbody>();
         if (ballRb == null) return;
 
-        if (!IsBallOnMySide(BallInfo.GetPosition())) return;
+        if (!IsBallOnMySide(Ball.GetPosition())) return;
 
-        if (BallInfo.GetVelocity().y > 0 &&
-            BallInfo.GetPosition().y < spikeHeight &&
+        if (Ball.GetVelocity().y > 0 &&
+            Ball.GetPosition().y < spikeHeight &&
             MatchManager.Instance.currentPhase == MatchManager.GamePhase.Spiking)
         {
             targetRb = ballRb;
@@ -337,8 +337,8 @@ public class Spike : MonoBehaviour
         else
             pointB = new Vector3(Random.Range(21f, 10.5f), 0f, Random.Range(-10f, 10f));
 
-        Vector3 ballPos = BallInfo.GetPosition();
-        Vector3 ballVel = BallInfo.GetVelocity();
+        Vector3 ballPos = Ball.GetPosition();
+        Vector3 ballVel = Ball.GetVelocity();
         pointA = new Vector3(
             ballPos.x + (ballVel.x * t),
             spikeHeight,
@@ -419,8 +419,8 @@ public class Spike : MonoBehaviour
 
     float CalculateFalling(float h)
     {
-        float y0 = BallInfo.GetPosition().y;
-        float vy0 = BallInfo.GetVelocity().y;
+        float y0 = Ball.GetPosition().y;
+        float vy0 = Ball.GetVelocity().y;
 
         float a = 0.5f * g;
         float b = vy0;

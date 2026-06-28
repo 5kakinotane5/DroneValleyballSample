@@ -207,10 +207,10 @@ public class EnemySpikeDrone : MonoBehaviour
 
         Rigidbody ballRb = ball.GetComponent<Rigidbody>();
         if (ballRb == null) return;
-        if (!IsBallOnMySide(BallInfo.GetPosition())) return;
+        if (!IsBallOnMySide(Ball.GetPosition())) return;
 
-        if (BallInfo.GetVelocity().y > 0 &&
-            BallInfo.GetPosition().y < spikeHeight &&
+        if (Ball.GetVelocity().y > 0 &&
+            Ball.GetPosition().y < spikeHeight &&
             MatchManager.Instance.currentPhase == MatchManager.GamePhase.Spiking)
         {
             ChooseStrategy();
@@ -278,10 +278,10 @@ public class EnemySpikeDrone : MonoBehaviour
 
     void DetectTossType()
     {
-        if (!BallInfo.Exists()) return;
+        if (!Ball.Exists()) return;
 
-        Vector3 ballPos = BallInfo.GetPosition();
-        Vector3 ballVel = BallInfo.GetVelocity();
+        Vector3 ballPos = Ball.GetPosition();
+        Vector3 ballVel = Ball.GetVelocity();
 
         float vy = ballVel.y;
         float apex = vy > 0f
@@ -310,8 +310,8 @@ public class EnemySpikeDrone : MonoBehaviour
             0f,
             pendingCourse * targetZHalf + Random.Range(-blur, blur)));
 
-        Vector3 ballPos = BallInfo.GetPosition();
-        Vector3 ballVel = BallInfo.GetVelocity();
+        Vector3 ballPos = Ball.GetPosition();
+        Vector3 ballVel = Ball.GetVelocity();
         pointA = new Vector3(
             ballPos.x + ballVel.x * t,
             spikeHeight,
@@ -428,7 +428,7 @@ public class EnemySpikeDrone : MonoBehaviour
             }
         }
 
-        BallInfo.SetVelocity(new Vector3(vx, vy, vz));
+        Ball.SetVelocity(new Vector3(vx, vy, vz));
         rb.linearVelocity = Vector3.zero;
         lastSpikedBall = collision.gameObject;
         currentState = State.Returning;
@@ -545,8 +545,8 @@ public class EnemySpikeDrone : MonoBehaviour
 
     float CalculateFalling(float h)
     {
-        float y0 = BallInfo.GetPosition().y;
-        float vy0 = BallInfo.GetVelocity().y;
+        float y0 = Ball.GetPosition().y;
+        float vy0 = Ball.GetVelocity().y;
         float a = 0.5f * g;
         float b = vy0;
         float c = y0 - h;

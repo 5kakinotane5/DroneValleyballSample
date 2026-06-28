@@ -132,8 +132,8 @@ public class ServeDrone : MonoBehaviour
         if (ballRb != null)
         {
             ball.name = "injectionball(Clone)";
-            BallInfo.Register(ballRb);       // 生成直後の実体を登録
-            BallInfo.SetVelocity(launchVel); // サーブ初速を設定
+            Ball.Register(ballRb);       // 生成直後の実体を登録
+            Ball.SetVelocity(launchVel); // サーブ初速を設定
         }
 
         // 5. 相手チームにレシーブ開始を通知（possesion を相手に切り替え）
