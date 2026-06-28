@@ -31,22 +31,28 @@ public class CameraOnDrone : MonoBehaviour
     {
         if (targetCamera == null || !EnsureBall()) return;
 
-        // ボールが映っているピクセル座標を求める（原点は左下、z はカメラからの前後距離）。
+        // カメラの背後にある場合は線を描かない（可視化は前方のみ）。
         Vector3 screenPos = targetCamera.WorldToScreenPoint(ball.position);
-        if (screenPos.z <= 0f) return; // カメラの背後なら計算しない。
+        if (screenPos.z <= 0f) return;
 
-        // ピクセル座標（u, v）からカメラの視線ベクトル（単位ベクトル）を取得する。
-        // ※のちの処理でこの「ピクセル座標 → 視線ベクトル」の変換が必要になるため、
-        //   ball.position から直接ではなく ScreenPointToRay 経由で求めている。
-        float u = screenPos.x;
-        float v = screenPos.y;
-        Ray ray = targetCamera.ScreenPointToRay(new Vector3(u, v, 0));
-        Vector3 viewVector = ray.direction; // カメラからピクセルへ向かう単位視線ベクトル（ワールド座標系）
-
-        // 視線ベクトルを赤い線で表示する（カメラ位置からボールまでの距離分だけ伸ばす）。
+        // このカメラからボールへの視線（Ray）を取得し、赤い線で表示する。
         // （Scene ビュー、および Game ビューの Gizmos を ON にすると表示される）
-        float length = screenPos.z; // カメラからボールまでの前方距離
-        Debug.DrawLine(ray.origin, ray.origin + viewVector * length, Color.red);
+        Ray gaze = GetGaze();
+        Debug.DrawLine(gaze.origin, gaze.origin + gaze.direction * screenPos.z, Color.red);
+    }
+
+    // このカメラからボールへの視線を返す.
+    public Ray GetGaze()
+    {
+        if (targetCamera == null)
+            throw new System.Exception("CameraOnDrone: targetCamera is null.");
+        if (!EnsureBall())
+            throw new System.Exception("CameraOnDrone: ball not found.");
+
+        // ボールが映っているピクセル座標（原点は左下）を求め、
+        // そのピクセルへ向かう視線（Ray）に変換する。
+        Vector3 screenPos = targetCamera.WorldToScreenPoint(ball.position);
+        return targetCamera.ScreenPointToRay(new Vector3(screenPos.x, screenPos.y, 0f));
     }
 
     void OnGUI()
