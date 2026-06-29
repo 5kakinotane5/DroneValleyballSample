@@ -123,7 +123,7 @@ public class ReceiverAllyEnemy : MonoBehaviour
             RecordLanding(incomingLanding);
             UpdateHoverTarget();
 
-            Vector3 startPos = collision.transform.position;
+            Vector3 startPos = Ball.GetPosition();
             float vx = (initialPos.x - startPos.x) / returnFlightTime;
             float vz = (initialPos.z - startPos.z) / returnFlightTime;
             float gravity = Physics.gravity.y;
