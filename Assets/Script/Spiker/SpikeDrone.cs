@@ -579,7 +579,7 @@ public class SpikeDrone : MonoBehaviour
             if (!col.CompareTag(ballTag)) continue;
             if (col.gameObject == targetBall) continue;
 
-            Vector3 awayDir = transform.position - col.transform.position;
+            Vector3 awayDir = transform.position - Ball.GetPosition();
             float dist = awayDir.magnitude;
             if (dist < 0.001f) continue;
 
