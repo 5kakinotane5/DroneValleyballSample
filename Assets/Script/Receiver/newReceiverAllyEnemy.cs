@@ -207,7 +207,7 @@ public class newReceiverAllyEnemy : MonoBehaviour
             linkedStamina.ConsumeReceive(cost);
         }
 
-        Vector3 startPos = collision.transform.position;
+        Vector3 startPos = Ball.GetPosition();
         float tossFlightTime;
 
         // 余裕時間で3段階を決定
