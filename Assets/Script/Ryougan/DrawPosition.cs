@@ -5,12 +5,20 @@ using UnityEngine;
 
 public class DrawPosition : MonoBehaviour
 {
+    // 描画するかどうか.
+    public bool isEnabled = false;
+
     // 2台のカメラから視線を取得するため.
     [SerializeField] private CameraOnDrone myCamera;
     [SerializeField] private CameraOnDrone otherCamera;
 
     void Update()
     {
+        if (!isEnabled)
+        {
+            return;
+        }
+
         if (myCamera == null || otherCamera == null || !Ball.Exists())
         {
             return;
