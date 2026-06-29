@@ -204,7 +204,7 @@ public class SpikeDrone : MonoBehaviour
                     // ボールの少し後ろ（自陣側オフセット）に張り付いて、Kを離すまで待つ。
                     // ボールに寄りたいので軌道回避は使わない（他球回避の ApplyDodgeVelocity のみ）。
                     float sx = (myTeam == Team.Ally) ? 1f : -1f;
-                    Vector3 shadow = PredictBallPosition(targetRb, runupTime) + new Vector3(sx * 1.5f, 0f, 0f);
+                    Vector3 shadow = PredictBallPosition(runupTime) + new Vector3(sx * 1.5f, 0f, 0f);
                     MoveToPoint(shadow);
                     ApplyDodgeVelocity();
 
@@ -225,7 +225,7 @@ public class SpikeDrone : MonoBehaviour
                         strikeRequested = false;
 
                         // 迎撃を引き直す：runupTime 秒後のボール位置へ、その時間で着く速度
-                        Vector3 hit = PredictBallPosition(targetRb, runupTime);
+                        Vector3 hit = PredictBallPosition(runupTime);
                         requiredDroneVel = (hit - transform.position) / runupTime;
                         if (requiredDroneVel.magnitude > vMax)
                             requiredDroneVel = requiredDroneVel.normalized * vMax;
@@ -488,6 +488,7 @@ public class SpikeDrone : MonoBehaviour
             : 1f;
         timingWindow?.Reset();
 
+        // TODO: 現段階では, 衝突時のボール位置の取得に両眼視差を用いない.
         Ball.SetVelocity(CalcBallVelocity(collision.transform.position, speedMult));
         rb.linearVelocity = Vector3.zero;
 
@@ -520,7 +521,7 @@ public class SpikeDrone : MonoBehaviour
         for (int i = 0; i <= trajectorySamples; i++)
         {
             float t = duration * i / trajectorySamples;
-            Vector3 bp = PredictBallPosition(checkRb, t);
+            Vector3 bp = PredictBallPosition(t);
             float d = Vector3.Distance(transform.position, bp);
             if (d < minDist)
             {
@@ -550,12 +551,14 @@ public class SpikeDrone : MonoBehaviour
         return true;
     }
 
-    Vector3 PredictBallPosition(Rigidbody ballRb, float t)
+    Vector3 PredictBallPosition(float t)
     {
+        Vector3 pos = Ball.GetPosition();
+        Vector3 vel = Ball.GetVelocity();
         return new Vector3(
-            ballRb.position.x + ballRb.linearVelocity.x * t,
-            ballRb.position.y + ballRb.linearVelocity.y * t + 0.5f * g * t * t,
-            ballRb.position.z + ballRb.linearVelocity.z * t
+            pos.x + vel.x * t,
+            pos.y + vel.y * t + 0.5f * g * t * t,
+            pos.z + vel.z * t
         );
     }
 
