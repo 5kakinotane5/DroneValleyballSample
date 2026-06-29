@@ -919,6 +919,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3725777149201631777, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
       insertIndex: -1
       addedObject: {fileID: 853073800}
+    - targetCorrespondingSourceObject: {fileID: 3725777149201631777, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 853073805}
   m_SourcePrefab: {fileID: 100100000, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
 --- !u!1 &853073787 stripped
 GameObject:
@@ -943,7 +946,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::newReceiverAllyEnemy
   myTeam: 1
-  targetBall: {fileID: 8662993477060767682, guid: 1cdd11fc4020e434b8b268275c63ccbf, type: 3}
   moveSpeed: 15
   initialPos: {x: -10, y: 1, z: 0}
   linkedStamina: {fileID: 508050346}
@@ -959,6 +961,21 @@ MonoBehaviour:
   courtZMin: -10
   courtZMax: 10
   currentState: 0
+--- !u!114 &853073805
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 853073787}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f36797c5bde7f9478d89f78de6abb63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DrawPosition
+  myCamera: {fileID: 1223314000}
+  otherCamera: {fileID: 1504352189}
+  markerSize: 0.5
 --- !u!1001 &890808355
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1048,7 +1065,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::newReceiverAllyEnemy
   myTeam: 0
-  targetBall: {fileID: 8662993477060767682, guid: 1cdd11fc4020e434b8b268275c63ccbf, type: 3}
   moveSpeed: 15
   initialPos: {x: 10, y: 1, z: 0}
   linkedStamina: {fileID: 0}
@@ -1243,6 +1259,17 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1223314000 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7724703827777397452, guid: 510fd7c7f4e1ce044a253aa58bfabb8b, type: 3}
+  m_PrefabInstance: {fileID: 6239909131576959399}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0cee483965a7db143bb91f081d1742fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CameraOnDrone
 --- !u!1 &1238548356
 GameObject:
   m_ObjectHideFlags: 0
@@ -1845,7 +1872,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2930803764709601993, guid: 510fd7c7f4e1ce044a253aa58bfabb8b, type: 3}
       propertyPath: m_Name
-      value: CameraOnDrone
+      value: CameraOnEnemySpikeDrone
       objectReference: {fileID: 0}
     - target: {fileID: 4348623448084051524, guid: 510fd7c7f4e1ce044a253aa58bfabb8b, type: 3}
       propertyPath: m_TargetDisplay
@@ -1901,6 +1928,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7461359549581887221, guid: 510fd7c7f4e1ce044a253aa58bfabb8b, type: 3}
   m_PrefabInstance: {fileID: 1504352187}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1504352189 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7724703827777397452, guid: 510fd7c7f4e1ce044a253aa58bfabb8b, type: 3}
+  m_PrefabInstance: {fileID: 1504352187}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0cee483965a7db143bb91f081d1742fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CameraOnDrone
 --- !u!1 &1507633215
 GameObject:
   m_ObjectHideFlags: 0
@@ -2502,7 +2540,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2930803764709601993, guid: 510fd7c7f4e1ce044a253aa58bfabb8b, type: 3}
       propertyPath: m_Name
-      value: CameraOnDrone
+      value: CameraOnEnemyReceiveDrone
       objectReference: {fileID: 0}
     - target: {fileID: 4348623448084051524, guid: 510fd7c7f4e1ce044a253aa58bfabb8b, type: 3}
       propertyPath: m_TargetDisplay
