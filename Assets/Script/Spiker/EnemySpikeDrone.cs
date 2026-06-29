@@ -483,7 +483,7 @@ public class EnemySpikeDrone : MonoBehaviour
         for (int i = 0; i <= trajectorySamples; i++)
         {
             float t = duration * i / trajectorySamples;
-            Vector3 bp = PredictBallPosition(checkRb, t);
+            Vector3 bp = PredictBallPosition(t);
             float d = Vector3.Distance(transform.position, bp);
             if (d < minDist) { minDist = d; closestBallPos = bp; closestT = t; }
         }
@@ -493,9 +493,9 @@ public class EnemySpikeDrone : MonoBehaviour
         Vector3 awayDir = transform.position - closestBallPos;
         if (awayDir.magnitude < 0.01f)
         {
-            Vector3 ballVelAtT = new Vector3(checkRb.linearVelocity.x,
-                                              checkRb.linearVelocity.y + g * closestT,
-                                              checkRb.linearVelocity.z);
+            Vector3 ballVelAtT = new Vector3(Ball.GetVelocity().x,
+                                              Ball.GetVelocity().y + g * closestT,
+                                              Ball.GetVelocity().z);
             awayDir = Vector3.Cross(ballVelAtT.normalized, Vector3.up);
             if (awayDir.magnitude < 0.01f) awayDir = Vector3.forward;
         }
@@ -504,10 +504,10 @@ public class EnemySpikeDrone : MonoBehaviour
         return true;
     }
 
-    Vector3 PredictBallPosition(Rigidbody ballRb, float t) =>
-        new Vector3(ballRb.position.x + ballRb.linearVelocity.x * t,
-                    ballRb.position.y + ballRb.linearVelocity.y * t + 0.5f * g * t * t,
-                    ballRb.position.z + ballRb.linearVelocity.z * t);
+    Vector3 PredictBallPosition(float t) =>
+        new Vector3(Ball.GetPosition().x + Ball.GetVelocity().x * t,
+                    Ball.GetPosition().y + Ball.GetVelocity().y * t + 0.5f * g * t * t,
+                    Ball.GetPosition().z + Ball.GetVelocity().z * t);
 
     void SetNonTargetBallIgnore(bool ignore)
     {
