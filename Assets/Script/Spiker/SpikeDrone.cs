@@ -502,15 +502,10 @@ public class SpikeDrone : MonoBehaviour
     {
         avoidVector = Vector3.zero;
 
-        Rigidbody checkRb = targetRb;
-        if (checkRb == null)
-        {
-            GameObject anyBall = GameObject.FindGameObjectWithTag(ballTag);
-            if (anyBall == null || anyBall == lastSpikedBall) return false;
-            if (!IsBallOnMySide(anyBall.transform.position)) return false;
-            checkRb = anyBall.GetComponent<Rigidbody>();
-            if (checkRb == null) return false;
-        }
+        if (!Ball.Exists()) return false;
+        // targetRb 確定前はコート上のボールを対象にするため、自陣側にあるときだけ回避する。
+        // targetRb 確定後は捕捉済みなのでサイド判定を省く（従来挙動を維持）。
+        if (targetRb == null && !IsBallOnMySide(Ball.GetPosition())) return false;
 
         float duration = (timeUntilImpact > 0.05f) ? timeUntilImpact : 3f;
 
@@ -537,10 +532,11 @@ public class SpikeDrone : MonoBehaviour
 
         if (awayDir.magnitude < 0.01f)
         {
+            Vector3 ballVel = Ball.GetVelocity();
             Vector3 ballVelAtT = new Vector3(
-                checkRb.linearVelocity.x,
-                checkRb.linearVelocity.y + g * closestT,
-                checkRb.linearVelocity.z
+                ballVel.x,
+                ballVel.y + g * closestT,
+                ballVel.z
             );
             awayDir = Vector3.Cross(ballVelAtT.normalized, Vector3.up);
             if (awayDir.magnitude < 0.01f) awayDir = Vector3.forward;
