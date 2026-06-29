@@ -1067,6 +1067,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3725777149201631777, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
       insertIndex: -1
       addedObject: {fileID: 890808357}
+    - targetCorrespondingSourceObject: {fileID: 3725777149201631777, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 890808367}
   m_SourcePrefab: {fileID: 100100000, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
 --- !u!1 &890808356 stripped
 GameObject:
@@ -1106,6 +1109,21 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4107087419166036123, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
   m_PrefabInstance: {fileID: 890808355}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &890808367
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 890808356}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f36797c5bde7f9478d89f78de6abb63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DrawPosition
+  isEnabled: 0
+  myCamera: {fileID: 1371897207}
+  otherCamera: {fileID: 1874001678}
 --- !u!1001 &911648654
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1474,11 +1492,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1759527384}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1259455401 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2930803764709601993, guid: 510fd7c7f4e1ce044a253aa58bfabb8b, type: 3}
-  m_PrefabInstance: {fileID: 1371897205}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1371897205
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1539,10 +1552,7 @@ PrefabInstance:
     - {fileID: 7739192847257758420, guid: 510fd7c7f4e1ce044a253aa58bfabb8b, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 2930803764709601993, guid: 510fd7c7f4e1ce044a253aa58bfabb8b, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1371897211}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 510fd7c7f4e1ce044a253aa58bfabb8b, type: 3}
 --- !u!4 &1371897206 stripped
 Transform:
@@ -1554,27 +1564,12 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7724703827777397452, guid: 510fd7c7f4e1ce044a253aa58bfabb8b, type: 3}
   m_PrefabInstance: {fileID: 1371897205}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1259455401}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0cee483965a7db143bb91f081d1742fb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraOnDrone
---- !u!114 &1371897211
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1259455401}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9f36797c5bde7f9478d89f78de6abb63, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DrawPosition
-  isEnabled: 0
-  myCamera: {fileID: 1371897207}
-  otherCamera: {fileID: 1874001678}
 --- !u!1 &1392019825 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7231887364440564934, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
