@@ -188,7 +188,7 @@ public class SpikerAllyEnemyV2 : MonoBehaviour
         {
             GameObject anyBall = GameObject.FindGameObjectWithTag(ballTag);
             if (anyBall == null || anyBall == lastSpikedBall) return false;
-            if (!IsBallOnMySide(anyBall.transform.position)) return false;
+            if (!IsBallOnMySide(Ball.GetPosition())) return false;
             checkRb = anyBall.GetComponent<Rigidbody>();
             if (checkRb == null) return false;
         }
@@ -272,7 +272,7 @@ public class SpikerAllyEnemyV2 : MonoBehaviour
             if (!col.CompareTag(ballTag)) continue;
             if (col.gameObject == targetBall) continue;
 
-            Vector3 awayDir = transform.position - col.transform.position;
+            Vector3 awayDir = transform.position - Ball.GetPosition();
             float dist = awayDir.magnitude;
             if (dist < 0.001f) continue;
 

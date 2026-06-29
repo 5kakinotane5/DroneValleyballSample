@@ -470,7 +470,7 @@ public class EnemySpikeDrone : MonoBehaviour
         {
             GameObject anyBall = GameObject.FindGameObjectWithTag(ballTag);
             if (anyBall == null || anyBall == lastSpikedBall) return false;
-            if (!IsBallOnMySide(anyBall.transform.position)) return false;
+            if (!IsBallOnMySide(Ball.GetPosition())) return false;
             checkRb = anyBall.GetComponent<Rigidbody>();
             if (checkRb == null) return false;
         }
@@ -527,7 +527,7 @@ public class EnemySpikeDrone : MonoBehaviour
         foreach (var col in Physics.OverlapSphere(transform.position, dodgeRadius))
         {
             if (!col.CompareTag(ballTag) || col.gameObject == targetBall) continue;
-            Vector3 away = transform.position - col.transform.position;
+            Vector3 away = transform.position - Ball.GetPosition();
             float dist = away.magnitude;
             if (dist < 0.001f) continue;
             dodge += away.normalized * (1f - Mathf.Clamp01(dist / dodgeRadius)) * dodgeSpeed;
