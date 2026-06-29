@@ -401,7 +401,7 @@ public class EnemySpikeDrone : MonoBehaviour
             0f,
             pendingCourse * targetZHalf + Random.Range(-blur, blur)));
 
-        Vector3 hitPos = collision.transform.position;
+        Vector3 hitPos = Ball.GetPosition();
         float dx = landing.x - hitPos.x;
         float dz = landing.z - hitPos.z;
         float horizontalDist = Mathf.Sqrt(dx * dx + dz * dz);
