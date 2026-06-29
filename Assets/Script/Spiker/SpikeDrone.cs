@@ -488,8 +488,7 @@ public class SpikeDrone : MonoBehaviour
             : 1f;
         timingWindow?.Reset();
 
-        // TODO: 現段階では, 衝突時のボール位置の取得に両眼視差を用いない.
-        Ball.SetVelocity(CalcBallVelocity(collision.transform.position, speedMult));
+        Ball.SetVelocity(CalcBallVelocity(Ball.GetPosition(), speedMult));
         rb.linearVelocity = Vector3.zero;
 
         lastSpikedBall = collision.gameObject;
