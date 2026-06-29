@@ -202,7 +202,7 @@ public class Spike : MonoBehaviour
         for (int i = 0; i <= trajectorySamples; i++)
         {
             float t = duration * i / trajectorySamples;
-            Vector3 bp = PredictBallPosition(checkRb, t);
+            Vector3 bp = PredictBallPosition(t);
             float d = Vector3.Distance(transform.position, bp);
             if (d < minDist)
             {
@@ -237,12 +237,12 @@ public class Spike : MonoBehaviour
     }
 
     // 時刻 t 秒後のボール位置を予測（重力考慮）
-    Vector3 PredictBallPosition(Rigidbody ballRb, float t)
+    Vector3 PredictBallPosition(float t)
     {
         return new Vector3(
-            ballRb.position.x + ballRb.linearVelocity.x * t,
-            ballRb.position.y + ballRb.linearVelocity.y * t + 0.5f * g * t * t,
-            ballRb.position.z + ballRb.linearVelocity.z * t
+            Ball.GetPosition().x + Ball.GetVelocity().x * t,
+            Ball.GetPosition().y + Ball.GetVelocity().y * t + 0.5f * g * t * t,
+            Ball.GetPosition().z + Ball.GetVelocity().z * t
         );
     }
 
