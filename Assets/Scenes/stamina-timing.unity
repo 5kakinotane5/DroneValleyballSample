@@ -975,7 +975,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DrawPosition
   myCamera: {fileID: 1223314000}
   otherCamera: {fileID: 1504352189}
-  markerSize: 0.5
 --- !u!1001 &890808355
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1509,7 +1508,8 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 7739192847257758420, guid: 510fd7c7f4e1ce044a253aa58bfabb8b, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -1918,7 +1918,8 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 7739192847257758420, guid: 510fd7c7f4e1ce044a253aa58bfabb8b, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -2269,7 +2270,8 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 7739192847257758420, guid: 510fd7c7f4e1ce044a253aa58bfabb8b, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -2586,7 +2588,8 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 7739192847257758420, guid: 510fd7c7f4e1ce044a253aa58bfabb8b, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
