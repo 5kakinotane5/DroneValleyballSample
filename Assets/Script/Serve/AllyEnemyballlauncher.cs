@@ -53,6 +53,7 @@ public class AllyEnemyballlauncher : MonoBehaviour
         // 1. ボールを生成
         GameObject ball = Instantiate(ballPrefab, transform.position, Quaternion.identity);
         Rigidbody ballRb = ball.GetComponent<Rigidbody>();
+        Ball.Register(ballRb); // 生成直後の実体を登録
 
         // 2. 自分のコートのランダムな目標地点を決める
         // ※ここの数字を自分のコートの座標に合わせて微調整してください
@@ -69,7 +70,7 @@ public class AllyEnemyballlauncher : MonoBehaviour
         float vy = (targetPoint.y - startPoint.y - 0.5f * gravity * flightTime * flightTime) / flightTime;
 
         // 4. 速度をセット
-        ballRb.linearVelocity = new Vector3(vx, vy, vz);
+        Ball.SetVelocity(new Vector3(vx, vy, vz));
         
         //発射と同時にマネージャーのフェーズを変える
         if(MatchManager.Instance != null){

@@ -24,7 +24,8 @@ using UnityEngine;
 public class newReceiverAllyEnemy : MonoBehaviour
 {
     [SerializeField] private Team myTeam;
-    public Rigidbody targetBall;
+    // ボールを追跡中かどうか（ボールの実体・速度は Ball 経由で取得する）。
+    private bool tracking = false;
     public float moveSpeed = 15f;
 
     public Vector3 initialPos = new Vector3(10f, 1f, 0f);
@@ -34,7 +35,7 @@ public class newReceiverAllyEnemy : MonoBehaviour
 
     [Header("レシーブ難易度によるスタミナ消費")]
     [Tooltip("ボール速度1単位あたりのスタミナ消費量")]
-    public float receiveSpeedCostRate    = 0.3f;
+    public float receiveSpeedCostRate = 0.3f;
     [Tooltip("初期位置からの移動距離1単位あたりのスタミナ消費量")]
     public float receiveMoveDistCostRate = 0.5f;
 
@@ -42,12 +43,12 @@ public class newReceiverAllyEnemy : MonoBehaviour
     [Tooltip("余裕時間がこれ以上 → 高トス")]
     public float highMarginThreshold = 1.0f;
     [Tooltip("余裕時間がこれ以上（かつ高トス未満）→ 中トス")]
-    public float medMarginThreshold  = 0.3f;
+    public float medMarginThreshold = 0.3f;
 
     [Header("各トスの滞空時間（秒）")]
     public float highTossFlightTime = 3.5f;
-    public float medTossFlightTime  = 2.8f;
-    public float lowTossFlightTime  = 2.0f;
+    public float medTossFlightTime = 2.8f;
+    public float lowTossFlightTime = 2.0f;
 
     [Header("コート境界設定（アウト判定）")]
     [Tooltip("AllyはX:0〜21, EnemyはX:-21〜0 をそれぞれ設定する")]
@@ -61,7 +62,7 @@ public class newReceiverAllyEnemy : MonoBehaviour
 
     // UI表示用
     private string tossLabel = "";
-    private float  labelTimer = 0f;
+    private float labelTimer = 0f;
     private const float labelDuration = 3f;
 
     enum State { Waiting, Hovering, MovingToTrajectory, Receiving, Returning }
@@ -138,14 +139,14 @@ public class newReceiverAllyEnemy : MonoBehaviour
                 break;
 
             case State.MovingToTrajectory:
-                if (targetBall == null || IsBallGoingOut(targetBall))
+                if (!tracking || !Ball.Exists() || IsBallGoingOut())
                 {
-                    targetBall = null;
+                    tracking = false;
                     currentState = State.Hovering;
                     break;
                 }
-                Vector3 landingPos = PredictLandingPoint(targetBall.position, targetBall.linearVelocity, transform.position.y);
-                Vector3 targetPos  = new Vector3(landingPos.x, transform.position.y, landingPos.z);
+                Vector3 landingPos = PredictLandingPoint(Ball.GetPosition(), Ball.GetVelocity(), transform.position.y);
+                Vector3 targetPos = new Vector3(landingPos.x, transform.position.y, landingPos.z);
                 Hover(targetPos);
                 break;
 
@@ -160,27 +161,26 @@ public class newReceiverAllyEnemy : MonoBehaviour
 
     void FindAndCalculateBall()
     {
-        GameObject ball = GameObject.Find("injectionball(Clone)");
-        if (ball == null) return;
+        if (!Ball.Exists()) return;
 
-        Rigidbody ballRb = ball.GetComponent<Rigidbody>();
-        if (ballRb == null) return;
+        Vector3 ballPos = Ball.GetPosition();
+        Vector3 ballVel = Ball.GetVelocity();
 
-        if (IsBallGoingOut(ballRb)) return;
+        if (IsBallGoingOut()) return;
 
         // 余裕時間 = ボールが自分の高さに到達するまでの時間 − 自分が移動しきるのにかかる時間
-        Vector3 landing   = PredictLandingPoint(ballRb.position, ballRb.linearVelocity, transform.position.y);
-        float   arrive    = PredictTimeToHeight(ballRb.position, ballRb.linearVelocity, transform.position.y);
-        float   travel    = Vector3.Distance(transform.position, new Vector3(landing.x, transform.position.y, landing.z)) / moveSpeed;
-        storedMargin      = arrive - travel;
+        Vector3 landing = PredictLandingPoint(ballPos, ballVel, transform.position.y);
+        float arrive = PredictTimeToHeight(ballPos, ballVel, transform.position.y);
+        float travel = Vector3.Distance(transform.position, new Vector3(landing.x, transform.position.y, landing.z)) / moveSpeed;
+        storedMargin = arrive - travel;
 
-        targetBall   = ballRb;
+        tracking = true;
         currentState = State.MovingToTrajectory;
     }
 
-    bool IsBallGoingOut(Rigidbody ballRb)
+    bool IsBallGoingOut()
     {
-        Vector3 landing = PredictLandingPoint(ballRb.position, ballRb.linearVelocity, 0f);
+        Vector3 landing = PredictLandingPoint(Ball.GetPosition(), Ball.GetVelocity(), 0f);
         return landing.x < courtXMin || landing.x > courtXMax ||
                landing.z < courtZMin || landing.z > courtZMax;
     }
@@ -200,33 +200,33 @@ public class newReceiverAllyEnemy : MonoBehaviour
         // レシーブ難易度に応じてスタミナを消費
         if (linkedStamina != null)
         {
-            float ballSpeed   = collision.relativeVelocity.magnitude;
-            float moveDistXZ  = Vector3.Distance(
+            float ballSpeed = collision.relativeVelocity.magnitude;
+            float moveDistXZ = Vector3.Distance(
                 new Vector3(transform.position.x, initialPos.y, transform.position.z), initialPos);
             float cost = ballSpeed * receiveSpeedCostRate + moveDistXZ * receiveMoveDistCostRate;
             linkedStamina.ConsumeReceive(cost);
         }
 
-        Vector3 startPos = collision.transform.position;
+        Vector3 startPos = Ball.GetPosition();
         float tossFlightTime;
 
         // 余裕時間で3段階を決定
         if (storedMargin >= highMarginThreshold)
         {
             tossFlightTime = highTossFlightTime;
-            tossLabel      = "高いトス！";
+            tossLabel = "高いトス！";
             Debug.Log($"[{myTeam}] 余裕あり(margin:{storedMargin:F2}s) → 高トス");
         }
         else if (storedMargin >= medMarginThreshold)
         {
             tossFlightTime = medTossFlightTime;
-            tossLabel      = "中くらいのトス";
+            tossLabel = "中くらいのトス";
             Debug.Log($"[{myTeam}] 少し余裕(margin:{storedMargin:F2}s) → 中トス");
         }
         else
         {
             tossFlightTime = lowTossFlightTime;
-            tossLabel      = "低いトス…";
+            tossLabel = "低いトス…";
             Debug.Log($"[{myTeam}] ギリギリ(margin:{storedMargin:F2}s) → 低トス");
         }
         labelTimer = labelDuration;
@@ -243,15 +243,15 @@ public class newReceiverAllyEnemy : MonoBehaviour
         float vz = (tossTarget.z - startPos.z) / tossFlightTime;
         float vy = (tossTarget.y - startPos.y - 0.5f * gravity * tossFlightTime * tossFlightTime) / tossFlightTime;
 
-        ballRb.linearVelocity = new Vector3(vx, vy, vz);
-        targetBall   = null;
+        Ball.SetVelocity(new Vector3(vx, vy, vz));
+        tracking = false;
         currentState = State.Returning;
     }
 
     void Hover(Vector3 target)
     {
-        Rigidbody rb  = GetComponent<Rigidbody>();
-        Vector3   diff = target - transform.position;
+        Rigidbody rb = GetComponent<Rigidbody>();
+        Vector3 diff = target - transform.position;
         float distance = diff.magnitude;
         if (distance < 0.1f)
         {
@@ -265,10 +265,10 @@ public class newReceiverAllyEnemy : MonoBehaviour
     // ボールが targetY の高さに到達するまでの時間（放物線の解の最大値）
     float PredictTimeToHeight(Vector3 startPos, Vector3 velocity, float targetY)
     {
-        float gravity      = Physics.gravity.y;
-        float a            = 0.5f * gravity;
-        float b            = velocity.y;
-        float c            = startPos.y - targetY;
+        float gravity = Physics.gravity.y;
+        float a = 0.5f * gravity;
+        float b = velocity.y;
+        float c = startPos.y - targetY;
         float discriminant = b * b - 4 * a * c;
         if (discriminant < 0) return 0f;
         float t1 = (-b + Mathf.Sqrt(discriminant)) / (2 * a);
@@ -278,10 +278,10 @@ public class newReceiverAllyEnemy : MonoBehaviour
 
     Vector3 PredictLandingPoint(Vector3 startPos, Vector3 velocity, float targetY)
     {
-        float gravity      = Physics.gravity.y;
-        float a            = 0.5f * gravity;
-        float b            = velocity.y;
-        float c            = startPos.y - targetY;
+        float gravity = Physics.gravity.y;
+        float a = 0.5f * gravity;
+        float b = velocity.y;
+        float c = startPos.y - targetY;
         float discriminant = b * b - 4 * a * c;
         if (discriminant < 0) return startPos;
         float t = Mathf.Max((-b + Mathf.Sqrt(discriminant)) / (2 * a),
@@ -292,7 +292,7 @@ public class newReceiverAllyEnemy : MonoBehaviour
     public void ResetToInitialState()
     {
         currentState = State.Waiting;
-        targetBall   = null;
+        tracking = false;
         storedMargin = 0f;
         transform.position = initialPos;
         GetComponent<Rigidbody>().linearVelocity = Vector3.zero;

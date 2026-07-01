@@ -204,7 +204,7 @@ public class SpikeDrone : MonoBehaviour
                     // ボールの少し後ろ（自陣側オフセット）に張り付いて、Kを離すまで待つ。
                     // ボールに寄りたいので軌道回避は使わない（他球回避の ApplyDodgeVelocity のみ）。
                     float sx = (myTeam == Team.Ally) ? 1f : -1f;
-                    Vector3 shadow = PredictBallPosition(targetRb, runupTime) + new Vector3(sx * 1.5f, 0f, 0f);
+                    Vector3 shadow = PredictBallPosition(runupTime) + new Vector3(sx * 1.5f, 0f, 0f);
                     MoveToPoint(shadow);
                     ApplyDodgeVelocity();
 
@@ -225,7 +225,7 @@ public class SpikeDrone : MonoBehaviour
                         strikeRequested = false;
 
                         // 迎撃を引き直す：runupTime 秒後のボール位置へ、その時間で着く速度
-                        Vector3 hit = PredictBallPosition(targetRb, runupTime);
+                        Vector3 hit = PredictBallPosition(runupTime);
                         requiredDroneVel = (hit - transform.position) / runupTime;
                         if (requiredDroneVel.magnitude > vMax)
                             requiredDroneVel = requiredDroneVel.normalized * vMax;
@@ -328,10 +328,10 @@ public class SpikeDrone : MonoBehaviour
         Rigidbody ballRb = ball.GetComponent<Rigidbody>();
         if (ballRb == null) return;
 
-        if (!IsBallOnMySide(ball.transform.position)) return;
+        if (!IsBallOnMySide(Ball.GetPosition())) return;
 
-        if (ballRb.linearVelocity.y > 0 &&
-            ballRb.position.y < spikeHeight &&
+        if (Ball.GetVelocity().y > 0 &&
+            Ball.GetPosition().y < spikeHeight &&
             MatchManager.Instance.currentPhase == MatchManager.GamePhase.Spiking)
         {
             targetRb = ballRb;
@@ -397,10 +397,12 @@ public class SpikeDrone : MonoBehaviour
             0f,
             pendingCourse * targetZHalf + Random.Range(-blur, blur));
 
+        Vector3 ballPos = Ball.GetPosition();
+        Vector3 ballVel = Ball.GetVelocity();
         pointA = new Vector3(
-            targetRb.position.x + (targetRb.linearVelocity.x * t),
+            ballPos.x + (ballVel.x * t),
             spikeHeight,
-            targetRb.position.z + (targetRb.linearVelocity.z * t)
+            ballPos.z + (ballVel.z * t)
         );
 
         float BAx = pointB.x - pointA.x;
@@ -486,7 +488,7 @@ public class SpikeDrone : MonoBehaviour
             : 1f;
         timingWindow?.Reset();
 
-        ballRb.linearVelocity = CalcBallVelocity(collision.transform.position, speedMult);
+        Ball.SetVelocity(CalcBallVelocity(Ball.GetPosition(), speedMult));
         rb.linearVelocity = Vector3.zero;
 
         lastSpikedBall = collision.gameObject;
@@ -499,15 +501,10 @@ public class SpikeDrone : MonoBehaviour
     {
         avoidVector = Vector3.zero;
 
-        Rigidbody checkRb = targetRb;
-        if (checkRb == null)
-        {
-            GameObject anyBall = GameObject.FindGameObjectWithTag(ballTag);
-            if (anyBall == null || anyBall == lastSpikedBall) return false;
-            if (!IsBallOnMySide(anyBall.transform.position)) return false;
-            checkRb = anyBall.GetComponent<Rigidbody>();
-            if (checkRb == null) return false;
-        }
+        if (!Ball.Exists()) return false;
+        // targetRb 確定前はコート上のボールを対象にするため、自陣側にあるときだけ回避する。
+        // targetRb 確定後は捕捉済みなのでサイド判定を省く（従来挙動を維持）。
+        if (targetRb == null && !IsBallOnMySide(Ball.GetPosition())) return false;
 
         float duration = (timeUntilImpact > 0.05f) ? timeUntilImpact : 3f;
 
@@ -518,7 +515,7 @@ public class SpikeDrone : MonoBehaviour
         for (int i = 0; i <= trajectorySamples; i++)
         {
             float t = duration * i / trajectorySamples;
-            Vector3 bp = PredictBallPosition(checkRb, t);
+            Vector3 bp = PredictBallPosition(t);
             float d = Vector3.Distance(transform.position, bp);
             if (d < minDist)
             {
@@ -534,10 +531,11 @@ public class SpikeDrone : MonoBehaviour
 
         if (awayDir.magnitude < 0.01f)
         {
+            Vector3 ballVel = Ball.GetVelocity();
             Vector3 ballVelAtT = new Vector3(
-                checkRb.linearVelocity.x,
-                checkRb.linearVelocity.y + g * closestT,
-                checkRb.linearVelocity.z
+                ballVel.x,
+                ballVel.y + g * closestT,
+                ballVel.z
             );
             awayDir = Vector3.Cross(ballVelAtT.normalized, Vector3.up);
             if (awayDir.magnitude < 0.01f) awayDir = Vector3.forward;
@@ -548,12 +546,14 @@ public class SpikeDrone : MonoBehaviour
         return true;
     }
 
-    Vector3 PredictBallPosition(Rigidbody ballRb, float t)
+    Vector3 PredictBallPosition(float t)
     {
+        Vector3 pos = Ball.GetPosition();
+        Vector3 vel = Ball.GetVelocity();
         return new Vector3(
-            ballRb.position.x + ballRb.linearVelocity.x * t,
-            ballRb.position.y + ballRb.linearVelocity.y * t + 0.5f * g * t * t,
-            ballRb.position.z + ballRb.linearVelocity.z * t
+            pos.x + vel.x * t,
+            pos.y + vel.y * t + 0.5f * g * t * t,
+            pos.z + vel.z * t
         );
     }
 
@@ -579,7 +579,7 @@ public class SpikeDrone : MonoBehaviour
             if (!col.CompareTag(ballTag)) continue;
             if (col.gameObject == targetBall) continue;
 
-            Vector3 awayDir = transform.position - col.transform.position;
+            Vector3 awayDir = transform.position - Ball.GetPosition();
             float dist = awayDir.magnitude;
             if (dist < 0.001f) continue;
 
@@ -602,8 +602,8 @@ public class SpikeDrone : MonoBehaviour
 
     float CalculateFalling(float h)
     {
-        float y0 = targetRb.position.y;
-        float vy0 = targetRb.linearVelocity.y;
+        float y0 = Ball.GetPosition().y;
+        float vy0 = Ball.GetVelocity().y;
 
         float a = 0.5f * g;
         float b = vy0;
@@ -642,15 +642,15 @@ public class SpikeDrone : MonoBehaviour
 
     void DetectTossType()
     {
-        GameObject ball = GameObject.FindGameObjectWithTag(ballTag);
-        if (ball == null) return;
-        Rigidbody ballRb = ball.GetComponent<Rigidbody>();
-        if (ballRb == null) return;
+        if (!Ball.Exists()) return;
 
-        float vy = ballRb.linearVelocity.y;
+        Vector3 ballPos = Ball.GetPosition();
+        Vector3 ballVel = Ball.GetVelocity();
+
+        float vy = ballVel.y;
         float apex = (vy > 0f)
-            ? ballRb.position.y + (vy * vy) / (2f * Mathf.Abs(g))
-            : ballRb.position.y;
+            ? ballPos.y + (vy * vy) / (2f * Mathf.Abs(g))
+            : ballPos.y;
 
         if (apex > highTossApexThreshold)
             tossQuality = TossQuality.High;
@@ -679,7 +679,7 @@ public class SpikeDrone : MonoBehaviour
         float horizontalDist = Mathf.Sqrt(dx * dx + dz * dz);
 
         // vy ≤ 0 を保証する最低水平速度（T_max = sqrt(2h/|g|)以下に T を収める）
-        float heightDiff   = Mathf.Max(hitPos.y - landing.y, 0.1f);
+        float heightDiff = Mathf.Max(hitPos.y - landing.y, 0.1f);
         float minFlatSpeed = horizontalDist * Mathf.Sqrt(Mathf.Abs(g) / (2f * heightDiff));
         // speedMult（タイミングボーナス）を適用しつつ山なり防止クランプ
         float speed = Mathf.Max(pendingVelocity * speedMult, minFlatSpeed, 0.1f);

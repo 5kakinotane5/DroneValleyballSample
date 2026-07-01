@@ -168,7 +168,7 @@ public class Spike : MonoBehaviour
         if (MatchManager.Instance != null)
             MatchManager.Instance.lastTeamToHit = myTeam;
 
-        ballRb.linearVelocity = requiredDroneVel * tossBoost;
+        Ball.SetVelocity(requiredDroneVel * tossBoost);
         rb.linearVelocity = Vector3.zero;
 
         lastSpikedBall = collision.gameObject;
@@ -187,7 +187,7 @@ public class Spike : MonoBehaviour
         {
             GameObject anyBall = GameObject.FindGameObjectWithTag(ballTag);
             if (anyBall == null || anyBall == lastSpikedBall) return false;
-            if (!IsBallOnMySide(anyBall.transform.position)) return false;
+            if (!IsBallOnMySide(Ball.GetPosition())) return false;
             checkRb = anyBall.GetComponent<Rigidbody>();
             if (checkRb == null) return false;
         }
@@ -202,7 +202,7 @@ public class Spike : MonoBehaviour
         for (int i = 0; i <= trajectorySamples; i++)
         {
             float t = duration * i / trajectorySamples;
-            Vector3 bp = PredictBallPosition(checkRb, t);
+            Vector3 bp = PredictBallPosition(t);
             float d = Vector3.Distance(transform.position, bp);
             if (d < minDist)
             {
@@ -237,12 +237,12 @@ public class Spike : MonoBehaviour
     }
 
     // 時刻 t 秒後のボール位置を予測（重力考慮）
-    Vector3 PredictBallPosition(Rigidbody ballRb, float t)
+    Vector3 PredictBallPosition(float t)
     {
         return new Vector3(
-            ballRb.position.x + ballRb.linearVelocity.x * t,
-            ballRb.position.y + ballRb.linearVelocity.y * t + 0.5f * g * t * t,
-            ballRb.position.z + ballRb.linearVelocity.z * t
+            Ball.GetPosition().x + Ball.GetVelocity().x * t,
+            Ball.GetPosition().y + Ball.GetVelocity().y * t + 0.5f * g * t * t,
+            Ball.GetPosition().z + Ball.GetVelocity().z * t
         );
     }
 
@@ -271,7 +271,7 @@ public class Spike : MonoBehaviour
             if (!col.CompareTag(ballTag)) continue;
             if (col.gameObject == targetBall) continue;
 
-            Vector3 awayDir = transform.position - col.transform.position;
+            Vector3 awayDir = transform.position - Ball.GetPosition();
             float dist = awayDir.magnitude;
             if (dist < 0.001f) continue;
 
@@ -297,10 +297,10 @@ public class Spike : MonoBehaviour
         Rigidbody ballRb = ball.GetComponent<Rigidbody>();
         if (ballRb == null) return;
 
-        if (!IsBallOnMySide(ball.transform.position)) return;
+        if (!IsBallOnMySide(Ball.GetPosition())) return;
 
-        if (ballRb.linearVelocity.y > 0 &&
-            ballRb.position.y < spikeHeight &&
+        if (Ball.GetVelocity().y > 0 &&
+            Ball.GetPosition().y < spikeHeight &&
             MatchManager.Instance.currentPhase == MatchManager.GamePhase.Spiking)
         {
             targetRb = ballRb;
@@ -337,10 +337,12 @@ public class Spike : MonoBehaviour
         else
             pointB = new Vector3(Random.Range(21f, 10.5f), 0f, Random.Range(-10f, 10f));
 
+        Vector3 ballPos = Ball.GetPosition();
+        Vector3 ballVel = Ball.GetVelocity();
         pointA = new Vector3(
-            targetRb.position.x + (targetRb.linearVelocity.x * t),
+            ballPos.x + (ballVel.x * t),
             spikeHeight,
-            targetRb.position.z + (targetRb.linearVelocity.z * t)
+            ballPos.z + (ballVel.z * t)
         );
 
         float BAx = pointB.x - pointA.x;
@@ -417,8 +419,8 @@ public class Spike : MonoBehaviour
 
     float CalculateFalling(float h)
     {
-        float y0 = targetRb.position.y;
-        float vy0 = targetRb.linearVelocity.y;
+        float y0 = Ball.GetPosition().y;
+        float vy0 = Ball.GetVelocity().y;
 
         float a = 0.5f * g;
         float b = vy0;

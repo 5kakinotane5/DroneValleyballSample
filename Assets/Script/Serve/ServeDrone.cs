@@ -28,12 +28,12 @@ public class ServeDrone : MonoBehaviour
     public Team serveTeam = Team.Ally;
 
     [Header("サーブ位置（自コート外）")]
-    public Vector3 allyServePosition  = new Vector3(23f, 1f, 0f);
+    public Vector3 allyServePosition = new Vector3(23f, 1f, 0f);
     public Vector3 enemyServePosition = new Vector3(-23f, 1f, 0f);
 
     [Header("サーブ先 X 範囲（相手コート）")]
-    public float allyTargetMinX  = -20f;
-    public float allyTargetMaxX  = -2f;
+    public float allyTargetMinX = -20f;
+    public float allyTargetMaxX = -2f;
     public float enemyTargetMinX = 2f;
     public float enemyTargetMaxX = 20f;
 
@@ -42,8 +42,8 @@ public class ServeDrone : MonoBehaviour
     public float targetMaxZ = 9f;
 
     [Header("ネット設定")]
-    public float netX         = 0f;
-    public float netHeight    = 6.0f;
+    public float netX = 0f;
+    public float netHeight = 6.0f;
     public float netClearance = 0.5f;
 
     [Header("移動時間（秒）")]
@@ -54,8 +54,8 @@ public class ServeDrone : MonoBehaviour
     public float autoServeDelay = 2.0f;
 
     [Header("飛行時間の探索範囲（短いほど速い弾道）")]
-    public float minFlightTime  = 1.0f;
-    public float maxFlightTime  = 6.0f;
+    public float minFlightTime = 1.0f;
+    public float maxFlightTime = 6.0f;
     public float flightTimeStep = 0.05f;
 
     private Vector3 spikePosition;
@@ -70,7 +70,7 @@ public class ServeDrone : MonoBehaviour
         SpikerAllyEnemyV2 spiker = GetComponent<SpikerAllyEnemyV2>();
         if (spiker != null)
         {
-            serveTeam     = spiker.MyTeam;
+            serveTeam = spiker.MyTeam;
             spikePosition = spiker.initialPos;
         }
         else
@@ -82,7 +82,7 @@ public class ServeDrone : MonoBehaviour
     void Update()
     {
         bool isMyServe = MatchManager.Instance != null &&
-            MatchManager.Instance.serveRight   == serveTeam &&
+            MatchManager.Instance.serveRight == serveTeam &&
             MatchManager.Instance.currentPhase == MatchManager.GamePhase.Waiting;
 
         if (isMyServe && !isServing)
@@ -124,15 +124,16 @@ public class ServeDrone : MonoBehaviour
         GameObject ball = Instantiate(ballPrefab, spawnPos, Quaternion.identity);
         Rigidbody ballRb = ball.GetComponent<Rigidbody>();
 
-        Collider ballCol  = ball.GetComponent<Collider>();
+        Collider ballCol = ball.GetComponent<Collider>();
         Collider droneCol = GetComponent<Collider>();
         if (ballCol != null && droneCol != null)
             Physics.IgnoreCollision(droneCol, ballCol, true);
 
         if (ballRb != null)
         {
-            ballRb.linearVelocity = launchVel;
             ball.name = "injectionball(Clone)";
+            Ball.Register(ballRb);       // 生成直後の実体を登録
+            Ball.SetVelocity(launchVel); // サーブ初速を設定
         }
 
         // 5. 相手チームにレシーブ開始を通知（possesion を相手に切り替え）
@@ -145,8 +146,8 @@ public class ServeDrone : MonoBehaviour
 
         if (rb != null)
         {
-            rb.isKinematic     = false;
-            rb.linearVelocity  = Vector3.zero;
+            rb.isKinematic = false;
+            rb.linearVelocity = Vector3.zero;
         }
         transform.position = spikePosition;
         isServing = false;
