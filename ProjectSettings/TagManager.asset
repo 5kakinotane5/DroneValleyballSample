@@ -9,6 +9,8 @@ TagManager:
   - court
   - Ally
   - Enemy
+  - Drone
+  - Net
   layers:
   - Default
   - TransparentFX
