@@ -69,8 +69,5 @@ public class BallResetOnCollision : MonoBehaviour
 
         foreach (var s in FindObjectsByType<SpikerAllyEnemyV2>(FindObjectsSortMode.None))
             s.ResetToInitialState();
-
-        foreach (var r in FindObjectsByType<ReceiverAllyEnemy>(FindObjectsSortMode.None))
-            r.ResetToInitialState();
     }
 }
