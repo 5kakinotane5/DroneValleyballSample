@@ -4,17 +4,12 @@ using UnityEngine;
 
 public static class Ryougan
 {
-    public static bool CanGetPosition(Ray a, Ray b)
-    {
-        return !IsPrallel(a, b);
-    }
-
     // 2本の視線（Ray）から3D座標を求める。
-    public static Vector3 GetPosition(Ray a, Ray b)
+    public static Vector3? GetPosition(Ray a, Ray b)
     {
         if (!CanGetPosition(a, b))
         {
-            throw new System.Exception("視線の幾何学的条件により、3D座標を求められません。");
+            return null;
         }
 
         Vector3 da = a.direction;
@@ -35,6 +30,11 @@ public static class Ryougan
         Vector3 closestA = a.origin + da * t;
         Vector3 closestB = b.origin + db * s;
         return (closestA + closestB) * 0.5f; // 2つの最近接点の中点
+    }
+
+    private static bool CanGetPosition(Ray a, Ray b)
+    {
+        return !IsPrallel(a, b);
     }
 
     private static bool IsPrallel(Ray a, Ray b)

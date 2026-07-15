@@ -27,13 +27,11 @@ public class DrawPosition : MonoBehaviour
         Ray gazeA = myCamera.GetGaze();
         Ray gazeB = otherCamera.GetGaze();
 
-        if (!Ryougan.CanGetPosition(gazeA, gazeB))
+        Vector3? ballPosition = Ryougan.GetPosition(gazeA, gazeB);
+        if (ballPosition is Vector3 pos)
         {
-            return;
+            DrawMarker(pos);
         }
-
-        Vector3 ballPosition = Ryougan.GetPosition(gazeA, gazeB);
-        DrawMarker(ballPosition);
     }
 
     // 描画するマーカーのサイズ.
