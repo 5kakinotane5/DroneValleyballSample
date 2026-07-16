@@ -24829,6 +24829,7 @@ MonoBehaviour:
   trajectorySamples: 30
   dodgeRadius: 3
   dodgeSpeed: 15
+  dodgePredictionTime: 1
   highTossApexThreshold: 13
   medTossApexThreshold: 8
   weakVelocityRatio: 0.35
@@ -40109,6 +40110,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3725777149201631777, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
       insertIndex: -1
       addedObject: {fileID: 853073805}
+    - targetCorrespondingSourceObject: {fileID: 3725777149201631777, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 853073806}
   m_SourcePrefab: {fileID: 100100000, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
 --- !u!1 &853073787 stripped
 GameObject:
@@ -40132,6 +40136,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3d499689e1d59f4ba23cea8811c72ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::newReceiverAllyEnemy
+  BallGetter: {fileID: 853073806}
   myTeam: 1
   moveSpeed: 15
   initialPos: {x: -10, y: 1, z: 0}
@@ -40161,6 +40166,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DrawPosition
   isEnabled: 0
+  myCamera: {fileID: 1223314000}
+  otherCamera: {fileID: 1504352189}
+--- !u!114 &853073806
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 853073787}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cc53fcbb95a0f740bc0f1294510b423, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallGetterOnDrone
   myCamera: {fileID: 1223314000}
   otherCamera: {fileID: 1504352189}
 --- !u!1001 &853861433
@@ -42129,6 +42148,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3725777149201631777, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
       insertIndex: -1
       addedObject: {fileID: 890808367}
+    - targetCorrespondingSourceObject: {fileID: 3725777149201631777, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 890808368}
   m_SourcePrefab: {fileID: 100100000, guid: a6139678e1ecb354881f5d41e5ce2e08, type: 3}
 --- !u!1 &890808356 stripped
 GameObject:
@@ -42147,6 +42169,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3d499689e1d59f4ba23cea8811c72ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::newReceiverAllyEnemy
+  BallGetter: {fileID: 890808368}
   myTeam: 0
   moveSpeed: 15
   initialPos: {x: 10, y: 1, z: 0}
@@ -42181,6 +42204,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DrawPosition
   isEnabled: 0
+  myCamera: {fileID: 1371897207}
+  otherCamera: {fileID: 1874001678}
+--- !u!114 &890808368
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 890808356}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cc53fcbb95a0f740bc0f1294510b423, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallGetterOnDrone
   myCamera: {fileID: 1371897207}
   otherCamera: {fileID: 1874001678}
 --- !u!1001 &890976185
@@ -67393,6 +67430,7 @@ MonoBehaviour:
   trajectorySamples: 30
   dodgeRadius: 3
   dodgeSpeed: 15
+  dodgePredictionTime: 1
   isAvoidingTrajectory: 0
   staminaSystem: {fileID: 1392019842}
   timingWindow: {fileID: 1392019843}
