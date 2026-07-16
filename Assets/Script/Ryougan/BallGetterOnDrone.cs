@@ -12,7 +12,7 @@ public class BallGetterOnDrone : MonoBehaviour
 
     private BallFromCamera ball;
 
-    public void Start()
+    public void Awake()
     {
         ball = new BallFromCamera(myCamera, otherCamera);
     }
