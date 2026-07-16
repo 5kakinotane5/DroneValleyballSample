@@ -24720,6 +24720,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7231887364440564934, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 508050352}
+    - targetCorrespondingSourceObject: {fileID: 7231887364440564934, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 508050355}
   m_SourcePrefab: {fileID: 100100000, guid: c53e58c59cba20e4ab6f2080fbdafb5f, type: 3}
 --- !u!1 &508050330 stripped
 GameObject:
@@ -24817,6 +24820,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 774774bfdb12f134388a10d2776837cd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpikeDrone
+  BallGetter: {fileID: 508050355}
   myTeam: 1
   tossBoost: 2
   ballTag: injectionball
@@ -24895,6 +24899,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DrawPosition
   isEnabled: 0
+  myCamera: {fileID: 1504352189}
+  otherCamera: {fileID: 1223314000}
+--- !u!114 &508050355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 508050330}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cc53fcbb95a0f740bc0f1294510b423, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallGetterOnDrone
   myCamera: {fileID: 1504352189}
   otherCamera: {fileID: 1223314000}
 --- !u!1001 &508456042
