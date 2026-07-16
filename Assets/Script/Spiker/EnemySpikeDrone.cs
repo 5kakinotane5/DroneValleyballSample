@@ -525,14 +525,6 @@ public class EnemySpikeDrone : MonoBehaviour
     bool TryGetTrajectoryAvoidVector(out Vector3 avoidVector)
     {
         avoidVector = Vector3.zero;
-        Rigidbody checkRb = targetRb;
-        if (checkRb == null)
-        {
-            GameObject anyBall = GameObject.FindGameObjectWithTag(ballTag);
-            if (anyBall == null || anyBall == lastSpikedBall) return false;
-            checkRb = anyBall.GetComponent<Rigidbody>();
-            if (checkRb == null) return false;
-        }
 
         Vector3? ballPos = BallGetter.GetPosition();
         if (!ballPos.HasValue)
