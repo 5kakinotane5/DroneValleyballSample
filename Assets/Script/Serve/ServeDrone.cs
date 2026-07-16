@@ -10,7 +10,8 @@
 他スクリプトとの関係:
   ・MatchManager          ← serveRight / currentPhase を参照して発動判断
                             発射後に ChangePossesion() を呼んで受け側に切り替え
-  ・SpikerAllyEnemyV2     ← Start() 時に同 GameObject の myTeam / initialPos を取得
+  - EnemySpikeDrone       ← Start() 時に同 GameObject の myTeam / initialPos を取得
+  - SpikeDrone             ← Start() 時に同 GameObject の myTeam / initialPos を取得
 
 注意:
   AllyEnemyballlauncher（手動サーブ）と役割が重複するが、
@@ -67,11 +68,22 @@ public class ServeDrone : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
 
-        SpikerAllyEnemyV2 spiker = GetComponent<SpikerAllyEnemyV2>();
+        SpikeDrone spiker = GetComponent<SpikeDrone>();
         if (spiker != null)
         {
             serveTeam = spiker.MyTeam;
             spikePosition = spiker.initialPos;
+        }
+        else
+        {
+            spikePosition = transform.position;
+        }
+
+        EnemySpikeDrone enemySpiker = GetComponent<EnemySpikeDrone>();
+        if (enemySpiker != null)
+        {
+            serveTeam = enemySpiker.MyTeam;
+            spikePosition = enemySpiker.initialPos;
         }
         else
         {

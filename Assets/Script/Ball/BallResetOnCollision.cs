@@ -9,7 +9,8 @@
 他スクリプトとの関係:
   ・ScoreManager          ← DetermineScore(position) を呼んで得点を確定させる
   ・MatchManager          ← ResetGame() を呼んでフェーズとサーブ権をリセット
-  ・SpikerAllyEnemyV2     ← ResetToInitialState() を呼んで初期位置に戻す
+  - EnemySpikeDrone       ← ResetToInitialState() を呼んで初期位置に戻す
+  - SpikeDrone             ← ResetToInitialState() を呼んで初期位置に戻す
   ・ReceiverAllyEnemy     ← ResetToInitialState() を呼んで初期位置に戻す
 
 注意:
@@ -67,7 +68,9 @@ public class BallResetOnCollision : MonoBehaviour
         if (MatchManager.Instance != null)
             MatchManager.Instance.ResetGame();
 
-        foreach (var s in FindObjectsByType<SpikerAllyEnemyV2>(FindObjectsSortMode.None))
+        foreach (var s in FindObjectsByType<SpikeDrone>(FindObjectsSortMode.None))
+            s.ResetToInitialState();
+        foreach (var s in FindObjectsByType<EnemySpikeDrone>(FindObjectsSortMode.None))
             s.ResetToInitialState();
     }
 }
