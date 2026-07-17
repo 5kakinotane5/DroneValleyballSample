@@ -2,15 +2,68 @@ using UnityEngine;
 
 public class Escape
 {
+    private BallGetterOnDrone _ballGetter;
+    private BallVelocity _ballVelocity;
     private Predict _predict;
+    private Team _myTeam;
+    private float _netX;
 
-    public Escape(Predict predict)
+    public Escape(BallGetterOnDrone ballGetter, BallVelocity ballVelocity, Predict predict, Team team, float netX)
     {
+        if (ballGetter == null)
+        {
+            throw new System.ArgumentNullException(nameof(ballGetter));
+        }
+        if (ballVelocity == null)
+        {
+            throw new System.ArgumentNullException(nameof(ballVelocity));
+        }
         if (predict == null)
         {
             throw new System.ArgumentNullException(nameof(predict));
         }
         _predict = predict;
+        _myTeam = team;
+        _ballGetter = ballGetter;
+        _ballVelocity = ballVelocity;
+        _netX = netX;
+    }
+
+    private const float _trajectoryCheckRadius = 3f;
+    private const float _trajectoryAvoidSpeed = 25f;
+
+    public bool TryGetTrajectoryAvoidVector(Rigidbody rb, Vector3 position, int trajectorySamples, float timeUntilImpact, out Vector3 avoidVector)
+    {
+        avoidVector = Vector3.zero;
+
+        // targetRb 確定前はコート上のボールを対象にするため、自陣側にあるときだけ回避する。
+        // targetRb 確定後は捕捉済みなのでサイド判定を省く（従来挙動を維持）。
+        Vector3? ballPos = _ballGetter.GetPosition();
+        if (!ballPos.HasValue)
+        {
+            return false;
+        }
+        if (rb == null && !Side.IsBallOnMySide(_myTeam, ballPos.Value, _netX))
+        {
+            return false;
+        }
+
+        float duration = (timeUntilImpact > 0.05f) ? timeUntilImpact : 3f;
+
+        if (!TryGetClosestApproachNormal(position, ballPos.Value, _ballVelocity.GetEstimatedBallVelocity(), duration, trajectorySamples,
+                out Vector3 normalDir, out float minDist))
+        {
+            return false;
+        }
+
+        if (minDist >= _trajectoryCheckRadius)
+        {
+            return false;
+        }
+
+        float strength = 1f - (minDist / _trajectoryCheckRadius);
+        avoidVector = normalDir * strength * _trajectoryAvoidSpeed;
+        return true;
     }
 
     // ボール軌道を duration 秒先までサンプリングし、ドローンと最も近づく点を探す。

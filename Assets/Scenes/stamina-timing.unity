@@ -24820,7 +24820,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 774774bfdb12f134388a10d2776837cd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpikeDrone
-  BallGetter: {fileID: 508050355}
+  _ballGetter: {fileID: 508050355}
   myTeam: 1
   tossBoost: 2
   ballTag: injectionball
@@ -67436,7 +67436,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e54095c89964a254bb2648b18ac0ebe8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpikeDrone
-  BallGetter: {fileID: 1392019852}
+  _ballGetter: {fileID: 1392019852}
   myTeam: 0
   tossBoost: 2
   ballTag: injectionball
