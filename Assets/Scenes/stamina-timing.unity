@@ -24831,12 +24831,7 @@ MonoBehaviour:
   runupTime: 0.2
   netX: 0
   netHeightSafe: 4.9
-  trajectoryCheckRadius: 3
-  trajectoryAvoidSpeed: 25
   trajectorySamples: 30
-  dodgeRadius: 3
-  dodgeSpeed: 15
-  dodgePredictionTime: 1
   highTossApexThreshold: 13
   medTossApexThreshold: 8
   weakVelocityRatio: 0.35
@@ -67447,13 +67442,11 @@ MonoBehaviour:
   runupTime: 0.2
   netX: 0
   netHeightSafe: 4.9
-  trajectoryCheckRadius: 3
-  trajectoryAvoidSpeed: 25
   trajectorySamples: 30
   isAvoidingTrajectory: 0
   staminaSystem: {fileID: 1392019842}
   timingWindow: {fileID: 1392019843}
-  isPlayerControlled: 1
+  isPlayerControlled: 0
   minVelocity: 5
   weakVelocityRatio: 0.35
   medVelocityRatio: 0.65
@@ -67462,6 +67455,9 @@ MonoBehaviour:
   targetShallowX: -3
   targetDeepX: -20
   targetZHalf: 9
+  courtMargin: 1.2
+  opponentDrone: {fileID: 0}
+  highTossShortRate: 0.25
   inputCourse: 0
   inputVelocity: 0
   currentState: 0

@@ -60,6 +60,7 @@ public class SpikeDrone : MonoBehaviour
 
     // ── 公開 API 用追加フィールド ──────────────────────────────────────
     [Header("操作・速度設定（API 用）")]
+    [Tooltip("true=プレイヤー手動操作 / false=自動AI（EnemySpikeDrone 相当の戦術配球）")]
     [SerializeField] private bool isPlayerControlled = true;
 
     [Tooltip("入力がない場合の最低打球速度")]
@@ -82,6 +83,15 @@ public class SpikeDrone : MonoBehaviour
     public float targetShallowX = -3f;
     public float targetDeepX = -20f;
     public float targetZHalf = 9f;
+
+    [Header("AI 配球設定（自動モード時）")]
+    [Tooltip("ブレをクランプするコート境界からの安全マージン（m）")]
+    [SerializeField] private float courtMargin = 1.2f;
+    [Tooltip("自動モード時に位置を読む相手ドローン（未設定時は Start() で自動検索）")]
+    [SerializeField] private Transform opponentDrone;
+    [Tooltip("高トスで短距離フェイントを選ぶ確率（0=常に深い、1=常に短い）")]
+    [Range(0f, 1f)]
+    [SerializeField] private float highTossShortRate = 0.25f;
 
     // ── 公開 API プロパティ ────────────────────────────────────────────
 
@@ -133,6 +143,9 @@ public class SpikeDrone : MonoBehaviour
     private float pendingVelocity;
     private TossQuality tossQuality = TossQuality.Low;
 
+    // AI 配球用（自動モード）
+    private float lastCourse = 1f;
+
     // 手動スパイク（Kを離した瞬間に突進）用
     private bool strikeRequested;
     private float requestedCourse;
@@ -154,6 +167,24 @@ public class SpikeDrone : MonoBehaviour
         if (_ball == null)
         {
             Debug.LogError("BallEstimator がアタッチされていません。SpikeDrone.cs の BallGetter フィールドに設定してください。");
+        }
+
+        // 自動モード用: 相手ドローンが未設定なら自動検索する。
+        // まず EnemySpikeDrone を、無ければ自分以外の SpikeDrone を拾う。
+        if (opponentDrone == null)
+        {
+            EnemySpikeDrone enemy = FindObjectOfType<EnemySpikeDrone>();
+            if (enemy != null)
+            {
+                opponentDrone = enemy.transform;
+            }
+            else
+            {
+                foreach (var other in FindObjectsOfType<SpikeDrone>())
+                {
+                    if (other != this) { opponentDrone = other.transform; break; }
+                }
+            }
         }
         _predict = new Predict(_ball);
         _escape = new Escape(_ball, _predict, myTeam, netX);
@@ -358,27 +389,14 @@ public class SpikeDrone : MonoBehaviour
                 currentState = State.MovingToTrajectory;
                 timingWindow?.StartWindow(tossQuality, timeUntilImpact);
             }
-            // Enemy: ランダム（トス制限あり）。従来どおり即座に軌道確定して自動で突進する
+            // 自動モード: EnemySpikeDrone 相当の戦術配球で即座に軌道確定して自動で突進する。
+            // タイミングウィンドウはプレイヤー入力に紐づくため自動モードでは開かない。
             else
             {
-                pendingCourse = Random.value > 0.5f ? 1f : -1f;
-                switch (tossQuality)
-                {
-                    case TossQuality.High:
-                        pendingVelocity = Random.value > 0.5f ? vMaxDrone : vMaxDrone * medVelocityRatio;
-                        break;
-                    case TossQuality.Medium:
-                        pendingVelocity = vMaxDrone * medVelocityRatio;
-                        break;
-                    default:
-                        pendingVelocity = vMaxDrone * weakVelocityRatio;
-                        break;
-                }
-
+                ChooseStrategy();
                 if (CalculateTrajectory())
                 {
                     currentState = State.MovingToTrajectory;
-                    timingWindow?.StartWindow(tossQuality, timeUntilImpact);
                 }
                 else
                 {
@@ -402,10 +420,10 @@ public class SpikeDrone : MonoBehaviour
             ? Mathf.Lerp(targetShallowX, targetDeepX, norm)
             : Mathf.Lerp(-targetShallowX, -targetDeepX, norm);
         float blur = staminaSystem != null ? staminaSystem.GetBlur() : 0f;
-        Vector3 pointB = new Vector3(
+        Vector3 pointB = ClampLandingToCourt(new Vector3(
             targetX + Random.Range(-blur, blur),
             0f,
-            pendingCourse * targetZHalf + Random.Range(-blur, blur));
+            pendingCourse * targetZHalf + Random.Range(-blur, blur)));
 
         Vector3? ballPos = _ball.GetPosition();
         if (!ballPos.HasValue)
@@ -585,6 +603,81 @@ public class SpikeDrone : MonoBehaviour
             tossQuality = TossQuality.Low;
     }
 
+    /// <summary>
+    /// 自動モードの配球決定。相手ドローンの現在位置を読み、コース（Z）と速度（深度）を戦術的に決める。
+    ///
+    /// コース: 相手が Z 正側 → 負側へ、相手が Z 負側 → 正側へ（いない方を狙う）。
+    ///         相手が中央付近のときは前回と逆のコーナーへ交互に配球。
+    /// 深度 : 相手が浅い位置（ネット寄り） → 深い球。
+    ///         相手が深い位置              → 浅い球（フェイント）。
+    /// </summary>
+    void ChooseStrategy()
+    {
+        float maxV = CurrentMaxVelocity;
+
+        float oppZ = opponentDrone != null ? opponentDrone.position.z : 0f;
+        float oppX = opponentDrone != null ? Mathf.Abs(opponentDrone.position.x) : Mathf.Abs(targetDeepX) * 0.5f;
+
+        // ── コース選択（Z 軸） ──────────────────────────────────────
+        const float centerThreshold = 2f;
+        if (Mathf.Abs(oppZ) < centerThreshold)
+            pendingCourse = lastCourse >= 0f ? -1f : 1f;   // 中央→交互コーナー
+        else
+            pendingCourse = oppZ > 0f ? -1f : 1f;          // 相手の逆サイド
+        lastCourse = pendingCourse;
+
+        // ── 速度選択（X 深度） ──────────────────────────────────────
+        // 相手コート内の前後位置を 0（ネット際）〜1（最深部）で正規化
+        float courtDepth = Mathf.Abs(targetDeepX);
+        float oppNormX = Mathf.Clamp01(oppX / courtDepth);
+        // 相手の逆の深度を狙う
+        float depthNorm = 1f - oppNormX;
+
+        switch (tossQuality)
+        {
+            case TossQuality.High:
+                // 高トス: 基本は相手逆深度への強打、一定確率で短距離フェイント
+                pendingVelocity = Random.value < highTossShortRate
+                    ? maxV * medVelocityRatio
+                    : Mathf.Lerp(maxV * medVelocityRatio, maxV, depthNorm);
+                break;
+            case TossQuality.Medium:
+                // 中トス: 深度戦術（速度範囲は weakVelocityRatio〜medVelocityRatio）
+                pendingVelocity = Mathf.Lerp(maxV * weakVelocityRatio, maxV, depthNorm);
+                break;
+            default:
+                // 低トス: 既に weakVelocityRatio で上限が低いのでフル速度
+                pendingVelocity = maxV;
+                break;
+        }
+    }
+
+    /// <summary>
+    /// 着弾点を相手コート内にクランプしてアウトを防ぐ。
+    /// ブレで境界を超えた場合は courtMargin だけ内側の位置に止める。
+    /// </summary>
+    Vector3 ClampLandingToCourt(Vector3 landing)
+    {
+        float zRange = targetZHalf - courtMargin;
+
+        if (myTeam == Team.Enemy)
+        {
+            // Enemy → Ally コート（X 正値側）
+            float xMin = netX + courtMargin;
+            float xMax = Mathf.Abs(targetDeepX) - courtMargin;
+            landing.x = Mathf.Clamp(landing.x, xMin, xMax);
+        }
+        else
+        {
+            // Ally → Enemy コート（X 負値側）
+            float xMin = -(Mathf.Abs(targetDeepX) - courtMargin);
+            float xMax = -(netX + courtMargin);
+            landing.x = Mathf.Clamp(landing.x, xMin, xMax);
+        }
+        landing.z = Mathf.Clamp(landing.z, -zRange, zRange);
+        return landing;
+    }
+
     /// API の pendingCourse/pendingVelocity から実際の打球速度ベクトルを計算する。
     /// speedMult（タイミングボーナス）は飛行時間に織り込み、着地点を保ったまま弾道を鋭くする。
     Vector3 CalcBallVelocity(Vector3 hitPos, float speedMult)
@@ -594,10 +687,10 @@ public class SpikeDrone : MonoBehaviour
             ? Mathf.Lerp(targetShallowX, targetDeepX, norm)
             : Mathf.Lerp(-targetShallowX, -targetDeepX, norm);
         float blur = staminaSystem != null ? staminaSystem.GetBlur() : 0f;
-        Vector3 landing = new Vector3(
+        Vector3 landing = ClampLandingToCourt(new Vector3(
             targetX + Random.Range(-blur, blur),
             0f,
-            pendingCourse * targetZHalf + Random.Range(-blur, blur));
+            pendingCourse * targetZHalf + Random.Range(-blur, blur)));
 
         float dx = landing.x - hitPos.x;
         float dz = landing.z - hitPos.z;
