@@ -9,6 +9,7 @@ public class EnemySpikeDrone : MonoBehaviour
     [SerializeField] private BallGetterOnDrone BallGetter;
     private BallVelocity _ballVelocity;
     private Predict _predict;
+    private Escape _escape;
 
     [SerializeField] private Team myTeam = Team.Enemy;
     public Team MyTeam => myTeam;
@@ -122,6 +123,7 @@ public class EnemySpikeDrone : MonoBehaviour
         }
         _ballVelocity = new BallVelocity(BallGetter);
         _predict = new Predict(BallGetter, _ballVelocity);
+        _escape = new Escape(_predict);
     }
 
     void FixedUpdate()
@@ -509,43 +511,13 @@ public class EnemySpikeDrone : MonoBehaviour
 
         float duration = timeUntilImpact > 0.05f ? timeUntilImpact : 3f;
 
-        if (!TryGetClosestApproachNormal(ballPos.Value, _ballVelocity.GetEstimatedBallVelocity(), duration, trajectorySamples,
+        if (!_escape.TryGetClosestApproachNormal(transform.position, ballPos.Value, _ballVelocity.GetEstimatedBallVelocity(), duration, trajectorySamples,
                 out Vector3 normalDir, out float minDist))
             return false;
 
         if (minDist >= trajectoryCheckRadius) return false;
 
         avoidVector = normalDir * (1f - minDist / trajectoryCheckRadius) * trajectoryAvoidSpeed;
-        return true;
-    }
-
-    // ボール軌道を duration 秒先までサンプリングし、ドローンと最も近づく点を探す。
-    // その最接近点でのボールからドローンへの方向は、軌道の接線（速度）にほぼ垂直な
-    // 「法線ベクトル」になる（距離が最小になる点では、距離ベクトルと速度が直交するため）。
-    bool TryGetClosestApproachNormal(Vector3 ballPos, Vector3 ballVel, float duration, int samples,
-        out Vector3 normalDir, out float minDist)
-    {
-        minDist = float.MaxValue;
-        Vector3 closestBallPos = ballPos;
-        float closestT = 0f;
-
-        for (int i = 0; i <= samples; i++)
-        {
-            float t = duration * i / samples;
-            Vector3 bp = _predict.PredictPosition(ballPos, ballVel, t);
-            float d = Vector3.Distance(transform.position, bp);
-            if (d < minDist) { minDist = d; closestBallPos = bp; closestT = t; }
-        }
-
-        Vector3 awayDir = transform.position - closestBallPos;
-        if (awayDir.magnitude < 0.01f)
-        {
-            Vector3 ballVelAtT = new Vector3(ballVel.x, ballVel.y + g * closestT, ballVel.z);
-            awayDir = Vector3.Cross(ballVelAtT.normalized, Vector3.up);
-            if (awayDir.magnitude < 0.01f) awayDir = Vector3.forward;
-        }
-
-        normalDir = awayDir.normalized;
         return true;
     }
 
@@ -572,7 +544,7 @@ public class EnemySpikeDrone : MonoBehaviour
             Rigidbody ballRb = col.attachedRigidbody;
             if (ballRb == null) continue;
 
-            if (!TryGetClosestApproachNormal(ballRb.position, ballRb.linearVelocity, dodgePredictionTime,
+            if (!_escape.TryGetClosestApproachNormal(transform.position, ballRb.position, ballRb.linearVelocity, dodgePredictionTime,
                     trajectorySamples, out Vector3 normalDir, out float minDist))
                 continue;
             if (minDist >= dodgeRadius) continue;
