@@ -372,7 +372,7 @@ public class SpikeDrone : MonoBehaviour
             return;
         }
 
-        if (!IsBallOnMySide(ballPos.Value)) return;
+        if (!Side.IsBallOnMySide(myTeam, ballPos.Value, netX)) return;
 
         if (_ballVelocity.GetEstimatedBallVelocity().y > 0 &&
             ballPos.Value.y < spikeHeight &&
@@ -560,7 +560,7 @@ public class SpikeDrone : MonoBehaviour
         {
             return false;
         }
-        if (targetRb == null && !IsBallOnMySide(ballPos.Value)) return false;
+        if (targetRb == null && !Side.IsBallOnMySide(myTeam, ballPos.Value, netX)) return false;
 
         float duration = (timeUntilImpact > 0.05f) ? timeUntilImpact : 3f;
 
@@ -653,11 +653,6 @@ public class SpikeDrone : MonoBehaviour
             if (rb.linearVelocity.magnitude > vMaxDrone)
                 rb.linearVelocity = rb.linearVelocity.normalized * vMaxDrone;
         }
-    }
-
-    bool IsBallOnMySide(Vector3 ballPos)
-    {
-        return myTeam == Team.Ally ? ballPos.x > netX : ballPos.x < netX;
     }
 
     float CalculateFalling(float h)
