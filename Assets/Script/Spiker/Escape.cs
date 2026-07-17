@@ -95,6 +95,18 @@ public class Escape
         }
     }
 
+    // 自機と、targetBall 以外の全ボールとの衝突を ignore する／しない
+    public void SetNonTargetBallIgnore(Collider myCol, GameObject targetBall, string ballTag, bool ignore)
+    {
+        if (myCol == null) return;
+        foreach (var ball in GameObject.FindGameObjectsWithTag(ballTag))
+        {
+            if (ball == targetBall) continue;
+            Collider bc = ball.GetComponent<Collider>();
+            if (bc != null) Physics.IgnoreCollision(myCol, bc, ignore);
+        }
+    }
+
     // ボール軌道を duration 秒先までサンプリングし、ドローンと最も近づく点を探す。
     // その最接近点でのボールからドローンへの方向は、軌道の接線（速度）にほぼ垂直な
     // 「法線ベクトル」になる（距離が最小になる点では、距離ベクトルと速度が直交するため）。

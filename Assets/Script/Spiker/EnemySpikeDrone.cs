@@ -30,14 +30,7 @@ public class EnemySpikeDrone : MonoBehaviour
     public float netHeightSafe = 4.9f;
 
     [Header("ターゲットボール軌道回避")]
-    [SerializeField] private float trajectoryCheckRadius = 3f;
-    [SerializeField] private float trajectoryAvoidSpeed = 25f;
     [SerializeField] private int trajectorySamples = 30;
-
-    [Header("非ターゲットボール回避")]
-    [SerializeField] private float dodgeRadius = 3f;
-    [SerializeField] private float dodgeSpeed = 15f;
-    [SerializeField] private float dodgePredictionTime = 1f;  // 最接近点を探す予測時間
 
     [Header("トス判定しきい値")]
     public float highTossApexThreshold = 13f;
@@ -135,7 +128,7 @@ public class EnemySpikeDrone : MonoBehaviour
         if (currentState == State.MovingToTrajectory || currentState == State.Striking)
             timeUntilImpact -= Time.fixedDeltaTime;
 
-        SetNonTargetBallIgnore(currentState == State.Striking || currentState == State.Waiting);
+        _escape.SetNonTargetBallIgnore(GetComponent<Collider>(), targetBall, ballTag, currentState == State.Striking || currentState == State.Waiting);
 
         switch (currentState)
         {
@@ -206,7 +199,7 @@ public class EnemySpikeDrone : MonoBehaviour
         targetBall = null;
         lastSpikedBall = null;
         isReady = false;
-        SetNonTargetBallIgnore(false);
+        _escape.SetNonTargetBallIgnore(GetComponent<Collider>(), targetBall, ballTag, false);
         transform.position = initialPos;
         GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
     }
@@ -494,18 +487,6 @@ public class EnemySpikeDrone : MonoBehaviour
     }
 
     // ── ユーティリティ（SpikeDrone と同一） ───────────────────────
-
-    void SetNonTargetBallIgnore(bool ignore)
-    {
-        Collider myCol = GetComponent<Collider>();
-        if (myCol == null) return;
-        foreach (var ball in GameObject.FindGameObjectsWithTag(ballTag))
-        {
-            if (ball == targetBall) continue;
-            Collider bc = ball.GetComponent<Collider>();
-            if (bc != null) Physics.IgnoreCollision(myCol, bc, ignore);
-        }
-    }
 
     float CalculateFalling(float h)
     {

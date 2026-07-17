@@ -43,8 +43,6 @@ public class SpikeDrone : MonoBehaviour
     public float netHeightSafe = 4.9f;
 
     [Header("ターゲットボール軌道回避設定")]
-    [SerializeField] private float trajectoryCheckRadius = 3f;
-    [SerializeField] private float trajectoryAvoidSpeed = 25f;
     [SerializeField] private int trajectorySamples = 30;
 
     [SerializeField] private bool isAvoidingTrajectory = false;
@@ -172,7 +170,7 @@ public class SpikeDrone : MonoBehaviour
             timeUntilImpact -= Time.fixedDeltaTime;
 
         bool shouldIgnorePhysics = (currentState == State.Striking || currentState == State.Waiting);
-        SetNonTargetBallIgnore(shouldIgnorePhysics);
+        _escape.SetNonTargetBallIgnore(GetComponent<Collider>(), targetBall, ballTag, shouldIgnorePhysics);
 
         switch (currentState)
         {
@@ -316,7 +314,7 @@ public class SpikeDrone : MonoBehaviour
         targetBall = null;
         lastSpikedBall = null;
         isReady = false;
-        SetNonTargetBallIgnore(false);
+        _escape.SetNonTargetBallIgnore(GetComponent<Collider>(), targetBall, ballTag, false);
         transform.position = initialPos;
         GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
     }
@@ -516,19 +514,6 @@ public class SpikeDrone : MonoBehaviour
     }
 
     // ── 以下 SpikerAllyEnemyV2 と完全同一 ────────────────────────────
-
-    void SetNonTargetBallIgnore(bool ignore)
-    {
-        Collider myCol = GetComponent<Collider>();
-        if (myCol == null) return;
-        GameObject[] balls = GameObject.FindGameObjectsWithTag(ballTag);
-        foreach (var ball in balls)
-        {
-            if (ball == targetBall) continue;
-            Collider bc = ball.GetComponent<Collider>();
-            if (bc != null) Physics.IgnoreCollision(myCol, bc, ignore);
-        }
-    }
 
     float CalculateFalling(float h)
     {
