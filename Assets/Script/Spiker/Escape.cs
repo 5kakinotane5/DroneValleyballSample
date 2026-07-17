@@ -66,6 +66,41 @@ public class Escape
         return true;
     }
 
+    private const float _dodgeRadius = 3f;
+    private const float _dodgeSpeed = 15f;
+    private const float _dodgePredictionTime = 1f;  // 最接近点を探す予測時間
+
+    // dodgeRadius内の非ターゲットボールを、最接近点の法線ベクトル方向に回避
+    public void ApplyDodgeVelocity(Rigidbody rb, Vector3 position, GameObject targetBall, string ballTag,
+        int trajectorySamples, float vMaxDrone)
+    {
+        Vector3 dodge = Vector3.zero;
+        Collider[] nearby = Physics.OverlapSphere(position, _dodgeRadius);
+        foreach (var col in nearby)
+        {
+            if (!col.CompareTag(ballTag)) continue;
+            if (col.gameObject == targetBall) continue;
+
+            Rigidbody ballRb = col.attachedRigidbody;
+            if (ballRb == null) continue;
+
+            if (!TryGetClosestApproachNormal(position, ballRb.position, ballRb.linearVelocity, _dodgePredictionTime,
+                    trajectorySamples, out Vector3 normalDir, out float minDist))
+                continue;
+            if (minDist >= _dodgeRadius) continue;
+
+            float weight = 1f - Mathf.Clamp01(minDist / _dodgeRadius);
+            dodge += normalDir * weight * _dodgeSpeed;
+        }
+
+        if (dodge.sqrMagnitude > 0.001f)
+        {
+            rb.linearVelocity += dodge;
+            if (rb.linearVelocity.magnitude > vMaxDrone)
+                rb.linearVelocity = rb.linearVelocity.normalized * vMaxDrone;
+        }
+    }
+
     // ボール軌道を duration 秒先までサンプリングし、ドローンと最も近づく点を探す。
     // その最接近点でのボールからドローンへの方向は、軌道の接線（速度）にほぼ垂直な
     // 「法線ベクトル」になる（距離が最小になる点では、距離ベクトルと速度が直交するため）。

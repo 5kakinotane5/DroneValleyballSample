@@ -157,7 +157,7 @@ public class EnemySpikeDrone : MonoBehaviour
                 isAvoidingTrajectory = _escape.TryGetTrajectoryAvoidVector(targetRb, transform.position, trajectorySamples, timeUntilImpact, out Vector3 hoverAvoid);
                 Hover(initialPos);
                 if (isAvoidingTrajectory) rb.linearVelocity += hoverAvoid;
-                ApplyDodgeVelocity();
+                _escape.ApplyDodgeVelocity(rb, transform.position, targetBall, ballTag, trajectorySamples, vMaxDrone);
                 FindAndCalculateBall();
                 break;
 
@@ -172,7 +172,7 @@ public class EnemySpikeDrone : MonoBehaviour
                     if (rb.linearVelocity.magnitude > vMax)
                         rb.linearVelocity = rb.linearVelocity.normalized * vMax;
                 }
-                ApplyDodgeVelocity();
+                _escape.ApplyDodgeVelocity(rb, transform.position, targetBall, ballTag, trajectorySamples, vMaxDrone);
                 if (timeUntilImpact <= runupTime)
                     currentState = State.Striking;
                 break;
@@ -190,7 +190,7 @@ public class EnemySpikeDrone : MonoBehaviour
                 isReady = false;
                 isAvoidingTrajectory = false;
                 Hover(initialPos);
-                ApplyDodgeVelocity();
+                _escape.ApplyDodgeVelocity(rb, transform.position, targetBall, ballTag, trajectorySamples, vMaxDrone);
                 if (Vector3.Distance(transform.position, initialPos) < 0.3f)
                 {
                     lastSpikedBall = null;
@@ -508,32 +508,6 @@ public class EnemySpikeDrone : MonoBehaviour
             if (ball == targetBall) continue;
             Collider bc = ball.GetComponent<Collider>();
             if (bc != null) Physics.IgnoreCollision(myCol, bc, ignore);
-        }
-    }
-
-    // dodgeRadius内の非ターゲットボールを、最接近点の法線ベクトル方向に回避
-    void ApplyDodgeVelocity()
-    {
-        Vector3 dodge = Vector3.zero;
-        foreach (var col in Physics.OverlapSphere(transform.position, dodgeRadius))
-        {
-            if (!col.CompareTag(ballTag) || col.gameObject == targetBall) continue;
-
-            Rigidbody ballRb = col.attachedRigidbody;
-            if (ballRb == null) continue;
-
-            if (!_escape.TryGetClosestApproachNormal(transform.position, ballRb.position, ballRb.linearVelocity, dodgePredictionTime,
-                    trajectorySamples, out Vector3 normalDir, out float minDist))
-                continue;
-            if (minDist >= dodgeRadius) continue;
-
-            dodge += normalDir * (1f - Mathf.Clamp01(minDist / dodgeRadius)) * dodgeSpeed;
-        }
-        if (dodge.sqrMagnitude > 0.001f)
-        {
-            rb.linearVelocity += dodge;
-            if (rb.linearVelocity.magnitude > vMaxDrone)
-                rb.linearVelocity = rb.linearVelocity.normalized * vMaxDrone;
         }
     }
 
