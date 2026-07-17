@@ -5,7 +5,7 @@
 
 using UnityEngine;
 
-public class BallGetterOnDrone : MonoBehaviour
+public class BallEstimator : MonoBehaviour
 {
     [SerializeField] private CameraOnDrone myCamera;
     [SerializeField] private CameraOnDrone otherCamera;

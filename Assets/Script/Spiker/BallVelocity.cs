@@ -5,18 +5,18 @@ using UnityEngine;
 
 public class BallVelocity
 {
-    private BallGetterOnDrone _ballGetter;
+    private BallEstimator _ball;
     private bool _hasLastBallPos;
     private Vector3 _estimatedBallVelocity;
     private Vector3 _lastBallPos;
 
-    public BallVelocity(BallGetterOnDrone ballGetter)
+    public BallVelocity(BallEstimator ballGetter)
     {
         if (ballGetter == null)
         {
             throw new System.ArgumentNullException(nameof(ballGetter));
         }
-        _ballGetter = ballGetter;
+        _ball = ballGetter;
     }
 
     public Vector3 GetEstimatedBallVelocity()
@@ -33,7 +33,7 @@ public class BallVelocity
             return;
         }
 
-        Vector3? currentPos = _ballGetter.GetPosition();
+        Vector3? currentPos = _ball.GetPosition();
         if (!currentPos.HasValue)
         {
             _hasLastBallPos = false;

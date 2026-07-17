@@ -23,7 +23,7 @@ using UnityEngine;
 
 public class newReceiverAllyEnemy : MonoBehaviour
 {
-    [SerializeField] private BallGetterOnDrone BallGetter;
+    [SerializeField] private BallEstimator _ball;
 
     [SerializeField] private Team myTeam;
     // ボールを追跡中かどうか（ボールの位置・速度は BallGetter 経由で推定する）。
@@ -88,9 +88,9 @@ public class newReceiverAllyEnemy : MonoBehaviour
             courtXMax = 21f;
         }
 
-        if (BallGetter == null)
+        if (_ball == null)
         {
-            Debug.LogError("BallGetterOnDrone が設定されていません。");
+            Debug.LogError("BallEstimator が設定されていません。");
         }
     }
 
@@ -160,7 +160,7 @@ public class newReceiverAllyEnemy : MonoBehaviour
                     break;
                 }
 
-                Vector3? ballPos = BallGetter.GetPosition();
+                Vector3? ballPos = _ball.GetPosition();
                 if (!ballPos.HasValue)
                 {
                     return;
@@ -190,7 +190,7 @@ public class newReceiverAllyEnemy : MonoBehaviour
             return;
         }
 
-        Vector3? currentPos = BallGetter.GetPosition();
+        Vector3? currentPos = _ball.GetPosition();
         if (!currentPos.HasValue)
         {
             hasLastBallPos = false;
@@ -209,7 +209,7 @@ public class newReceiverAllyEnemy : MonoBehaviour
     {
         if (!Ball.Exists()) return;
 
-        Vector3? ballPos = BallGetter.GetPosition();
+        Vector3? ballPos = _ball.GetPosition();
         if (!ballPos.HasValue)
         {
             return;
@@ -230,7 +230,7 @@ public class newReceiverAllyEnemy : MonoBehaviour
 
     bool IsBallGoingOut()
     {
-        Vector3? ballPos = BallGetter.GetPosition();
+        Vector3? ballPos = _ball.GetPosition();
         if (!ballPos.HasValue)
         {
             return true;
@@ -263,7 +263,7 @@ public class newReceiverAllyEnemy : MonoBehaviour
             linkedStamina.ConsumeReceive(cost);
         }
 
-        Vector3? startPos = BallGetter.GetPosition();
+        Vector3? startPos = _ball.GetPosition();
         if (!startPos.HasValue)
         {
             return;

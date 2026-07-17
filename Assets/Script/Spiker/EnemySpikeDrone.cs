@@ -6,7 +6,7 @@ using Random = UnityEngine.Random;
 
 public class EnemySpikeDrone : MonoBehaviour
 {
-    [SerializeField] private BallGetterOnDrone _ballGetter;
+    [SerializeField] private BallEstimator _ball;
     private BallVelocity _ballVelocity;
     private Predict _predict;
     private Escape _escape;
@@ -117,13 +117,13 @@ public class EnemySpikeDrone : MonoBehaviour
         if (allyDrone == null)
             allyDrone = FindObjectOfType<SpikeDrone>();
 
-        if (_ballGetter == null)
+        if (_ball == null)
         {
-            Debug.LogError("BallGetterOnDrone がアタッチされていません。EnemySpikeDrone.cs の BallGetter フィールドに設定してください。");
+            Debug.LogError("BallEstimator がアタッチされていません。EnemySpikeDrone.cs の BallGetter フィールドに設定してください。");
         }
-        _ballVelocity = new BallVelocity(_ballGetter);
-        _predict = new Predict(_ballGetter, _ballVelocity);
-        _escape = new Escape(_ballGetter, _ballVelocity, _predict, myTeam, netX);
+        _ballVelocity = new BallVelocity(_ball);
+        _predict = new Predict(_ball, _ballVelocity);
+        _escape = new Escape(_ball, _ballVelocity, _predict, myTeam, netX);
 
     }
 
@@ -224,7 +224,7 @@ public class EnemySpikeDrone : MonoBehaviour
 
         Rigidbody ballRb = ball.GetComponent<Rigidbody>();
         if (ballRb == null) return;
-        Vector3? ballPos = _ballGetter.GetPosition();
+        Vector3? ballPos = _ball.GetPosition();
         if (!ballPos.HasValue)
         {
             return;
@@ -303,7 +303,7 @@ public class EnemySpikeDrone : MonoBehaviour
     {
         if (!Ball.Exists()) return;
 
-        Vector3? ballPos = _ballGetter.GetPosition();
+        Vector3? ballPos = _ball.GetPosition();
         if (!ballPos.HasValue)
         {
             return;
@@ -338,7 +338,7 @@ public class EnemySpikeDrone : MonoBehaviour
             0f,
             pendingCourse * targetZHalf + Random.Range(-blur, blur)));
 
-        Vector3? ballPos = _ballGetter.GetPosition();
+        Vector3? ballPos = _ball.GetPosition();
         if (!ballPos.HasValue)
         {
             return false;
@@ -433,7 +433,7 @@ public class EnemySpikeDrone : MonoBehaviour
             0f,
             pendingCourse * targetZHalf + Random.Range(-blur, blur)));
 
-        Vector3? hitPosNullable = _ballGetter.GetPosition();
+        Vector3? hitPosNullable = _ball.GetPosition();
         if (!hitPosNullable.HasValue)
         {
             return;
@@ -513,7 +513,7 @@ public class EnemySpikeDrone : MonoBehaviour
 
     float CalculateFalling(float h)
     {
-        Vector3? ballPos = _ballGetter.GetPosition();
+        Vector3? ballPos = _ball.GetPosition();
         if (!ballPos.HasValue)
         {
             return -1;

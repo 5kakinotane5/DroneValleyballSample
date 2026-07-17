@@ -2,10 +2,10 @@ using UnityEngine;
 
 public class Predict
 {
-    private BallGetterOnDrone _ballGetter;
+    private BallEstimator _ball;
     private BallVelocity _ballVelocity;
 
-    public Predict(BallGetterOnDrone ballGetter, BallVelocity ballVelocity)
+    public Predict(BallEstimator ballGetter, BallVelocity ballVelocity)
     {
         if (ballGetter == null)
         {
@@ -15,7 +15,7 @@ public class Predict
         {
             throw new System.ArgumentNullException(nameof(ballVelocity));
         }
-        _ballGetter = ballGetter;
+        _ball = ballGetter;
         _ballVelocity = ballVelocity;
     }
 
@@ -28,7 +28,7 @@ public class Predict
 
     public Vector3 PredictBallPosition(float t)
     {
-        Vector3? ballPos = _ballGetter.GetPosition();
+        Vector3? ballPos = _ball.GetPosition();
         if (!ballPos.HasValue)
         {
             return Vector3.zero;

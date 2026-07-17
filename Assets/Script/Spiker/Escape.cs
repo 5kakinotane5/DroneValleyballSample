@@ -2,13 +2,13 @@ using UnityEngine;
 
 public class Escape
 {
-    private BallGetterOnDrone _ballGetter;
+    private BallEstimator _ball;
     private BallVelocity _ballVelocity;
     private Predict _predict;
     private Team _myTeam;
     private float _netX;
 
-    public Escape(BallGetterOnDrone ballGetter, BallVelocity ballVelocity, Predict predict, Team team, float netX)
+    public Escape(BallEstimator ballGetter, BallVelocity ballVelocity, Predict predict, Team team, float netX)
     {
         if (ballGetter == null)
         {
@@ -24,7 +24,7 @@ public class Escape
         }
         _predict = predict;
         _myTeam = team;
-        _ballGetter = ballGetter;
+        _ball = ballGetter;
         _ballVelocity = ballVelocity;
         _netX = netX;
     }
@@ -38,7 +38,7 @@ public class Escape
 
         // targetRb 確定前はコート上のボールを対象にするため、自陣側にあるときだけ回避する。
         // targetRb 確定後は捕捉済みなのでサイド判定を省く（従来挙動を維持）。
-        Vector3? ballPos = _ballGetter.GetPosition();
+        Vector3? ballPos = _ball.GetPosition();
         if (!ballPos.HasValue)
         {
             return false;

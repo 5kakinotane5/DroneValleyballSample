@@ -17,7 +17,7 @@ public enum TossQuality { High, Medium, Low }
 /// </summary>
 public class SpikeDrone : MonoBehaviour
 {
-    [SerializeField] private BallGetterOnDrone _ballGetter;
+    [SerializeField] private BallEstimator _ball;
     private BallVelocity _ballVelocity;
     private Predict _predict;
     private Escape _escape;
@@ -154,13 +154,13 @@ public class SpikeDrone : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         rb.useGravity = false;
         transform.position = initialPos;
-        if (_ballGetter == null)
+        if (_ball == null)
         {
-            Debug.LogError("BallGetterOnDrone がアタッチされていません。SpikeDrone.cs の BallGetter フィールドに設定してください。");
+            Debug.LogError("BallEstimator がアタッチされていません。SpikeDrone.cs の BallGetter フィールドに設定してください。");
         }
-        _ballVelocity = new BallVelocity(_ballGetter);
-        _predict = new Predict(_ballGetter, _ballVelocity);
-        _escape = new Escape(_ballGetter, _ballVelocity, _predict, myTeam, netX);
+        _ballVelocity = new BallVelocity(_ball);
+        _predict = new Predict(_ball, _ballVelocity);
+        _escape = new Escape(_ball, _ballVelocity, _predict, myTeam, netX);
     }
 
     void FixedUpdate()
@@ -338,7 +338,7 @@ public class SpikeDrone : MonoBehaviour
         Rigidbody ballRb = ball.GetComponent<Rigidbody>();
         if (ballRb == null) return;
 
-        Vector3? ballPos = _ballGetter.GetPosition();
+        Vector3? ballPos = _ball.GetPosition();
         if (!ballPos.HasValue)
         {
             return;
@@ -413,7 +413,7 @@ public class SpikeDrone : MonoBehaviour
             0f,
             pendingCourse * targetZHalf + Random.Range(-blur, blur));
 
-        Vector3? ballPos = _ballGetter.GetPosition();
+        Vector3? ballPos = _ball.GetPosition();
         if (!ballPos.HasValue)
         {
             return false;
@@ -507,7 +507,7 @@ public class SpikeDrone : MonoBehaviour
             : 1f;
         timingWindow?.Reset();
 
-        Vector3? ballPos = _ballGetter.GetPosition();
+        Vector3? ballPos = _ball.GetPosition();
         if (!ballPos.HasValue)
         {
             return;
@@ -536,7 +536,7 @@ public class SpikeDrone : MonoBehaviour
 
     float CalculateFalling(float h)
     {
-        Vector3? ballPos = _ballGetter.GetPosition();
+        Vector3? ballPos = _ball.GetPosition();
         if (!ballPos.HasValue)
         {
             return -1;
@@ -583,7 +583,7 @@ public class SpikeDrone : MonoBehaviour
     {
         if (!Ball.Exists()) return;
 
-        Vector3? ballPos = _ballGetter.GetPosition();
+        Vector3? ballPos = _ball.GetPosition();
         if (!ballPos.HasValue)
         {
             return;
