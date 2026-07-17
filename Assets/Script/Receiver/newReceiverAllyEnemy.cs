@@ -26,9 +26,14 @@ public class newReceiverAllyEnemy : MonoBehaviour
     [SerializeField] private BallGetterOnDrone BallGetter;
 
     [SerializeField] private Team myTeam;
-    // ボールを追跡中かどうか（ボールの実体・速度は Ball 経由で取得する）。
+    // ボールを追跡中かどうか（ボールの位置・速度は BallGetter 経由で推定する）。
     private bool tracking = false;
     public float moveSpeed = 15f;
+
+    // ボール速度は Rigidbody から直接取得せず、座標の変化量から推定する
+    private Vector3 estimatedBallVelocity;
+    private Vector3 lastBallPos;
+    private bool hasLastBallPos;
 
     public Vector3 initialPos = new Vector3(10f, 1f, 0f);
 
@@ -129,6 +134,8 @@ public class newReceiverAllyEnemy : MonoBehaviour
 
     void FixedUpdate()
     {
+        UpdateEstimatedBallVelocity();
+
         switch (currentState)
         {
             case State.Waiting:
@@ -159,7 +166,7 @@ public class newReceiverAllyEnemy : MonoBehaviour
                     return;
                 }
 
-                Vector3 landingPos = PredictLandingPoint(ballPos.Value, Ball.GetVelocity(), transform.position.y);
+                Vector3 landingPos = PredictLandingPoint(ballPos.Value, estimatedBallVelocity, transform.position.y);
                 Vector3 targetPos = new Vector3(landingPos.x, transform.position.y, landingPos.z);
                 Hover(targetPos);
                 break;
@@ -173,6 +180,31 @@ public class newReceiverAllyEnemy : MonoBehaviour
         }
     }
 
+    // 直接 Rigidbody.linearVelocity を参照せず、座標の差分から速度を推定する
+    void UpdateEstimatedBallVelocity()
+    {
+        if (!Ball.Exists())
+        {
+            hasLastBallPos = false;
+            estimatedBallVelocity = Vector3.zero;
+            return;
+        }
+
+        Vector3? currentPos = BallGetter.GetPosition();
+        if (!currentPos.HasValue)
+        {
+            hasLastBallPos = false;
+            estimatedBallVelocity = Vector3.zero;
+            return;
+        }
+
+        if (hasLastBallPos)
+            estimatedBallVelocity = (currentPos.Value - lastBallPos) / Time.fixedDeltaTime;
+
+        lastBallPos = currentPos.Value;
+        hasLastBallPos = true;
+    }
+
     void FindAndCalculateBall()
     {
         if (!Ball.Exists()) return;
@@ -182,7 +214,7 @@ public class newReceiverAllyEnemy : MonoBehaviour
         {
             return;
         }
-        Vector3 ballVel = Ball.GetVelocity();
+        Vector3 ballVel = estimatedBallVelocity;
 
         if (IsBallGoingOut()) return;
 
@@ -204,7 +236,7 @@ public class newReceiverAllyEnemy : MonoBehaviour
             return true;
         }
 
-        Vector3 landing = PredictLandingPoint(ballPos.Value, Ball.GetVelocity(), 0f);
+        Vector3 landing = PredictLandingPoint(ballPos.Value, estimatedBallVelocity, 0f);
         return landing.x < courtXMin || landing.x > courtXMax ||
                landing.z < courtZMin || landing.z > courtZMax;
     }
