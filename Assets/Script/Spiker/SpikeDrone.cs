@@ -17,7 +17,10 @@ public enum TossQuality { High, Medium, Low }
 /// </summary>
 public class SpikeDrone : MonoBehaviour
 {
-    [SerializeField] private BallGetterOnDrone BallGetter;
+    [SerializeField] private BallGetterOnDrone _ballGetter;
+    private BallVelocity _ballVelocity;
+    private Predict _predict;
+    private Escape _escape;
 
     // ── SpikerAllyEnemyV2 と同一のフィールド ──────────────────────────
     [SerializeField] private Team myTeam;
@@ -44,11 +47,6 @@ public class SpikeDrone : MonoBehaviour
     [SerializeField] private float trajectoryCheckRadius = 3f;
     [SerializeField] private float trajectoryAvoidSpeed = 25f;
     [SerializeField] private int trajectorySamples = 30;
-
-    [Header("非ターゲットボール回避設定")]
-    [SerializeField] private float dodgeRadius = 3f;
-    [SerializeField] private float dodgeSpeed = 15f;
-    [SerializeField] private float dodgePredictionTime = 1f;  // 最接近点を探す予測時間
 
     [SerializeField] private bool isAvoidingTrajectory = false;
 
@@ -138,11 +136,6 @@ public class SpikeDrone : MonoBehaviour
     private float pendingVelocity;
     private TossQuality tossQuality = TossQuality.Low;
 
-    // ボール速度は Rigidbody から直接取得せず、座標の変化量から推定する
-    private Vector3 estimatedBallVelocity;
-    private Vector3 lastBallPos;
-    private bool hasLastBallPos;
-
     // 手動スパイク（Kを離した瞬間に突進）用
     private bool strikeRequested;
     private float requestedCourse;
@@ -161,15 +154,18 @@ public class SpikeDrone : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         rb.useGravity = false;
         transform.position = initialPos;
-        if (BallGetter == null)
+        if (_ballGetter == null)
         {
             Debug.LogError("BallGetterOnDrone がアタッチされていません。SpikeDrone.cs の BallGetter フィールドに設定してください。");
         }
+        _ballVelocity = new BallVelocity(_ballGetter);
+        _predict = new Predict(_ballGetter, _ballVelocity);
+        _escape = new Escape(_ballGetter, _ballVelocity, _predict, myTeam, netX);
     }
 
     void FixedUpdate()
     {
-        UpdateEstimatedBallVelocity();
+        _ballVelocity.UpdateEstimatedBallVelocity();
 
         bool isBetweenPoints = MatchManager.Instance != null &&
             MatchManager.Instance.currentPhase == MatchManager.GamePhase.Waiting;
@@ -197,11 +193,11 @@ public class SpikeDrone : MonoBehaviour
             case State.Hovering:
                 isReady = true; // ← Hovering のときのみ true
                 DetectTossType();
-                isAvoidingTrajectory = TryGetTrajectoryAvoidVector(out Vector3 hoverAvoid);
+                isAvoidingTrajectory = _escape.TryGetTrajectoryAvoidVector(targetRb, transform.position, trajectorySamples, timeUntilImpact, out Vector3 hoverAvoid);
                 Hover(initialPos);
                 if (isAvoidingTrajectory)
                     rb.linearVelocity += hoverAvoid;
-                ApplyDodgeVelocity();
+                _escape.ApplyDodgeVelocity(rb, transform.position, targetBall, ballTag, trajectorySamples, vMaxDrone);
                 FindAndCalculateBall();
                 break;
 
@@ -218,9 +214,9 @@ public class SpikeDrone : MonoBehaviour
                     // ボールの少し後ろ（自陣側オフセット）に張り付いて、Kを離すまで待つ。
                     // ボールに寄りたいので軌道回避は使わない（他球回避の ApplyDodgeVelocity のみ）。
                     float sx = (myTeam == Team.Ally) ? 1f : -1f;
-                    Vector3 shadow = PredictBallPosition(runupTime) + new Vector3(sx * 1.5f, 0f, 0f);
+                    Vector3 shadow = _predict.PredictBallPosition(runupTime) + new Vector3(sx * 1.5f, 0f, 0f);
                     MoveToPoint(shadow);
-                    ApplyDodgeVelocity();
+                    _escape.ApplyDodgeVelocity(rb, transform.position, targetBall, ballTag, trajectorySamples, vMaxDrone);
 
                     if (strikeRequested || timeUntilImpact <= 0f)   // 離した or 保険の自動突進
                     {
@@ -239,7 +235,7 @@ public class SpikeDrone : MonoBehaviour
                         strikeRequested = false;
 
                         // 迎撃を引き直す：runupTime 秒後のボール位置へ、その時間で着く速度
-                        Vector3 hit = PredictBallPosition(runupTime);
+                        Vector3 hit = _predict.PredictBallPosition(runupTime);
                         requiredDroneVel = (hit - transform.position) / runupTime;
                         if (requiredDroneVel.magnitude > vMax)
                             requiredDroneVel = requiredDroneVel.normalized * vMax;
@@ -250,7 +246,7 @@ public class SpikeDrone : MonoBehaviour
                 else
                 {
                     // Enemy: 従来どおり standbyPoint へ移動し、衝突直前に自動で突進
-                    isAvoidingTrajectory = TryGetTrajectoryAvoidVector(out Vector3 moveAvoid);
+                    isAvoidingTrajectory = _escape.TryGetTrajectoryAvoidVector(targetRb, transform.position, trajectorySamples, timeUntilImpact, out Vector3 moveAvoid);
                     MoveToPoint(standbyPoint);
                     if (isAvoidingTrajectory)
                     {
@@ -258,7 +254,7 @@ public class SpikeDrone : MonoBehaviour
                         if (rb.linearVelocity.magnitude > vMax)
                             rb.linearVelocity = rb.linearVelocity.normalized * vMax;
                     }
-                    ApplyDodgeVelocity();
+                    _escape.ApplyDodgeVelocity(rb, transform.position, targetBall, ballTag, trajectorySamples, vMaxDrone);
                     if (timeUntilImpact <= runupTime)
                         currentState = State.Striking;
                 }
@@ -280,7 +276,7 @@ public class SpikeDrone : MonoBehaviour
                 isReady = false;
                 isAvoidingTrajectory = false;
                 Hover(initialPos);
-                ApplyDodgeVelocity();
+                _escape.ApplyDodgeVelocity(rb, transform.position, targetBall, ballTag, trajectorySamples, vMaxDrone);
                 if (Vector3.Distance(transform.position, initialPos) < 0.3f)
                 {
                     lastSpikedBall = null;
@@ -291,31 +287,6 @@ public class SpikeDrone : MonoBehaviour
                 }
                 break;
         }
-    }
-
-    // 直接 Rigidbody.linearVelocity を参照せず、座標の差分から速度を推定する
-    void UpdateEstimatedBallVelocity()
-    {
-        if (!Ball.Exists())
-        {
-            hasLastBallPos = false;
-            estimatedBallVelocity = Vector3.zero;
-            return;
-        }
-
-        Vector3? currentPos = BallGetter.GetPosition();
-        if (!currentPos.HasValue)
-        {
-            hasLastBallPos = false;
-            estimatedBallVelocity = Vector3.zero;
-            return;
-        }
-
-        if (hasLastBallPos)
-            estimatedBallVelocity = (currentPos.Value - lastBallPos) / Time.fixedDeltaTime;
-
-        lastBallPos = currentPos.Value;
-        hasLastBallPos = true;
     }
 
     // ── 公開 API ──────────────────────────────────────────────────────
@@ -367,15 +338,15 @@ public class SpikeDrone : MonoBehaviour
         Rigidbody ballRb = ball.GetComponent<Rigidbody>();
         if (ballRb == null) return;
 
-        Vector3? ballPos = BallGetter.GetPosition();
+        Vector3? ballPos = _ballGetter.GetPosition();
         if (!ballPos.HasValue)
         {
             return;
         }
 
-        if (!IsBallOnMySide(ballPos.Value)) return;
+        if (!Side.IsBallOnMySide(myTeam, ballPos.Value, netX)) return;
 
-        if (estimatedBallVelocity.y > 0 &&
+        if (_ballVelocity.GetEstimatedBallVelocity().y > 0 &&
             ballPos.Value.y < spikeHeight &&
             MatchManager.Instance.currentPhase == MatchManager.GamePhase.Spiking)
         {
@@ -442,12 +413,12 @@ public class SpikeDrone : MonoBehaviour
             0f,
             pendingCourse * targetZHalf + Random.Range(-blur, blur));
 
-        Vector3? ballPos = BallGetter.GetPosition();
+        Vector3? ballPos = _ballGetter.GetPosition();
         if (!ballPos.HasValue)
         {
             return false;
         }
-        Vector3 ballVel = estimatedBallVelocity;
+        Vector3 ballVel = _ballVelocity.GetEstimatedBallVelocity();
         pointA = new Vector3(
             ballPos.Value.x + (ballVel.x * t),
             spikeHeight,
@@ -536,7 +507,7 @@ public class SpikeDrone : MonoBehaviour
             : 1f;
         timingWindow?.Reset();
 
-        Vector3? ballPos = BallGetter.GetPosition();
+        Vector3? ballPos = _ballGetter.GetPosition();
         if (!ballPos.HasValue)
         {
             return;
@@ -549,89 +520,6 @@ public class SpikeDrone : MonoBehaviour
     }
 
     // ── 以下 SpikerAllyEnemyV2 と完全同一 ────────────────────────────
-
-    bool TryGetTrajectoryAvoidVector(out Vector3 avoidVector)
-    {
-        avoidVector = Vector3.zero;
-
-        if (!Ball.Exists()) return false;
-        // targetRb 確定前はコート上のボールを対象にするため、自陣側にあるときだけ回避する。
-        // targetRb 確定後は捕捉済みなのでサイド判定を省く（従来挙動を維持）。
-        Vector3? ballPos = BallGetter.GetPosition();
-        if (!ballPos.HasValue)
-        {
-            return false;
-        }
-        if (targetRb == null && !IsBallOnMySide(ballPos.Value)) return false;
-
-        float duration = (timeUntilImpact > 0.05f) ? timeUntilImpact : 3f;
-
-        if (!TryGetClosestApproachNormal(ballPos.Value, estimatedBallVelocity, duration, trajectorySamples,
-                out Vector3 normalDir, out float minDist))
-            return false;
-
-        if (minDist >= trajectoryCheckRadius) return false;
-
-        float strength = 1f - (minDist / trajectoryCheckRadius);
-        avoidVector = normalDir * strength * trajectoryAvoidSpeed;
-        return true;
-    }
-
-    Vector3 PredictPosition(Vector3 pos, Vector3 vel, float t)
-    {
-        return new Vector3(
-            pos.x + vel.x * t,
-            pos.y + vel.y * t + 0.5f * g * t * t,
-            pos.z + vel.z * t
-        );
-    }
-
-    Vector3 PredictBallPosition(float t)
-    {
-        Vector3? ballPos = BallGetter.GetPosition();
-        if (!ballPos.HasValue)
-        {
-            return Vector3.zero;
-        }
-        return PredictPosition(ballPos.Value, estimatedBallVelocity, t);
-    }
-
-    // ボール軌道を duration 秒先までサンプリングし、ドローンと最も近づく点を探す。
-    // その最接近点でのボールからドローンへの方向は、軌道の接線（速度）にほぼ垂直な
-    // 「法線ベクトル」になる（距離が最小になる点では、距離ベクトルと速度が直交するため）。
-    bool TryGetClosestApproachNormal(Vector3 ballPos, Vector3 ballVel, float duration, int samples,
-        out Vector3 normalDir, out float minDist)
-    {
-        minDist = float.MaxValue;
-        Vector3 closestBallPos = ballPos;
-        float closestT = 0f;
-
-        for (int i = 0; i <= samples; i++)
-        {
-            float t = duration * i / samples;
-            Vector3 bp = PredictPosition(ballPos, ballVel, t);
-            float d = Vector3.Distance(transform.position, bp);
-            if (d < minDist)
-            {
-                minDist = d;
-                closestBallPos = bp;
-                closestT = t;
-            }
-        }
-
-        Vector3 awayDir = transform.position - closestBallPos;
-
-        if (awayDir.magnitude < 0.01f)
-        {
-            Vector3 ballVelAtT = new Vector3(ballVel.x, ballVel.y + g * closestT, ballVel.z);
-            awayDir = Vector3.Cross(ballVelAtT.normalized, Vector3.up);
-            if (awayDir.magnitude < 0.01f)
-                awayDir = Vector3.forward;
-        }
-
-        normalDir = awayDir.normalized;
-        return true;
-    }
 
     void SetNonTargetBallIgnore(bool ignore)
     {
@@ -646,50 +534,15 @@ public class SpikeDrone : MonoBehaviour
         }
     }
 
-    // dodgeRadius内の非ターゲットボールを、最接近点の法線ベクトル方向に回避
-    void ApplyDodgeVelocity()
-    {
-        Vector3 dodge = Vector3.zero;
-        Collider[] nearby = Physics.OverlapSphere(transform.position, dodgeRadius);
-        foreach (var col in nearby)
-        {
-            if (!col.CompareTag(ballTag)) continue;
-            if (col.gameObject == targetBall) continue;
-
-            Rigidbody ballRb = col.attachedRigidbody;
-            if (ballRb == null) continue;
-
-            if (!TryGetClosestApproachNormal(ballRb.position, ballRb.linearVelocity, dodgePredictionTime,
-                    trajectorySamples, out Vector3 normalDir, out float minDist))
-                continue;
-            if (minDist >= dodgeRadius) continue;
-
-            float weight = 1f - Mathf.Clamp01(minDist / dodgeRadius);
-            dodge += normalDir * weight * dodgeSpeed;
-        }
-
-        if (dodge.sqrMagnitude > 0.001f)
-        {
-            rb.linearVelocity += dodge;
-            if (rb.linearVelocity.magnitude > vMaxDrone)
-                rb.linearVelocity = rb.linearVelocity.normalized * vMaxDrone;
-        }
-    }
-
-    bool IsBallOnMySide(Vector3 ballPos)
-    {
-        return myTeam == Team.Ally ? ballPos.x > netX : ballPos.x < netX;
-    }
-
     float CalculateFalling(float h)
     {
-        Vector3? ballPos = BallGetter.GetPosition();
+        Vector3? ballPos = _ballGetter.GetPosition();
         if (!ballPos.HasValue)
         {
             return -1;
         }
         float y0 = ballPos.Value.y;
-        float vy0 = estimatedBallVelocity.y;
+        float vy0 = _ballVelocity.GetEstimatedBallVelocity().y;
 
         float a = 0.5f * g;
         float b = vy0;
@@ -730,13 +583,13 @@ public class SpikeDrone : MonoBehaviour
     {
         if (!Ball.Exists()) return;
 
-        Vector3? ballPos = BallGetter.GetPosition();
+        Vector3? ballPos = _ballGetter.GetPosition();
         if (!ballPos.HasValue)
         {
             return;
         }
 
-        Vector3 ballVel = estimatedBallVelocity;
+        Vector3 ballVel = _ballVelocity.GetEstimatedBallVelocity();
 
         float vy = ballVel.y;
         float apex = (vy > 0f)
