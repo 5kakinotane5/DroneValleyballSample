@@ -24910,7 +24910,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 508050330}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3cc53fcbb95a0f740bc0f1294510b423, type: 3}
+  m_Script: {fileID: 11500000, guid: a86e23fdf6ce11149aba9ec9b38ced11, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallGetterOnDrone
   myCamera: {fileID: 1504352189}
@@ -40198,7 +40198,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 853073787}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3cc53fcbb95a0f740bc0f1294510b423, type: 3}
+  m_Script: {fileID: 11500000, guid: a86e23fdf6ce11149aba9ec9b38ced11, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallGetterOnDrone
   myCamera: {fileID: 1223314000}
@@ -42236,7 +42236,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 890808356}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3cc53fcbb95a0f740bc0f1294510b423, type: 3}
+  m_Script: {fileID: 11500000, guid: a86e23fdf6ce11149aba9ec9b38ced11, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallGetterOnDrone
   myCamera: {fileID: 1371897207}
@@ -67541,7 +67541,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1392019825}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3cc53fcbb95a0f740bc0f1294510b423, type: 3}
+  m_Script: {fileID: 11500000, guid: a86e23fdf6ce11149aba9ec9b38ced11, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallGetterOnDrone
   myCamera: {fileID: 1874001678}

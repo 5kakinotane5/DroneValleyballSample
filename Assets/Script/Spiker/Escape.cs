@@ -3,20 +3,15 @@ using UnityEngine;
 public class Escape
 {
     private BallEstimator _ball;
-    private BallVelocity _ballVelocity;
     private Predict _predict;
     private Team _myTeam;
     private float _netX;
 
-    public Escape(BallEstimator ballGetter, BallVelocity ballVelocity, Predict predict, Team team, float netX)
+    public Escape(BallEstimator ballGetter, Predict predict, Team team, float netX)
     {
         if (ballGetter == null)
         {
             throw new System.ArgumentNullException(nameof(ballGetter));
-        }
-        if (ballVelocity == null)
-        {
-            throw new System.ArgumentNullException(nameof(ballVelocity));
         }
         if (predict == null)
         {
@@ -25,7 +20,6 @@ public class Escape
         _predict = predict;
         _myTeam = team;
         _ball = ballGetter;
-        _ballVelocity = ballVelocity;
         _netX = netX;
     }
 
@@ -50,7 +44,7 @@ public class Escape
 
         float duration = (timeUntilImpact > 0.05f) ? timeUntilImpact : 3f;
 
-        if (!TryGetClosestApproachNormal(position, ballPos.Value, _ballVelocity.GetEstimatedBallVelocity(), duration, trajectorySamples,
+        if (!TryGetClosestApproachNormal(position, ballPos.Value, _ball.GetVelocity(), duration, trajectorySamples,
                 out Vector3 normalDir, out float minDist))
         {
             return false;

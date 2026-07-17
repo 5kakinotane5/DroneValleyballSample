@@ -3,20 +3,14 @@ using UnityEngine;
 public class Predict
 {
     private BallEstimator _ball;
-    private BallVelocity _ballVelocity;
 
-    public Predict(BallEstimator ballGetter, BallVelocity ballVelocity)
+    public Predict(BallEstimator ballGetter)
     {
         if (ballGetter == null)
         {
             throw new System.ArgumentNullException(nameof(ballGetter));
         }
-        if (ballVelocity == null)
-        {
-            throw new System.ArgumentNullException(nameof(ballVelocity));
-        }
         _ball = ballGetter;
-        _ballVelocity = ballVelocity;
     }
 
     public Vector3 PredictPosition(Vector3 pos, Vector3 vel, float t)
@@ -33,6 +27,6 @@ public class Predict
         {
             return Vector3.zero;
         }
-        return PredictPosition(ballPos.Value, _ballVelocity.GetEstimatedBallVelocity(), t);
+        return PredictPosition(ballPos.Value, _ball.GetVelocity(), t);
     }
 }

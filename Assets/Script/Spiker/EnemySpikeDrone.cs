@@ -7,7 +7,6 @@ using Random = UnityEngine.Random;
 public class EnemySpikeDrone : MonoBehaviour
 {
     [SerializeField] private BallEstimator _ball;
-    private BallVelocity _ballVelocity;
     private Predict _predict;
     private Escape _escape;
 
@@ -121,16 +120,13 @@ public class EnemySpikeDrone : MonoBehaviour
         {
             Debug.LogError("BallEstimator がアタッチされていません。EnemySpikeDrone.cs の BallGetter フィールドに設定してください。");
         }
-        _ballVelocity = new BallVelocity(_ball);
-        _predict = new Predict(_ball, _ballVelocity);
-        _escape = new Escape(_ball, _ballVelocity, _predict, myTeam, netX);
+        _predict = new Predict(_ball);
+        _escape = new Escape(_ball, _predict, myTeam, netX);
 
     }
 
     void FixedUpdate()
     {
-        _ballVelocity.UpdateEstimatedBallVelocity();
-
         bool isBetweenPoints = MatchManager.Instance != null &&
             MatchManager.Instance.currentPhase == MatchManager.GamePhase.Waiting;
         if (!isBetweenPoints)
@@ -232,7 +228,7 @@ public class EnemySpikeDrone : MonoBehaviour
 
         if (!Side.IsBallOnMySide(myTeam, ballPos.Value, netX)) return;
 
-        if (_ballVelocity.GetEstimatedBallVelocity().y > 0 &&
+        if (_ball.GetVelocity().y > 0 &&
             ballPos.Value.y < spikeHeight &&
             MatchManager.Instance.currentPhase == MatchManager.GamePhase.Spiking)
         {
@@ -309,7 +305,7 @@ public class EnemySpikeDrone : MonoBehaviour
             return;
         }
 
-        Vector3 ballVel = _ballVelocity.GetEstimatedBallVelocity();
+        Vector3 ballVel = _ball.GetVelocity();
 
         float vy = ballVel.y;
         float apex = vy > 0f
@@ -343,7 +339,7 @@ public class EnemySpikeDrone : MonoBehaviour
         {
             return false;
         }
-        Vector3 ballVel = _ballVelocity.GetEstimatedBallVelocity();
+        Vector3 ballVel = _ball.GetVelocity();
         pointA = new Vector3(
             ballPos.Value.x + ballVel.x * t,
             spikeHeight,
@@ -519,7 +515,7 @@ public class EnemySpikeDrone : MonoBehaviour
             return -1;
         }
         float y0 = ballPos.Value.y;
-        float vy0 = _ballVelocity.GetEstimatedBallVelocity().y;
+        float vy0 = _ball.GetVelocity().y;
         float a = 0.5f * g;
         float b = vy0;
         float c = y0 - h;

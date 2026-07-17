@@ -10,15 +10,54 @@ public class BallEstimator : MonoBehaviour
     [SerializeField] private CameraOnDrone myCamera;
     [SerializeField] private CameraOnDrone otherCamera;
 
-    private BallFromCamera ball;
+    private BallFromCamera _ball;
 
     public void Awake()
     {
-        ball = new BallFromCamera(myCamera, otherCamera);
+        _ball = new BallFromCamera(myCamera, otherCamera);
+    }
+
+    void FixedUpdate()
+    {
+        UpdateVelocity();
     }
 
     public Vector3? GetPosition()
     {
-        return ball.GetPosition();
+        return _ball.GetPosition();
+    }
+
+    public Vector3 GetVelocity()
+    {
+        return _ballVelocity;
+    }
+
+    private bool _hasLastBallPos;
+    private Vector3 _ballVelocity;
+    private Vector3 _lastBallPos;
+
+    private void UpdateVelocity()
+    {
+        // Ballクラスに頼らないようにしたい.
+        if (!Ball.Exists())
+        {
+            _hasLastBallPos = false;
+            _ballVelocity = Vector3.zero;
+            return;
+        }
+
+        Vector3? currentPos = _ball.GetPosition();
+        if (!currentPos.HasValue)
+        {
+            _hasLastBallPos = false;
+            _ballVelocity = Vector3.zero;
+            return;
+        }
+
+        if (_hasLastBallPos)
+            _ballVelocity = (currentPos.Value - _lastBallPos) / Time.fixedDeltaTime;
+
+        _lastBallPos = currentPos.Value;
+        _hasLastBallPos = true;
     }
 }
