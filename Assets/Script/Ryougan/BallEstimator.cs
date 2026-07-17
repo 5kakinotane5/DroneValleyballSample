@@ -10,13 +10,6 @@ public class BallEstimator : MonoBehaviour
     [SerializeField] private CameraOnDrone myCamera;
     [SerializeField] private CameraOnDrone otherCamera;
 
-    private BallFromCamera _ball;
-
-    public void Awake()
-    {
-        _ball = new BallFromCamera(myCamera, otherCamera);
-    }
-
     void FixedUpdate()
     {
         UpdateVelocity();
@@ -24,7 +17,15 @@ public class BallEstimator : MonoBehaviour
 
     public Vector3? GetPosition()
     {
-        return _ball.GetPosition();
+        if (myCamera == null || otherCamera == null)
+        {
+            throw new System.Exception("BallEstimator: One or both cameras are null. Make sure to register the cameras before calling GetPosition.");
+        }
+
+        Ray gazeA = myCamera.GetGaze();
+        Ray gazeB = otherCamera.GetGaze();
+
+        return Ryougan.GetPosition(gazeA, gazeB);
     }
 
     public Vector3 GetVelocity()
@@ -46,7 +47,7 @@ public class BallEstimator : MonoBehaviour
             return;
         }
 
-        Vector3? currentPos = _ball.GetPosition();
+        Vector3? currentPos = GetPosition();
         if (!currentPos.HasValue)
         {
             _hasLastBallPos = false;
