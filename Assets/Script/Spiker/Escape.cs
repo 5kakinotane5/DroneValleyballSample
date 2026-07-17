@@ -2,21 +2,16 @@ using UnityEngine;
 
 public class Escape
 {
-    private BallGetterOnDrone _ballGetter;
-    private BallVelocity _ballVelocity;
+    private BallEstimator _ball;
     private Predict _predict;
     private Team _myTeam;
     private float _netX;
 
-    public Escape(BallGetterOnDrone ballGetter, BallVelocity ballVelocity, Predict predict, Team team, float netX)
+    public Escape(BallEstimator ballGetter, Predict predict, Team team, float netX)
     {
         if (ballGetter == null)
         {
             throw new System.ArgumentNullException(nameof(ballGetter));
-        }
-        if (ballVelocity == null)
-        {
-            throw new System.ArgumentNullException(nameof(ballVelocity));
         }
         if (predict == null)
         {
@@ -24,8 +19,7 @@ public class Escape
         }
         _predict = predict;
         _myTeam = team;
-        _ballGetter = ballGetter;
-        _ballVelocity = ballVelocity;
+        _ball = ballGetter;
         _netX = netX;
     }
 
@@ -38,7 +32,7 @@ public class Escape
 
         // targetRb 確定前はコート上のボールを対象にするため、自陣側にあるときだけ回避する。
         // targetRb 確定後は捕捉済みなのでサイド判定を省く（従来挙動を維持）。
-        Vector3? ballPos = _ballGetter.GetPosition();
+        Vector3? ballPos = _ball.GetPosition();
         if (!ballPos.HasValue)
         {
             return false;
@@ -50,7 +44,7 @@ public class Escape
 
         float duration = (timeUntilImpact > 0.05f) ? timeUntilImpact : 3f;
 
-        if (!TryGetClosestApproachNormal(position, ballPos.Value, _ballVelocity.GetEstimatedBallVelocity(), duration, trajectorySamples,
+        if (!TryGetClosestApproachNormal(position, ballPos.Value, _ball.GetVelocity(), duration, trajectorySamples,
                 out Vector3 normalDir, out float minDist))
         {
             return false;
@@ -98,6 +92,18 @@ public class Escape
             rb.linearVelocity += dodge;
             if (rb.linearVelocity.magnitude > vMaxDrone)
                 rb.linearVelocity = rb.linearVelocity.normalized * vMaxDrone;
+        }
+    }
+
+    // 自機と、targetBall 以外の全ボールとの衝突を ignore する／しない
+    public void SetNonTargetBallIgnore(Collider myCol, GameObject targetBall, string ballTag, bool ignore)
+    {
+        if (myCol == null) return;
+        foreach (var ball in GameObject.FindGameObjectsWithTag(ballTag))
+        {
+            if (ball == targetBall) continue;
+            Collider bc = ball.GetComponent<Collider>();
+            if (bc != null) Physics.IgnoreCollision(myCol, bc, ignore);
         }
     }
 

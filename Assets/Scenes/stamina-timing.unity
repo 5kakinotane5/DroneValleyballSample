@@ -24820,7 +24820,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 774774bfdb12f134388a10d2776837cd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpikeDrone
-  _ballGetter: {fileID: 508050355}
+  _ball: {fileID: 508050355}
   myTeam: 1
   tossBoost: 2
   ballTag: injectionball
@@ -24831,12 +24831,7 @@ MonoBehaviour:
   runupTime: 0.2
   netX: 0
   netHeightSafe: 4.9
-  trajectoryCheckRadius: 3
-  trajectoryAvoidSpeed: 25
   trajectorySamples: 30
-  dodgeRadius: 3
-  dodgeSpeed: 15
-  dodgePredictionTime: 1
   highTossApexThreshold: 13
   medTossApexThreshold: 8
   weakVelocityRatio: 0.35
@@ -24910,7 +24905,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 508050330}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3cc53fcbb95a0f740bc0f1294510b423, type: 3}
+  m_Script: {fileID: 11500000, guid: a86e23fdf6ce11149aba9ec9b38ced11, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallGetterOnDrone
   myCamera: {fileID: 1504352189}
@@ -40157,7 +40152,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3d499689e1d59f4ba23cea8811c72ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::newReceiverAllyEnemy
-  BallGetter: {fileID: 853073806}
+  _ball: {fileID: 853073806}
   myTeam: 1
   moveSpeed: 15
   initialPos: {x: -10, y: 1, z: 0}
@@ -40198,7 +40193,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 853073787}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3cc53fcbb95a0f740bc0f1294510b423, type: 3}
+  m_Script: {fileID: 11500000, guid: a86e23fdf6ce11149aba9ec9b38ced11, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallGetterOnDrone
   myCamera: {fileID: 1223314000}
@@ -42190,7 +42185,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3d499689e1d59f4ba23cea8811c72ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::newReceiverAllyEnemy
-  BallGetter: {fileID: 890808368}
+  _ball: {fileID: 890808368}
   myTeam: 0
   moveSpeed: 15
   initialPos: {x: 10, y: 1, z: 0}
@@ -42236,7 +42231,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 890808356}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3cc53fcbb95a0f740bc0f1294510b423, type: 3}
+  m_Script: {fileID: 11500000, guid: a86e23fdf6ce11149aba9ec9b38ced11, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallGetterOnDrone
   myCamera: {fileID: 1371897207}
@@ -67436,7 +67431,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e54095c89964a254bb2648b18ac0ebe8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpikeDrone
-  _ballGetter: {fileID: 1392019852}
+  _ball: {fileID: 1392019852}
   myTeam: 0
   tossBoost: 2
   ballTag: injectionball
@@ -67447,16 +67442,11 @@ MonoBehaviour:
   runupTime: 0.2
   netX: 0
   netHeightSafe: 4.9
-  trajectoryCheckRadius: 3
-  trajectoryAvoidSpeed: 25
   trajectorySamples: 30
-  dodgeRadius: 3
-  dodgeSpeed: 15
-  dodgePredictionTime: 1
   isAvoidingTrajectory: 0
   staminaSystem: {fileID: 1392019842}
   timingWindow: {fileID: 1392019843}
-  isPlayerControlled: 1
+  isPlayerControlled: 0
   minVelocity: 5
   weakVelocityRatio: 0.35
   medVelocityRatio: 0.65
@@ -67465,6 +67455,9 @@ MonoBehaviour:
   targetShallowX: -3
   targetDeepX: -20
   targetZHalf: 9
+  courtMargin: 1.2
+  opponentDrone: {fileID: 0}
+  highTossShortRate: 0.25
   inputCourse: 0
   inputVelocity: 0
   currentState: 0
@@ -67544,7 +67537,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1392019825}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3cc53fcbb95a0f740bc0f1294510b423, type: 3}
+  m_Script: {fileID: 11500000, guid: a86e23fdf6ce11149aba9ec9b38ced11, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallGetterOnDrone
   myCamera: {fileID: 1874001678}
