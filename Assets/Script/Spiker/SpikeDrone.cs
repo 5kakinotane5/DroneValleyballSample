@@ -551,7 +551,6 @@ public class SpikeDrone : MonoBehaviour
     {
         avoidVector = Vector3.zero;
 
-        if (!Ball.Exists()) return false;
         // targetRb 確定前はコート上のボールを対象にするため、自陣側にあるときだけ回避する。
         // targetRb 確定後は捕捉済みなのでサイド判定を省く（従来挙動を維持）。
         Vector3? ballPos = BallGetter.GetPosition();
