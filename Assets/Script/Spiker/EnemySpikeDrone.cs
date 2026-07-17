@@ -8,6 +8,7 @@ public class EnemySpikeDrone : MonoBehaviour
 {
     [SerializeField] private BallGetterOnDrone BallGetter;
     private BallVelocity _ballVelocity;
+    private Predict _predict;
 
     [SerializeField] private Team myTeam = Team.Enemy;
     public Team MyTeam => myTeam;
@@ -120,6 +121,7 @@ public class EnemySpikeDrone : MonoBehaviour
             Debug.LogError("BallGetterOnDrone がアタッチされていません。EnemySpikeDrone.cs の BallGetter フィールドに設定してください。");
         }
         _ballVelocity = new BallVelocity(BallGetter);
+        _predict = new Predict(BallGetter, _ballVelocity);
     }
 
     void FixedUpdate()
@@ -517,21 +519,6 @@ public class EnemySpikeDrone : MonoBehaviour
         return true;
     }
 
-    Vector3 PredictPosition(Vector3 pos, Vector3 vel, float t) =>
-        new Vector3(pos.x + vel.x * t,
-                    pos.y + vel.y * t + 0.5f * g * t * t,
-                    pos.z + vel.z * t);
-
-    Vector3 PredictBallPosition(float t)
-    {
-        Vector3? ballPos = BallGetter.GetPosition();
-        if (!ballPos.HasValue)
-        {
-            return Vector3.zero;
-        }
-        return PredictPosition(ballPos.Value, _ballVelocity.GetEstimatedBallVelocity(), t);
-    }
-
     // ボール軌道を duration 秒先までサンプリングし、ドローンと最も近づく点を探す。
     // その最接近点でのボールからドローンへの方向は、軌道の接線（速度）にほぼ垂直な
     // 「法線ベクトル」になる（距離が最小になる点では、距離ベクトルと速度が直交するため）。
@@ -545,7 +532,7 @@ public class EnemySpikeDrone : MonoBehaviour
         for (int i = 0; i <= samples; i++)
         {
             float t = duration * i / samples;
-            Vector3 bp = PredictPosition(ballPos, ballVel, t);
+            Vector3 bp = _predict.PredictPosition(ballPos, ballVel, t);
             float d = Vector3.Distance(transform.position, bp);
             if (d < minDist) { minDist = d; closestBallPos = bp; closestT = t; }
         }

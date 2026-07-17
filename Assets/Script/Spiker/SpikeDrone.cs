@@ -19,6 +19,7 @@ public class SpikeDrone : MonoBehaviour
 {
     [SerializeField] private BallGetterOnDrone BallGetter;
     private BallVelocity _ballVelocity;
+    private Predict _predict;
 
     // ── SpikerAllyEnemyV2 と同一のフィールド ──────────────────────────
     [SerializeField] private Team myTeam;
@@ -162,6 +163,7 @@ public class SpikeDrone : MonoBehaviour
             Debug.LogError("BallGetterOnDrone がアタッチされていません。SpikeDrone.cs の BallGetter フィールドに設定してください。");
         }
         _ballVelocity = new BallVelocity(BallGetter);
+        _predict = new Predict(BallGetter, _ballVelocity);
     }
 
     void FixedUpdate()
@@ -215,7 +217,7 @@ public class SpikeDrone : MonoBehaviour
                     // ボールの少し後ろ（自陣側オフセット）に張り付いて、Kを離すまで待つ。
                     // ボールに寄りたいので軌道回避は使わない（他球回避の ApplyDodgeVelocity のみ）。
                     float sx = (myTeam == Team.Ally) ? 1f : -1f;
-                    Vector3 shadow = PredictBallPosition(runupTime) + new Vector3(sx * 1.5f, 0f, 0f);
+                    Vector3 shadow = _predict.PredictBallPosition(runupTime) + new Vector3(sx * 1.5f, 0f, 0f);
                     MoveToPoint(shadow);
                     ApplyDodgeVelocity();
 
@@ -236,7 +238,7 @@ public class SpikeDrone : MonoBehaviour
                         strikeRequested = false;
 
                         // 迎撃を引き直す：runupTime 秒後のボール位置へ、その時間で着く速度
-                        Vector3 hit = PredictBallPosition(runupTime);
+                        Vector3 hit = _predict.PredictBallPosition(runupTime);
                         requiredDroneVel = (hit - transform.position) / runupTime;
                         if (requiredDroneVel.magnitude > vMax)
                             requiredDroneVel = requiredDroneVel.normalized * vMax;
@@ -573,25 +575,6 @@ public class SpikeDrone : MonoBehaviour
         return true;
     }
 
-    Vector3 PredictPosition(Vector3 pos, Vector3 vel, float t)
-    {
-        return new Vector3(
-            pos.x + vel.x * t,
-            pos.y + vel.y * t + 0.5f * g * t * t,
-            pos.z + vel.z * t
-        );
-    }
-
-    Vector3 PredictBallPosition(float t)
-    {
-        Vector3? ballPos = BallGetter.GetPosition();
-        if (!ballPos.HasValue)
-        {
-            return Vector3.zero;
-        }
-        return PredictPosition(ballPos.Value, _ballVelocity.GetEstimatedBallVelocity(), t);
-    }
-
     // ボール軌道を duration 秒先までサンプリングし、ドローンと最も近づく点を探す。
     // その最接近点でのボールからドローンへの方向は、軌道の接線（速度）にほぼ垂直な
     // 「法線ベクトル」になる（距離が最小になる点では、距離ベクトルと速度が直交するため）。
@@ -605,7 +588,7 @@ public class SpikeDrone : MonoBehaviour
         for (int i = 0; i <= samples; i++)
         {
             float t = duration * i / samples;
-            Vector3 bp = PredictPosition(ballPos, ballVel, t);
+            Vector3 bp = _predict.PredictPosition(ballPos, ballVel, t);
             float d = Vector3.Distance(transform.position, bp);
             if (d < minDist)
             {
